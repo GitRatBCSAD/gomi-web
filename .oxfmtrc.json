@@ -1,0 +1,8 @@
+{
+	"$schema": "./node_modules/oxfmt/configuration_schema.json",
+	"ignorePatterns": [],
+	"useTabs": true,
+	"sortImports": true,
+	"sortTailwindcss": true,
+	"tabWidth": 4
+}
