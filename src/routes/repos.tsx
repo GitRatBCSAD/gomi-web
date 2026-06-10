@@ -1,5 +1,6 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
 
 export const Route = createFileRoute("/repos")({ component: Repos });
 
@@ -19,17 +20,33 @@ async function getRepositories(): Promise<Repository[]> {
 	return res.json();
 }
 
+async function analyzeRepo(fullName: string): Promise<unknown> {
+	const token = localStorage.getItem("github_token");
+	const [owner, repo] = fullName.split("/");
+	const res = await fetch(`http://localhost:3002/analyze/${owner}/${repo}`, {
+		method: "POST",
+		headers: { Authorization: `Bearer ${token}` },
+	});
+	return await res.json();
+}
+
 function Repos() {
 	const navigate = useNavigate();
 	const token = localStorage.getItem("github_token");
+	const [result, setResult] = useState<any>(null);
 
 	const repositoriesQuery = useQuery({
 		queryKey: ["repos"],
 		queryFn: getRepositories,
 		enabled: !!token,
 		staleTime: 5 * 60 * 1000,
+		refetchOnWindowFocus: false,
 	});
-	const repos = repositoriesQuery.data;
+
+	const analyzeMutation = useMutation({
+		mutationFn: analyzeRepo,
+		onSuccess: (data) => setResult(data),
+	});
 
 	if (!token) {
 		navigate({ to: "/" });
@@ -48,8 +65,8 @@ function Repos() {
 		<div className="p-8">
 			<h1 className="mb-6 text-2xl font-bold">Your Repositories</h1>
 			<ul className="space-y-2">
-				{repos?.map((repo) => (
-					<li key={repo.id} className="flex items-center gap-2">
+				{repositoriesQuery.data?.map((repo) => (
+					<li key={repo.id} className="flex items-center gap-3">
 						<a
 							href={repo.html_url}
 							target="_blank"
@@ -63,9 +80,23 @@ function Repos() {
 								private
 							</span>
 						)}
+						<button
+							type="button"
+							onClick={() => analyzeMutation.mutate(repo.full_name)}
+							disabled={analyzeMutation.isPending}
+							className="rounded bg-gray-900 px-2 py-0.5 text-xs text-white hover:bg-gray-700 disabled:opacity-50"
+						>
+							{analyzeMutation.isPending ? "analyzing..." : "analyze"}
+						</button>
 					</li>
 				))}
 			</ul>
+
+			{result && (
+				<pre className="mt-8 overflow-auto rounded p-4 text-xs">
+					{JSON.stringify(result, null, 2)}
+				</pre>
+			)}
 		</div>
 	);
 }
