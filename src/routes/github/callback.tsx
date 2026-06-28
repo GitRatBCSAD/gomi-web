@@ -1,27 +1,39 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import type { JSX } from "react/jsx-runtime";
+import * as v from "valibot";
 
-export const Route = createFileRoute("/github/callback")({
-	validateSearch: (search: Record<string, unknown>) => ({
-		code: search.code as string | undefined,
-	}),
-	component: Callback,
+import { ApiResponseSchema } from "@/lib/api";
+import { BACKEND_URL } from "@/lib/env";
+
+const SearchSchema = v.object({
+	code: v.string(),
 });
 
-function Callback() {
+export const Route = createFileRoute("/github/callback")({
+	validateSearch: SearchSchema,
+	component: RouteComponent,
+});
+
+function RouteComponent(): JSX.Element {
 	const navigate = useNavigate();
 	const { code } = Route.useSearch();
 
 	useQuery({
 		queryKey: ["auth", code],
 		queryFn: async () => {
-			const res = await fetch("http://localhost:3002/auth/callback", {
+			const res = await fetch(`${BACKEND_URL}/auth/callback`, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ code }),
 			});
 			const data = await res.json();
-			localStorage.setItem("github_token", data.access_token);
+			const parsed = v.parse(ApiResponseSchema(v.string()), data);
+			if (!parsed.data) {
+				return null;
+			}
+
+			localStorage.setItem("github_token", parsed.data);
 			await navigate({ to: "/repos" });
 			return data;
 		},

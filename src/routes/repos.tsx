@@ -1,57 +1,28 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute, redirect } from "@tanstack/react-router";
+import { useState, type JSX } from "react";
 
-export const Route = createFileRoute("/repos")({ component: Repos });
+import { analyzeRepository, getRepositoriesQuery } from "@/lib/github/api";
 
-type Repository = {
-	id: number;
-	name: string;
-	full_name: string;
-	private: boolean;
-	html_url: string;
-};
+export const Route = createFileRoute("/repos")({
+	component: RouteComponent,
+	beforeLoad: async () => {
+		const token = localStorage.getItem("github_token");
+		if (!token) {
+			throw redirect({ to: "/" });
+		}
+	},
+});
 
-async function getRepositories(): Promise<Repository[]> {
-	const token = localStorage.getItem("github_token");
-	const res = await fetch("http://localhost:3002/repos", {
-		headers: { Authorization: `Bearer ${token}` },
-	});
-	return res.json();
-}
-
-async function analyzeRepo(fullName: string): Promise<unknown> {
-	const token = localStorage.getItem("github_token");
-	const [owner, repo] = fullName.split("/");
-	const res = await fetch(`http://localhost:3002/analyze/${owner}/${repo}`, {
-		method: "POST",
-		headers: { Authorization: `Bearer ${token}` },
-	});
-	return await res.json();
-}
-
-function Repos() {
-	const navigate = useNavigate();
-	const token = localStorage.getItem("github_token");
+function RouteComponent(): JSX.Element {
 	const [result, setResult] = useState<any>(null);
 
-	const repositoriesQuery = useQuery({
-		queryKey: ["repos"],
-		queryFn: getRepositories,
-		enabled: !!token,
-		staleTime: 5 * 60 * 1000,
-		refetchOnWindowFocus: false,
-	});
+	const repositoriesQuery = useQuery(getRepositoriesQuery);
 
 	const analyzeMutation = useMutation({
-		mutationFn: analyzeRepo,
+		mutationFn: analyzeRepository,
 		onSuccess: (data) => setResult(data),
 	});
-
-	if (!token) {
-		navigate({ to: "/" });
-		return null;
-	}
 
 	if (repositoriesQuery.isLoading) {
 		return (
@@ -68,12 +39,12 @@ function Repos() {
 				{repositoriesQuery.data?.map((repo) => (
 					<li key={repo.id} className="flex items-center gap-3">
 						<a
-							href={repo.html_url}
+							href={repo.htmlUrl}
 							target="_blank"
 							rel="noreferrer"
 							className="text-blue-600 hover:underline"
 						>
-							{repo.full_name}
+							{repo.fullName}
 						</a>
 						{repo.private && (
 							<span className="rounded bg-gray-100 px-1.5 py-0.5 text-xs text-gray-500">
@@ -82,7 +53,13 @@ function Repos() {
 						)}
 						<button
 							type="button"
-							onClick={() => analyzeMutation.mutate(repo.full_name)}
+							onClick={() => {
+								const [owner, name] = repo.fullName.split("/");
+								analyzeMutation.mutate({
+									owner: owner,
+									repository: name,
+								});
+							}}
 							disabled={analyzeMutation.isPending}
 							className="rounded bg-gray-900 px-2 py-0.5 text-xs text-white hover:bg-gray-700 disabled:opacity-50"
 						>
