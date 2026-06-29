@@ -17,15 +17,15 @@ export const Route = createFileRoute("/github/callback")({
 
 function RouteComponent(): JSX.Element {
 	const navigate = useNavigate();
-	const { code } = Route.useSearch();
+	const search = Route.useSearch();
 
 	useQuery({
-		queryKey: ["auth", code],
+		queryKey: ["auth", search.code],
 		queryFn: async () => {
 			const res = await fetch(`${BACKEND_URL}/auth/callback`, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ code }),
+				body: JSON.stringify({ code: search.code }),
 			});
 			const data = await res.json();
 			const parsed = v.parse(ApiResponseSchema(v.string()), data);
@@ -37,7 +37,7 @@ function RouteComponent(): JSX.Element {
 			await navigate({ to: "/repositories" });
 			return data;
 		},
-		enabled: !!code,
+		enabled: !!search.code,
 		staleTime: 5 * 60 * 1000,
 	});
 

@@ -3,6 +3,7 @@ import { Outlet, createRootRoute } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 
 import "../styles.css";
+import { Navbar } from "@/components/navbar";
 
 export const Route = createRootRoute({
 	component: RootComponent,
@@ -10,8 +11,11 @@ export const Route = createRootRoute({
 
 function RootComponent() {
 	return (
-		<>
+		<div className="pt-18 flex min-h-screen flex-col">
 			<Outlet />
+
+            <Navbar />
+
 			{import.meta.env.DEV && (
 				<TanStackDevtools
 					config={{
@@ -25,6 +29,6 @@ function RootComponent() {
 					]}
 				/>
 			)}
-		</>
+		</div>
 	);
 }
