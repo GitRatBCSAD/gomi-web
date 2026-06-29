@@ -40,27 +40,27 @@ function RouteComponent(): JSX.Element {
 
 	return (
 		<div className="flex flex-1 flex-col items-center justify-center gap-4 px-4 py-12">
-			<div className="w-full max-w-3xl overflow-hidden rounded-2xl border bg-background-900">
+			<div className="bg-background-900 w-full max-w-3xl overflow-hidden rounded-2xl border">
 				<div className="flex items-center px-4 py-4">
 					<input
-						className="flex-1 bg-transparent text-sm tracking-widest text-muted-foreground placeholder:text-muted-foreground/50 outline-none"
+						className="text-muted-foreground placeholder:text-muted-foreground/50 flex-1 bg-transparent text-sm tracking-widest outline-none"
 						placeholder="Search"
 						value={search}
 						onChange={(e) => setSearch(e.target.value)}
 					/>
-					<SearchIcon className="size-5 text-muted-foreground" />
+					<SearchIcon className="text-muted-foreground size-5" />
 				</div>
 			</div>
 
-			<div className="w-full max-w-3xl overflow-hidden rounded-2xl border bg-background-900">
+			<div className="bg-background-900 w-full max-w-3xl overflow-hidden rounded-2xl border">
 				<div className="h-120 overflow-y-auto">
 					{repos.map((repo) => (
 						<div
 							key={repo.id}
-							className="flex items-center gap-4 border-b border-border px-4 py-6"
+							className="border-border flex items-center gap-4 border-b px-4 py-6"
 						>
-							<GithubIcon className="size-8 shrink-0 text-foreground" />
-							<span className="flex-1 text-lg font-medium text-foreground">
+							<GithubIcon className="text-foreground size-8 shrink-0" />
+							<span className="text-foreground flex-1 text-lg font-medium">
 								{repo.name}
 							</span>
 							<Button

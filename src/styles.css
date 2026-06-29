@@ -315,7 +315,7 @@ body {
 		@apply border-border outline-ring/50;
 	}
 	body {
-		@apply bg-linear-to-b from-[#0B231C] to-dark-500 to-80% text-foreground;
+		@apply to-dark-500 text-foreground bg-linear-to-b from-[#0B231C] to-80%;
 	}
 	html {
 		@apply font-fira-mono;

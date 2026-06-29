@@ -11,10 +11,10 @@ export const Route = createRootRoute({
 
 function RootComponent() {
 	return (
-		<div className="pt-18 flex min-h-screen flex-col">
+		<div className="flex min-h-screen flex-col pt-18">
 			<Outlet />
 
-            <Navbar />
+			<Navbar />
 
 			{import.meta.env.DEV && (
 				<TanStackDevtools
