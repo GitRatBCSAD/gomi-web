@@ -7,9 +7,9 @@ export const RepositorySchema = v.object({
 	private: v.boolean(),
 	htmlUrl: v.pipe(v.string(), v.url()),
 });
-export type Repository = v.InferOutput<typeof RepositorySchema>
+export type Repository = v.InferOutput<typeof RepositorySchema>;
 
 export type AnalyzeRepositoryRequest = {
-    owner: string;
-    repository: string;
-}
+	owner: string;
+	repository: string;
+};
