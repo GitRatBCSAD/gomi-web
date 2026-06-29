@@ -4,7 +4,7 @@ import { useState, type JSX } from "react";
 
 import { analyzeRepository, getRepositoriesQuery } from "@/lib/github/api";
 
-export const Route = createFileRoute("/repos")({
+export const Route = createFileRoute("/repositories")({
 	component: RouteComponent,
 	beforeLoad: async () => {
 		const token = localStorage.getItem("github_token");

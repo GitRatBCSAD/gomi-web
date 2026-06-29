@@ -34,7 +34,7 @@ function RouteComponent(): JSX.Element {
 			}
 
 			localStorage.setItem("github_token", parsed.data);
-			await navigate({ to: "/repos" });
+			await navigate({ to: "/repositories" });
 			return data;
 		},
 		enabled: !!code,
