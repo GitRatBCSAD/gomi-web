@@ -15,6 +15,12 @@
 	font-display: swap;
 }
 
+@font-face {
+	font-family: fira-mono-bold;
+	src: url("/fonts/Fira_Mono/FiraMono-Bold.ttf");
+	font-display: swap;
+}
+
 html,
 body,
 #app {
@@ -29,6 +35,7 @@ body {
 	--font-heading: var(--font-sans);
 	--font-sans: "Inter Variable", sans-serif;
 	--font-fira-mono: "fira-mono", sans-serif;
+	--font-fira-mono-bold: "fira-mono-bold", sans-serif;
 
 	--color-primary-50: var(--primary-50);
 	--color-primary-100: var(--primary-100);
@@ -136,7 +143,7 @@ body {
 	--color-secondary-foreground: var(--secondary-foreground);
 	--color-secondary: var(--secondary);
 	--color-primary-foreground: var(--primary-foreground);
-	--color-primary: var(--primary);
+	--color-primary: var(--primary-500);
 	--color-popover-foreground: var(--popover-foreground);
 	--color-popover: var(--popover);
 	--color-card-foreground: var(--card-foreground);
@@ -236,7 +243,7 @@ body {
 	--text-900: #6b6b6b;
 
 	--background: oklch(1 0 0);
-	--foreground: oklch(0.145 0 0);
+	--foreground: #ffffff;
 	--card: oklch(1 0 0);
 	--card-foreground: oklch(0.145 0 0);
 	--popover: oklch(1 0 0);
@@ -245,8 +252,8 @@ body {
 	--primary-foreground: oklch(0.985 0 0);
 	--secondary: oklch(0.97 0 0);
 	--secondary-foreground: oklch(0.205 0 0);
-	--muted: oklch(0.97 0 0);
-	--muted-foreground: oklch(0.556 0 0);
+	--muted: #6b6b6b;
+	--muted-foreground: #b5b5b5;
 	--accent: oklch(0.97 0 0);
 	--accent-foreground: oklch(0.205 0 0);
 	--destructive: oklch(0.577 0.245 27.325);
@@ -308,7 +315,7 @@ body {
 		@apply border-border outline-ring/50;
 	}
 	body {
-		@apply bg-background text-foreground;
+		@apply bg-linear-to-b from-[#0B231C] to-dark-500 to-80% text-foreground;
 	}
 	html {
 		@apply font-fira-mono;
