@@ -25,15 +25,12 @@ function RouteComponent(): JSX.Element {
 			const res = await fetch(`${BACKEND_URL}/auth/callback`, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
+				credentials: "include",
 				body: JSON.stringify({ code: search.code }),
 			});
 			const data = await res.json();
-			const parsed = v.parse(ApiResponseSchema(v.string()), data);
-			if (!parsed.data) {
-				return null;
-			}
-
-			localStorage.setItem("github_token", parsed.data);
+			v.parse(ApiResponseSchema(), data);
+			if (!res.ok) return null;
 			await navigate({ to: "/repositories" });
 			return data;
 		},

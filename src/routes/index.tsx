@@ -1,10 +1,16 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
 import { H1 } from "@/components/typography";
 import { Button } from "@/components/ui/button";
-import { CLIENT_URL, GITHUB_CLIENT_ID } from "@/lib/env";
+import { BACKEND_URL, CLIENT_URL, GITHUB_CLIENT_ID } from "@/lib/env";
 
-export const Route = createFileRoute("/")({ component: Home });
+export const Route = createFileRoute("/")({
+	component: Home,
+	beforeLoad: async () => {
+		const res = await fetch(`${BACKEND_URL}/auth/me`, { credentials: "include" });
+		if (res.ok) throw redirect({ to: "/repositories" });
+	},
+});
 
 function Home() {
 	const redirectUri = `${CLIENT_URL}/github/callback`;

@@ -6,10 +6,9 @@ import { BACKEND_URL } from "../env";
 import { RepositorySchema, type AnalyzeRepositoryRequest, type Repository } from "./model";
 
 export async function getRepositories(): Promise<Repository[]> {
-	const token = localStorage.getItem("github_token");
 	const response = await fetch(`${BACKEND_URL}/repositories`, {
-		headers: { Authorization: `Bearer ${token}` },
 		method: "GET",
+		credentials: "include",
 	});
 	const result = await response.json();
 	const parsed = v.parse(ApiResponseSchema(v.array(RepositorySchema)), result);
@@ -25,10 +24,10 @@ export const getRepositoriesQuery = queryOptions({
 });
 
 export async function analyzeRepository(data: AnalyzeRepositoryRequest): Promise<unknown> {
-	const token = localStorage.getItem("github_token");
 	const res = await fetch(`${BACKEND_URL}/repositories`, {
 		method: "POST",
-		headers: { Authorization: `Bearer ${token}` },
+		headers: { "Content-Type": "application/json" },
+		credentials: "include",
 		body: JSON.stringify(data),
 	});
 	return await res.json();
