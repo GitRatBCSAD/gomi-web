@@ -381,7 +381,7 @@ function Tile({ node }: { node: HierarchyRectangularNode<TreeNode> }): JSX.Eleme
 	return (
 		<Tooltip>
 			<TooltipTrigger
-				className="absolute cursor-pointer overflow-hidden border border-dark-500 text-left hover:outline focus-visible:outline"
+				className="border-dark-500 absolute cursor-pointer overflow-hidden border text-left hover:outline focus-visible:outline"
 				style={{
 					left: node.x0,
 					top: node.y0,
@@ -454,10 +454,6 @@ function Tile({ node }: { node: HierarchyRectangularNode<TreeNode> }): JSX.Eleme
 		</Tooltip>
 	);
 }
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
 
 function getCategory(f: FileInfo): RiskCategory {
 	if (f.lowConf) return "low-conf";
