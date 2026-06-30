@@ -24,7 +24,7 @@ function RouteComponent(): JSX.Element {
 				</CardContent>
 			</Card>
 
-			<section className="grid gap-2 grid-cols-4">
+			<section className="grid grid-cols-4 gap-2">
 				<Card>
 					<CardHeader>
 						<H2 variant="p">Files Analyzed</H2>
