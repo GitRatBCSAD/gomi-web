@@ -11,14 +11,14 @@ export const Route = createFileRoute("/repositories/$repository/")({
 
 function RouteComponent(): JSX.Element {
 	return (
-		<div className="mx-auto w-full max-w-3xl space-y-2">
+		<div className="mx-auto w-full space-y-2">
 			<Card>
 				<CardHeader>
 					<H1>repo/name</H1>
 				</CardHeader>
 
 				<CardContent className="flex items-center gap-4">
-					<P>main</P>
+					<P>main | (analysis_window) | (latest_commit_date)</P>
 
 					<Badge>Public</Badge>
 				</CardContent>
@@ -31,13 +31,13 @@ function RouteComponent(): JSX.Element {
 					</CardHeader>
 
 					<CardContent className="flex items-center gap-4">
-						<P variant="h2">42</P>
+						<P variant="h2">3</P>
 					</CardContent>
 				</Card>
 
 				<Card>
 					<CardHeader>
-						<H2 variant="p">High Risk</H2>
+						<H2 variant="p">Risky</H2>
 					</CardHeader>
 
 					<CardContent className="flex items-center gap-4">
@@ -47,7 +47,7 @@ function RouteComponent(): JSX.Element {
 
 				<Card>
 					<CardHeader>
-						<H2 variant="p">Moderate</H2>
+						<H2 variant="p">Acceptable</H2>
 					</CardHeader>
 
 					<CardContent className="flex items-center gap-4">
@@ -57,7 +57,7 @@ function RouteComponent(): JSX.Element {
 
 				<Card>
 					<CardHeader>
-						<H2 variant="p">Low Risk</H2>
+						<H2 variant="p">Low Confidence</H2>
 					</CardHeader>
 
 					<CardContent className="flex items-center gap-4">
@@ -65,6 +65,7 @@ function RouteComponent(): JSX.Element {
 					</CardContent>
 				</Card>
 			</section>
+
 		</div>
 	);
 }
