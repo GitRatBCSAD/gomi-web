@@ -5,13 +5,15 @@ import { H1, H2, P } from "@/components/typography";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
+import { Heatmap } from "./-components/heatmap";
+
 export const Route = createFileRoute("/repositories/$repository/")({
 	component: RouteComponent,
 });
 
 function RouteComponent(): JSX.Element {
 	return (
-		<div className="mx-auto w-full space-y-2">
+		<div className="mx-auto w-full space-y-2 max-w-7xl">
 			<Card>
 				<CardHeader>
 					<H1>repo/name</H1>
@@ -66,6 +68,7 @@ function RouteComponent(): JSX.Element {
 				</Card>
 			</section>
 
+			<Heatmap />
 		</div>
 	);
 }
