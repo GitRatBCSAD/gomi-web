@@ -4,7 +4,7 @@ import type { JSX } from "react/jsx-runtime";
 
 import { cn } from "@/lib/utils";
 
-const typography = cva("", {
+const typography = cva("text-foreground", {
 	variants: {
 		variant: {
 			h1: "font-fira-mono-bold text-5xl",
