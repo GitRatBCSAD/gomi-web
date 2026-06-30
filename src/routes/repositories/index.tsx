@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { BACKEND_URL } from "@/lib/env";
 import { analyzeRepository, getRepositoriesQuery } from "@/lib/github/api";
 
-export const Route = createFileRoute("/repositories")({
+export const Route = createFileRoute("/repositories/")({
 	component: RouteComponent,
 	beforeLoad: async () => {
 		const res = await fetch(`${BACKEND_URL}/auth/me`, { credentials: "include" });
