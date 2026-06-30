@@ -10,5 +10,5 @@ export function H1(props: ComponentProps<"h1">): JSX.Element {
 }
 
 export function P(props: ComponentProps<"p">): JSX.Element {
-	return <h1 className={cn("font-fira-mono text-base", props.className)}>{props.children}</h1>;
+	return <p className={cn("font-fira-mono text-base", props.className)}>{props.children}</p>;
 }
