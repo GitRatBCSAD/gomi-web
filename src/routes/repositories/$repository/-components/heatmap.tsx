@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import type { FileRiskResult } from "@/lib/github/model";
 
 type RiskCategory = "risky" | "acceptable" | "low-conf";
 type FilterKey = "all" | RiskCategory;
@@ -32,147 +33,19 @@ type TreeNode = {
 	children?: TreeNode[];
 };
 
-const DATA: FileInfo[] = [
-	{
-		name: "transaction.py",
-		dir: "src/core/",
-		risk: 0.81,
-		complexity: 0.72,
-		commits: 14,
-		lowConf: false,
-	},
-	{
-		name: "fraud_detector.py",
-		dir: "src/core/",
-		risk: 0.67,
-		complexity: 0.55,
-		commits: 9,
-		lowConf: false,
-	},
-	{
-		name: "payment_processor.py",
-		dir: "src/core/",
-		risk: 0.76,
-		complexity: 0.68,
-		commits: 12,
-		lowConf: false,
-	},
-	{
-		name: "dispute_handler.py",
-		dir: "src/core/",
-		risk: 0.45,
-		complexity: 0.3,
-		commits: 7,
-		lowConf: true,
-	},
-	{
-		name: "invoice_generator.py",
-		dir: "src/services/",
-		risk: 0.4,
-		complexity: 0.52,
-		commits: 18,
-		lowConf: false,
-	},
-	{
-		name: "refund_service.py",
-		dir: "src/services/",
-		risk: 0.41,
-		complexity: 0.38,
-		commits: 11,
-		lowConf: true,
-	},
-	{
-		name: "rate_limiter.py",
-		dir: "src/services/",
-		risk: 0.35,
-		complexity: 0.42,
-		commits: 8,
-		lowConf: true,
-	},
-	{
-		name: "notification_service.py",
-		dir: "src/services/",
-		risk: 0.41,
-		complexity: 0.45,
-		commits: 6,
-		lowConf: false,
-	},
-	{
-		name: "validators.py",
-		dir: "src/utils/",
-		risk: 0.19,
-		complexity: 0.25,
-		commits: 5,
-		lowConf: false,
-	},
-	{
-		name: "helpers.py",
-		dir: "src/utils/",
-		risk: 0.22,
-		complexity: 0.2,
-		commits: 4,
-		lowConf: false,
-	},
-	{
-		name: "audit_logger.py",
-		dir: "src/utils/",
-		risk: 0.38,
-		complexity: 0.32,
-		commits: 9,
-		lowConf: false,
-	},
-	{
-		name: "currency_converter.py",
-		dir: "src/utils/",
-		risk: 0.25,
-		complexity: 0.28,
-		commits: 6,
-		lowConf: true,
-	},
-	{
-		name: "retry_logic.py",
-		dir: "src/utils/",
-		risk: 0.38,
-		complexity: 0.22,
-		commits: 5,
-		lowConf: true,
-	},
-	{ name: "models.py", dir: "src/", risk: 0.28, complexity: 0.4, commits: 12, lowConf: false },
-	{
-		name: "serializers.py",
-		dir: "src/",
-		risk: 0.17,
-		complexity: 0.35,
-		commits: 8,
-		lowConf: false,
-	},
-	{ name: "config.py", dir: "src/", risk: 0.14, complexity: 0.18, commits: 5, lowConf: false },
-	{ name: "constants.py", dir: "src/", risk: 0.08, complexity: 0.12, commits: 3, lowConf: false },
-	{
-		name: "auth_middleware.py",
-		dir: "src/middleware/",
-		risk: 0.35,
-		complexity: 0.38,
-		commits: 7,
-		lowConf: true,
-	},
-	{
-		name: "session_manager.py",
-		dir: "src/middleware/",
-		risk: 0.45,
-		complexity: 0.25,
-		commits: 4,
-		lowConf: true,
-	},
-	{
-		name: "webhook_handler.py",
-		dir: "src/api/",
-		risk: 0.71,
-		complexity: 0.6,
-		commits: 15,
-		lowConf: false,
-	},
-];
+function toFileInfo(r: FileRiskResult): FileInfo {
+	const parts = r.filename.split("/");
+	const name = parts.pop() ?? r.filename;
+	const dir = parts.length > 0 ? parts.join("/") + "/" : "";
+	return {
+		name,
+		dir,
+		risk: r.riskScore,
+		complexity: r.complexityScore,
+		commits: r.commitSentiments.length,
+		lowConf: r.lowConfidence,
+	};
+}
 
 const HATCH =
 	"repeating-linear-gradient(-45deg, transparent, transparent 3px, rgba(0,0,0,0.3) 3px, rgba(0,0,0,0.3) 6px)";
@@ -194,40 +67,46 @@ const FILTERS: { key: FilterKey; label: string }[] = [
 
 const DIR_LABEL_HEIGHT = 20;
 
-export function Heatmap(): JSX.Element {
+export function Heatmap(props: { fileResults: FileRiskResult[]; threshold: number }): JSX.Element {
 	const [filter, setFilter] = useState<FilterKey>("all");
 	const [search, setSearch] = useState("");
 
+	const data = props.fileResults.map(toFileInfo);
+
 	const counts: Record<FilterKey, number> = {
-		all: DATA.length,
-		risky: DATA.filter((f) => getCategory(f) === "risky").length,
-		acceptable: DATA.filter((f) => getCategory(f) === "acceptable").length,
-		"low-conf": DATA.filter((f) => getCategory(f) === "low-conf").length,
+		all: data.length,
+		risky: data.filter((f) => getCategory(f, props.threshold) === "risky").length,
+		acceptable: data.filter((f) => getCategory(f, props.threshold) === "acceptable").length,
+		"low-conf": data.filter((f) => getCategory(f, props.threshold) === "low-conf").length,
 	};
 
-	const visible = DATA.filter((f) => {
-		if (filter !== "all" && getCategory(f) !== filter) return false;
+	const visible = data.filter((f) => {
+		if (filter !== "all" && getCategory(f, props.threshold) !== filter) return false;
 		if (search && !f.name.toLowerCase().includes(search.toLowerCase())) return false;
 		return true;
 	});
 
-	const [dims, setDims] = useState({ width: 0, height: 0 });
+	const [containerWidth, setContainerWidth] = useState(0);
 
-	// Callback ref: re-attaches ResizeObserver if the panel remounts.
-	// Skips zero-size entries (fired when panel is hidden via display:none).
 	const roRef = useRef<ResizeObserver | null>(null);
 	const attachRef = (el: HTMLDivElement | null) => {
 		roRef.current?.disconnect();
 		if (!el) return;
 		roRef.current = new ResizeObserver(([entry]) => {
-			const { width, height } = entry.contentRect;
-			if (width > 0 && height > 0) setDims({ width, height });
+			const { width } = entry.contentRect;
+			if (width > 0) setContainerWidth(width);
 		});
 		roRef.current.observe(el);
 	};
 
+	// ~15000px² per tile (≈150×100px) so files extend downward instead of squeezing into columns
+	const contentHeight = useMemo(() => {
+		if (!containerWidth || !visible.length) return 400;
+		return Math.max(400, Math.ceil((visible.length * 15000) / containerWidth));
+	}, [containerWidth, visible.length]);
+
 	const { leaves, dirNodes } = useMemo(() => {
-		if (!dims.width || !dims.height || !visible.length) {
+		if (!containerWidth || !visible.length) {
 			return { leaves: [], dirNodes: [] };
 		}
 
@@ -239,11 +118,11 @@ export function Heatmap(): JSX.Element {
 				children: visible.filter((f) => f.dir === dir).map((f) => ({ ...f })),
 			})),
 		})
-			.sum((d) => d.complexity ?? 0)
+			.sum((d) => Math.max(d.complexity ?? 0, 0.1))
 			.sort((a, b) => (b.value ?? 0) - (a.value ?? 0));
 
 		treemap<TreeNode>()
-			.size([dims.width, dims.height])
+			.size([containerWidth, contentHeight])
 			.paddingOuter(4)
 			.paddingTop(DIR_LABEL_HEIGHT)
 			.paddingInner(1)
@@ -253,7 +132,7 @@ export function Heatmap(): JSX.Element {
 			leaves: root.leaves() as HierarchyRectangularNode<TreeNode>[],
 			dirNodes: (root.children ?? []) as HierarchyRectangularNode<TreeNode>[],
 		};
-	}, [dims, visible]);
+	}, [containerWidth, contentHeight, visible]);
 
 	return (
 		<TooltipProvider>
@@ -330,7 +209,11 @@ export function Heatmap(): JSX.Element {
 							No files match the current filter.
 						</div>
 					) : (
-						<div ref={attachRef} className="relative h-72 w-full sm:h-96 md:h-130">
+						<div
+							ref={attachRef}
+							className="relative w-full"
+							style={{ height: contentHeight }}
+						>
 							{dirNodes.map((d) => (
 								<div
 									key={d.data.name}
@@ -348,7 +231,11 @@ export function Heatmap(): JSX.Element {
 								</div>
 							))}
 							{leaves.map((l) => (
-								<Tile key={`${l.data.dir}${l.data.name}`} node={l} />
+								<Tile
+									key={`${l.data.dir}${l.data.name}`}
+									node={l}
+									threshold={props.threshold}
+								/>
 							))}
 						</div>
 					)}
@@ -364,18 +251,20 @@ export function Heatmap(): JSX.Element {
 	);
 }
 
-function Tile({ node }: { node: HierarchyRectangularNode<TreeNode> }): JSX.Element {
-	const {
-		risk = 0,
-		complexity = 0,
-		commits = 0,
-		lowConf = false,
-		name = "",
-		dir = "",
-	} = node.data;
-	const w = node.x1 - node.x0;
-	const h = node.y1 - node.y0;
-	const cat: RiskCategory = lowConf ? "low-conf" : risk >= 0.65 ? "risky" : "acceptable";
+function Tile(props: { node: HierarchyRectangularNode<TreeNode>; threshold: number }): JSX.Element {
+	const w = props.node.x1 - props.node.x0;
+	const h = props.node.y1 - props.node.y0;
+	const risk = props.node.data.risk ?? 0;
+	const complexity = props.node.data.complexity ?? 0;
+	const commits = props.node.data.commits ?? 0;
+	const lowConf = props.node.data.lowConf ?? false;
+	const name = props.node.data.name ?? "";
+	const dir = props.node.data.dir ?? "";
+	const cat: RiskCategory = lowConf
+		? "low-conf"
+		: risk >= props.threshold
+			? "risky"
+			: "acceptable";
 	const tooSmall = w < 52 || h < 34;
 
 	return (
@@ -383,8 +272,8 @@ function Tile({ node }: { node: HierarchyRectangularNode<TreeNode> }): JSX.Eleme
 			<TooltipTrigger
 				className="border-dark-500 absolute cursor-pointer overflow-hidden border text-left hover:outline focus-visible:outline"
 				style={{
-					left: node.x0,
-					top: node.y0,
+					left: props.node.x0,
+					top: props.node.y0,
 					width: w,
 					height: h,
 					backgroundColor: riskColor(risk),
@@ -455,9 +344,9 @@ function Tile({ node }: { node: HierarchyRectangularNode<TreeNode> }): JSX.Eleme
 	);
 }
 
-function getCategory(f: FileInfo): RiskCategory {
+function getCategory(f: FileInfo, threshold: number): RiskCategory {
 	if (f.lowConf) return "low-conf";
-	return f.risk >= 0.65 ? "risky" : "acceptable";
+	return f.risk >= threshold ? "risky" : "acceptable";
 }
 
 function riskColor(risk: number): string {
