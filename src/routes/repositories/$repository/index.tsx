@@ -13,7 +13,7 @@ export const Route = createFileRoute("/repositories/$repository/")({
 
 function RouteComponent(): JSX.Element {
 	return (
-		<div className="mx-auto w-full space-y-2 max-w-7xl">
+		<div className="mx-auto w-full space-y-2 max-w-7xl p-4">
 			<Card>
 				<CardHeader>
 					<H1>repo/name</H1>
