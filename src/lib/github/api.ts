@@ -3,7 +3,13 @@ import * as v from "valibot";
 
 import { ApiResponseSchema } from "../api";
 import { BACKEND_URL } from "../env";
-import { RepositorySchema, type AnalyzeRepositoryRequest, type Repository } from "./model";
+import {
+	AnalysisResultSchema,
+	RepositorySchema,
+	type AnalysisResult,
+	type AnalyzeRepositoryRequest,
+	type Repository,
+} from "./model";
 
 export async function getRepositories(): Promise<Repository[]> {
 	const response = await fetch(`${BACKEND_URL}/repositories`, {
@@ -23,12 +29,14 @@ export const getRepositoriesQuery = queryOptions({
 	refetchOnWindowFocus: false,
 });
 
-export async function analyzeRepository(data: AnalyzeRepositoryRequest): Promise<unknown> {
+export async function analyzeRepository(data: AnalyzeRepositoryRequest): Promise<AnalysisResult> {
 	const res = await fetch(`${BACKEND_URL}/repositories`, {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
 		credentials: "include",
 		body: JSON.stringify(data),
 	});
-	return await res.json();
+	const json = await res.json();
+	const parsed = v.parse(ApiResponseSchema(AnalysisResultSchema), json);
+	return parsed.data;
 }
