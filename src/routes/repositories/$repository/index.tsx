@@ -42,7 +42,7 @@ function RouteComponent(): JSX.Element {
 				</CardHeader>
 
 				<CardContent className="flex items-center gap-4">
-					<Badge>{analysis.status}</Badge>
+					<Badge>Public</Badge>
 				</CardContent>
 			</Card>
 

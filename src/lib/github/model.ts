@@ -42,7 +42,6 @@ export const FileRiskResultSchema = v.object({
 
 export const AnalysisResultSchema = v.object({
 	repoUrl: v.string(),
-	status: v.string(),
 	threshold: v.number(),
 	fileResults: v.array(FileRiskResultSchema),
 });
