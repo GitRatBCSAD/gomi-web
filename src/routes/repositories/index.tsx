@@ -88,7 +88,7 @@ function RouteComponent(): JSX.Element {
 										return;
 									}
 									const [owner, name] = repo.fullName.split("/");
-									analyzeMutation.mutate({ owner, repository: name });
+									analyzeMutation.mutate({ id: String(repo.id), owner, repository: name });
 								}}
 							>
 								{analyzeMutation.isPending ? "Analyzing..." : "Analyze"}

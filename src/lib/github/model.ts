@@ -10,13 +10,18 @@ export const RepositorySchema = v.object({
 export type Repository = v.InferOutput<typeof RepositorySchema>;
 
 export type AnalyzeRepositoryRequest = {
+	id: string;
 	owner: string;
 	repository: string;
 };
 
 export const CommitSentimentSchema = v.object({
+	hash: v.string(),
 	message: v.string(),
-	label: v.string(),
+	committedAt: v.number(),
+	code: v.nullable(v.string()),
+	lowInfo: v.boolean(),
+	riskProbability: v.nullable(v.number()),
 });
 
 export const ShapBreakdownSchema = v.object({
@@ -35,6 +40,13 @@ export const FileRiskResultSchema = v.object({
 	riskScore: v.number(),
 	sentimentScore: v.number(),
 	complexityScore: v.number(),
+	changeEntropy: v.number(),
+	ndevScore: v.number(),
+	ageScore: v.number(),
+	lowInfoRatio: v.number(),
+	commitCount: v.number(),
+	avgCcn: v.number(),
+	avgNloc: v.number(),
 	lowConfidence: v.boolean(),
 	shapBreakdown: v.nullable(ShapBreakdownSchema),
 	commitSentiments: v.array(CommitSentimentSchema),
@@ -42,6 +54,8 @@ export const FileRiskResultSchema = v.object({
 
 export const AnalysisResultSchema = v.object({
 	repoUrl: v.string(),
+	headSha: v.string(),
+	defaultBranch: v.string(),
 	threshold: v.number(),
 	fileResults: v.array(FileRiskResultSchema),
 });
