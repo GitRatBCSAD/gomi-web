@@ -1,6 +1,6 @@
 import { hierarchy, treemap, treemapSquarify } from "d3-hierarchy";
 import type { HierarchyRectangularNode } from "d3-hierarchy";
-import { Grid2X2Icon, ListIcon } from "lucide-react";
+import { CircleAlertIcon, CircleCheckIcon, Grid2X2Icon, ListIcon, MinusCircleIcon, TriangleAlertIcon } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import type { JSX } from "react";
 
@@ -135,6 +135,71 @@ function SentimentBar(props: {
 	);
 }
 
+function RiskBadge(props: { file: FileInfo; threshold: number }): JSX.Element {
+	const { file, threshold } = props;
+
+	if (file.lowConf) {
+		return (
+			<Badge
+				className="gap-1"
+				style={{
+					backgroundColor: "var(--dark-500)",
+					color: "var(--text-subtle)",
+					borderColor: "transparent",
+				}}
+			>
+				<MinusCircleIcon className="size-3" />
+				{file.risk.toFixed(2)}
+			</Badge>
+		);
+	}
+
+	if (file.risk >= threshold) {
+		return (
+			<Badge
+				className="gap-1"
+				style={{
+					backgroundColor: "var(--destructive-900)",
+					color: "var(--destructive-500)",
+					borderColor: "transparent",
+				}}
+			>
+				<TriangleAlertIcon className="size-3" />
+				{file.risk.toFixed(2)}
+			</Badge>
+		);
+	}
+
+	if (file.risk >= 0.4) {
+		return (
+			<Badge
+				className="gap-1"
+				style={{
+					backgroundColor: "var(--caution-900)",
+					color: "var(--caution-500)",
+					borderColor: "transparent",
+				}}
+			>
+				<CircleAlertIcon className="size-3" />
+				{file.risk.toFixed(2)}
+			</Badge>
+		);
+	}
+
+	return (
+		<Badge
+			className="gap-1"
+			style={{
+				backgroundColor: "var(--success-900)",
+				color: "var(--success-500)",
+				borderColor: "transparent",
+			}}
+		>
+			<CircleCheckIcon className="size-3" />
+			{file.risk.toFixed(2)}
+		</Badge>
+	);
+}
 
 export function Heatmap(props: { fileResults: FileRiskResult[]; threshold: number }): JSX.Element {
 	const [filter, setFilter] = useState<FilterKey>("all");
