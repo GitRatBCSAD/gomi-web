@@ -9,7 +9,7 @@ export function cn(...inputs: ClassValue[]) {
 export function enumDetailSchema<T extends v.Enum>(code: T) {
 	return v.object({
 		id: v.number(),
-		name: v.string(),
 		code: v.enum(code),
+		label: v.string(),
 	});
 }
