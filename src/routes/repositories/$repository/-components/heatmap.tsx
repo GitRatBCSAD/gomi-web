@@ -376,12 +376,82 @@ export function Heatmap(props: { fileResults: FileRiskResult[]; threshold: numbe
 				</TabsContent>
 
 				<TabsContent value="list" className="m-0">
-					<div className="text-muted-foreground flex h-48 items-center justify-center text-sm">
-						TODO
-					</div>
+					{visible.length === 0 ? (
+						<div className="text-muted-foreground flex h-48 items-center justify-center text-sm">
+							No files match the current filter.
+						</div>
+					) : (
+						<div className="w-full overflow-x-auto">
+							<table className="font-fira-mono w-full min-w-[520px]">
+								<thead>
+									<tr className="border-border border-b">
+										<th className="text-muted-foreground px-4 py-2.5 text-left text-xs font-medium">
+											File
+										</th>
+										<th className="text-muted-foreground px-4 py-2.5 text-left text-xs font-medium">
+											Sentiment
+										</th>
+										<th className="text-muted-foreground px-4 py-2.5 text-left text-xs font-medium">
+											Risk
+										</th>
+										<th className="text-muted-foreground px-4 py-2.5 text-left text-xs font-medium">
+											Commits
+										</th>
+									</tr>
+								</thead>
+								<tbody>
+									{visible.map((f, i) => (
+										<ListRow
+											key={`${f.dir}${f.name}`}
+											file={f}
+											threshold={props.threshold}
+											even={i % 2 === 0}
+										/>
+									))}
+								</tbody>
+							</table>
+						</div>
+					)}
 				</TabsContent>
 			</Tabs>
 		</TooltipProvider>
+	);
+}
+
+function ListRow(props: {
+	file: FileInfo;
+	threshold: number;
+	even: boolean;
+}): JSX.Element {
+	const { file, threshold, even } = props;
+	return (
+		<tr
+			className="border-border/40 group border-b transition-colors last:border-0"
+			style={{
+				backgroundColor: even
+					? "var(--background-900)"
+					: "transparent",
+			}}
+		>
+			<td className="px-4 py-3">
+				<p className="text-sm font-bold leading-tight text-white">{file.name}</p>
+				{file.dir && (
+					<p className="text-muted-foreground mt-0.5 text-xs">{file.dir}</p>
+				)}
+			</td>
+			<td className="w-36 px-4 py-3">
+				<SentimentBar
+					risky={file.sentimentRisky}
+					caution={file.sentimentCaution}
+					ok={file.sentimentOk}
+					lowConf={file.lowConf}
+				/>
+			</td>
+			<td className="px-4 py-3">
+				<RiskBadge file={file} threshold={threshold} />
+			</td>
+			<td className="px-4 py-3 text-sm text-white">{file.commits}</td>
+		</tr>
 	);
 }
 
