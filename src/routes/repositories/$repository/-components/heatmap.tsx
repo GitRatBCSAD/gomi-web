@@ -88,6 +88,54 @@ const FILTERS: { key: FilterKey; label: string }[] = [
 
 const DIR_LABEL_HEIGHT = 20;
 
+function SentimentBar(props: {
+	risky: number;
+	caution: number;
+	ok: number;
+	lowConf: boolean;
+}): JSX.Element {
+	if (props.lowConf) {
+		return (
+			<div
+				className="h-2 w-full rounded-full"
+				style={{ backgroundColor: "var(--background-700)" }}
+			/>
+		);
+	}
+
+	const total = props.risky + props.caution + props.ok;
+	const empty = total === 0;
+
+	return (
+		<div className="flex h-2 w-full overflow-hidden rounded-full">
+			<div
+				style={{
+					flex: empty ? 1 : props.risky,
+					minWidth: props.risky > 0 ? 2 : 0,
+					backgroundColor: empty
+						? "var(--background-700)"
+						: "var(--destructive-500)",
+				}}
+			/>
+			<div
+				style={{
+					flex: empty ? 0 : props.caution,
+					minWidth: props.caution > 0 ? 2 : 0,
+					backgroundColor: "var(--caution-500)",
+				}}
+			/>
+			<div
+				style={{
+					flex: empty ? 0 : props.ok,
+					minWidth: props.ok > 0 ? 2 : 0,
+					backgroundColor: "var(--primary-500)",
+				}}
+			/>
+		</div>
+	);
+}
+
+
 export function Heatmap(props: { fileResults: FileRiskResult[]; threshold: number }): JSX.Element {
 	const [filter, setFilter] = useState<FilterKey>("all");
 	const [search, setSearch] = useState("");
