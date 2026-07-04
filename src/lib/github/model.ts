@@ -1,5 +1,13 @@
 import * as v from "valibot";
 
+import { enumDetailSchema } from "../utils";
+
+enum Sentiment {
+	Caution = "caution",
+	Neutral = "neutral",
+	Satisfaction = "satisfaction",
+}
+
 export const RepositorySchema = v.object({
 	id: v.number(),
 	name: v.string(),
@@ -19,7 +27,7 @@ export const CommitSentimentSchema = v.object({
 	hash: v.string(),
 	message: v.string(),
 	committedAt: v.number(),
-	code: v.nullable(v.string()),
+	sentiment: v.nullable(enumDetailSchema(Sentiment)),
 	lowInfo: v.boolean(),
 	riskProbability: v.nullable(v.number()),
 });
