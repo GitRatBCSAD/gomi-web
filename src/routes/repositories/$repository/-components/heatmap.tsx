@@ -21,6 +21,9 @@ type FileInfo = {
 	complexity: number;
 	commits: number;
 	lowConf: boolean;
+	sentimentRisky: number;
+	sentimentCaution: number;
+	sentimentOk: number;
 };
 
 type TreeNode = {
@@ -37,13 +40,31 @@ function toFileInfo(r: FileRiskResult): FileInfo {
 	const parts = r.filename.split("/");
 	const name = parts.pop() ?? r.filename;
 	const dir = parts.length > 0 ? parts.join("/") + "/" : "";
+
+	const total = r.commitSentiments.length;
+	let risky = 0;
+	let caution = 0;
+	let ok = 0;
+	if (total > 0) {
+		for (const s of r.commitSentiments) {
+			const label = s.sentiment?.code ?? null;
+			if (label === "caution") risky++;
+			else if (label === "neutral") caution++;
+			else if (label === "satisfaction") ok++;
+			else caution++;
+		}
+	}
+
 	return {
 		name,
 		dir,
 		risk: r.riskScore,
 		complexity: r.complexityScore,
-		commits: r.commitSentiments.length,
+		commits: total,
 		lowConf: r.lowConfidence,
+		sentimentRisky: total > 0 ? risky / total : 0,
+		sentimentCaution: total > 0 ? caution / total : 0,
+		sentimentOk: total > 0 ? ok / total : 0,
 	};
 }
 
