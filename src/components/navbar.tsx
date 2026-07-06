@@ -59,12 +59,6 @@ export function Navbar(): JSX.Element {
 
 				{isAuthenticated && (
 					<div className="flex items-center gap-6">
-						<Link
-							to="/repositories"
-							className="text-muted-foreground hover:text-foreground font-fira-mono text-sm tracking-wide transition-colors"
-						>
-							Select Repo
-						</Link>
 						<Button
 							variant="destructive"
 							size="sm"
