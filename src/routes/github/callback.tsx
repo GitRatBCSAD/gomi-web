@@ -42,8 +42,10 @@ function RouteComponent(): JSX.Element {
 	});
 
 	return (
-		<div className="flex min-h-screen items-center justify-center">
-			<p>Authenticating...</p>
+		<div className="flex flex-1 items-center justify-center min-h-[60vh]">
+			<p className="text-muted-foreground font-fira-mono text-sm tracking-widest uppercase animate-pulse">
+				Authenticating...
+			</p>
 		</div>
 	);
 }
