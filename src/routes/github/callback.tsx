@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import type { JSX } from "react/jsx-runtime";
 import * as v from "valibot";
@@ -18,6 +18,7 @@ export const Route = createFileRoute("/github/callback")({
 function RouteComponent(): JSX.Element {
 	const navigate = useNavigate();
 	const search = Route.useSearch();
+	const queryClient = useQueryClient();
 
 	useQuery({
 		queryKey: ["auth", search.code],
@@ -31,6 +32,8 @@ function RouteComponent(): JSX.Element {
 			const data = await res.json();
 			v.parse(ApiResponseSchema(), data);
 			if (!res.ok) return null;
+			queryClient.setQueryData(["authMe"], true);
+			await queryClient.invalidateQueries({ queryKey: ["authMe"] });
 			await navigate({ to: "/repositories" });
 			return data;
 		},
