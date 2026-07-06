@@ -14,7 +14,7 @@ export const Route = createFileRoute("/")({
 
 function Home() {
 	const redirectUri = `${CLIENT_URL}/github/callback`;
-	const authUrl = `https://github.com/login/oauth/authorize?client_id=${GITHUB_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}`;
+	const authUrl = `https://github.com/login/oauth/authorize?client_id=${GITHUB_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=repo`;
 
 	return (
 		<div className="mx-auto flex max-w-5xl flex-1 flex-col items-center justify-center gap-4 px-4 text-center">

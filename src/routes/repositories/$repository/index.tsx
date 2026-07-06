@@ -1,9 +1,10 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute, redirect, Link } from "@tanstack/react-router";
 import type { JSX } from "react";
 
 import { H1, H2, P } from "@/components/typography";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardAction } from "@/components/ui/card";
 import { loadAnalysis } from "@/lib/github/model";
 
 import { Heatmap } from "./-components/heatmap";
@@ -39,6 +40,11 @@ function RouteComponent(): JSX.Element {
 			<Card>
 				<CardHeader>
 					<H1>{repoName}</H1>
+					<CardAction>
+						<Button variant="outline" size="sm" nativeButton={false} render={<Link to="/repositories" />}>
+							Select Other Repo
+						</Button>
+					</CardAction>
 				</CardHeader>
 
 				<CardContent className="flex items-center gap-4">
