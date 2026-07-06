@@ -17,6 +17,12 @@ export const RepositorySchema = v.object({
 });
 export type Repository = v.InferOutput<typeof RepositorySchema>;
 
+export const RepositoriesResponseSchema = v.object({
+	installationsCount: v.number(),
+	repositories: v.array(RepositorySchema),
+});
+export type RepositoriesResponse = v.InferOutput<typeof RepositoriesResponseSchema>;
+
 export type AnalyzeRepositoryRequest = {
 	id: string;
 	owner: string;

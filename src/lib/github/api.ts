@@ -5,21 +5,21 @@ import { ApiResponseSchema } from "../api";
 import { BACKEND_URL } from "../env";
 import {
 	AnalysisResultSchema,
-	RepositorySchema,
+	RepositoriesResponseSchema,
 	type AnalysisResult,
 	type AnalyzeRepositoryRequest,
-	type Repository,
+	type RepositoriesResponse,
 } from "./model";
 
-export async function getRepositories(): Promise<Repository[]> {
+export async function getRepositories(): Promise<RepositoriesResponse> {
 	const response = await fetch(`${BACKEND_URL}/repositories`, {
 		method: "GET",
 		credentials: "include",
 	});
 	const result = await response.json();
-	const parsed = v.parse(ApiResponseSchema(v.array(RepositorySchema)), result);
+	const parsed = v.parse(ApiResponseSchema(RepositoriesResponseSchema), result);
 
-	return parsed.data ?? [];
+	return parsed.data ?? { installationsCount: 0, repositories: [] };
 }
 
 export const getRepositoriesQuery = queryOptions({
