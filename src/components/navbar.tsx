@@ -1,6 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Loader2 } from "lucide-react";
 import type { JSX } from "react/jsx-runtime";
 
 import { Button } from "@/components/ui/button";
@@ -39,17 +38,7 @@ export function Navbar(): JSX.Element {
 	});
 
 	return (
-		<>
-			{logoutMutation.isPending && (
-				<div className="bg-dark-950/80 fixed inset-0 z-1000 flex flex-col items-center justify-center gap-4 backdrop-blur-md">
-					<Loader2 className="text-primary size-12 animate-spin" />
-					<p className="font-fira-mono-bold text-lg tracking-widest text-foreground">
-						LOGGING OUT...
-					</p>
-				</div>
-			)}
-
-			<nav className="bg-dark-500/80 border-border/40 fixed top-0 left-0 right-0 z-999 flex h-18 items-center justify-between border-b px-6 backdrop-blur-md">
+		<nav className="bg-dark-500/80 border-border/40 fixed top-0 left-0 right-0 z-999 flex h-18 items-center justify-between border-b px-6 backdrop-blur-md">
 				<Link
 					to={isAuthenticated ? "/repositories" : "/"}
 					className="text-primary hover:text-primary-400 font-fira-mono-bold text-xl tracking-widest no-underline transition-colors"
@@ -70,7 +59,6 @@ export function Navbar(): JSX.Element {
 					</div>
 				)}
 			</nav>
-		</>
 	);
 }
 
