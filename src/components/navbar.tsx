@@ -38,7 +38,7 @@ export function Navbar(): JSX.Element {
 	});
 
 	return (
-		<nav className="bg-dark-500/80 border-border/40 fixed top-0 left-0 right-0 z-999 flex h-18 items-center justify-between border-b px-6 backdrop-blur-md">
+		<nav className="fixed top-0 left-0 right-0 z-999 flex h-[4.5rem] items-center justify-between border-b border-white/10 bg-[#0b0d10]/90 px-6 backdrop-blur-sm">
 				<Link
 					to={isAuthenticated ? "/repositories" : "/"}
 					className="text-primary hover:text-primary-400 font-fira-mono-bold text-xl tracking-widest no-underline transition-colors"

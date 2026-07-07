@@ -11,7 +11,7 @@ export const Route = createRootRoute({
 
 function RootComponent() {
 	return (
-		<div className="flex min-h-screen flex-col pt-18">
+		<div className="flex min-h-screen flex-col pt-[4.5rem]">
 			<Outlet />
 
 			<Navbar />
