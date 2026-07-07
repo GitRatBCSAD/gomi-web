@@ -1,4 +1,5 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useRef } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import type { JSX } from "react/jsx-runtime";
 import * as v from "valibot";
@@ -19,27 +20,38 @@ function RouteComponent(): JSX.Element {
 	const navigate = useNavigate();
 	const search = Route.useSearch();
 	const queryClient = useQueryClient();
+	const hasFired = useRef(false);
 
-	useQuery({
-		queryKey: ["auth", search.code],
-		queryFn: async () => {
-			const res = await fetch(`${BACKEND_URL}/auth/callback`, {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				credentials: "include",
-				body: JSON.stringify({ code: search.code }),
-			});
-			const data = await res.json();
-			v.parse(ApiResponseSchema(), data);
-			if (!res.ok) return null;
-			queryClient.setQueryData(["authMe"], true);
-			await queryClient.invalidateQueries({ queryKey: ["authMe"] });
-			await navigate({ to: "/repositories" });
-			return data;
-		},
-		enabled: !!search.code,
-		staleTime: 5 * 60 * 1000,
-	});
+	useEffect(() => {
+		if (hasFired.current || !search.code) return;
+		hasFired.current = true;
+
+		async function exchangeCode() {
+			try {
+				const res = await fetch(`${BACKEND_URL}/auth/callback`, {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					credentials: "include",
+					body: JSON.stringify({ code: search.code }),
+				});
+				if (!res.ok) {
+					console.error("Auth callback failed:", res.statusText);
+					await navigate({ to: "/" });
+					return;
+				}
+				const data = await res.json();
+				v.parse(ApiResponseSchema(), data);
+				
+				await queryClient.invalidateQueries({ queryKey: ["authMe"] });
+				await navigate({ to: "/repositories" });
+			} catch (err) {
+				console.error("Auth callback error:", err);
+				await navigate({ to: "/" });
+			}
+		}
+
+		exchangeCode();
+	}, [search.code, queryClient, navigate]);
 
 	return (
 		<div className="flex flex-1 items-center justify-center min-h-[60vh]">

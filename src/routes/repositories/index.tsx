@@ -22,6 +22,20 @@ function RouteComponent(): JSX.Element {
 
 	const repositoriesQuery = useQuery(getRepositoriesQuery);
 
+	const { data: userProfile } = useQuery({
+		queryKey: ["authMe"],
+		queryFn: async () => {
+			try {
+				const res = await fetch(`${BACKEND_URL}/auth/me`, { credentials: "include" });
+				if (!res.ok) return null;
+				const body = await res.json();
+				return body.data;
+			} catch {
+				return null;
+			}
+		},
+	});
+
 	const analyzeMutation = useMutation({
 		mutationFn: analyzeRepository,
 		onSuccess: (data, variables) => {
@@ -54,8 +68,17 @@ function RouteComponent(): JSX.Element {
 
 	return (
 		<div className="flex flex-1 flex-col items-center justify-center gap-4 px-4 py-12">
+			<div className="w-full max-w-3xl flex flex-col items-center gap-1 mb-2 text-center">
+				<h1 className="font-fira-mono-bold text-3xl font-bold text-white">
+					Welcome back, <span className="text-primary">{userProfile?.githubUsername || "user"}</span>
+				</h1>
+				<p className="font-fira-mono-bold text-2xs text-gray-400">
+					Ready to scan?
+				</p>
+			</div>
+
 			{analyzeMutation.isError && (
-				<p className="text-destructive text-sm">
+				<p className="text-destructive text-sm w-full max-w-3xl text-left">
 					Analysis failed: {analyzeMutation.error?.message ?? "Unknown error"}
 				</p>
 			)}
