@@ -28,7 +28,7 @@ function Home() {
 			</p>
 			<a
 				href={authUrl}
-				className="inline-flex items-center justify-center gap-2.5 w-full max-w-[52rem] py-3.5 px-8 mt-2 bg-primary text-black font-fira-mono-bold text-base font-bold no-underline rounded-lg cursor-pointer transition-all duration-200 hover:bg-primary-400 hover:shadow-[0_0_20px_rgba(0,233,151,0.35)]"
+				className="inline-flex items-center justify-center gap-2.5 w-full max-w-[52rem] py-3.5 px-8 mt-2 bg-primary text-black font-fira-mono-bold text-base font-bold no-underline rounded-lg cursor-pointer transition-all duration-200 hover:bg-primary/90"
 			>
 				<GithubIcon className="size-5 shrink-0" />
 				<span>Install Now</span>
