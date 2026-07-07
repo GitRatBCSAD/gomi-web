@@ -40,9 +40,19 @@ function RouteComponent(): JSX.Element {
 					return;
 				}
 				const data = await res.json();
-				v.parse(ApiResponseSchema(), data);
 				
-				await queryClient.invalidateQueries({ queryKey: ["authMe"] });
+				v.parse(ApiResponseSchema(v.object({ isNewUser: v.boolean() })), data);
+				
+				await queryClient.fetchQuery({
+					queryKey: ["authMe"],
+					queryFn: async () => {
+						const res = await fetch(`${BACKEND_URL}/auth/me`, { credentials: "include" });
+						if (!res.ok) return null;
+						const body = await res.json();
+						return body.data;
+					}
+				});
+
 				await navigate({ to: "/repositories" });
 			} catch (err) {
 				console.error("Auth callback error:", err);

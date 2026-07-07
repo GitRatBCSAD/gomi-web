@@ -8,11 +8,28 @@ import { BACKEND_URL, GITHUB_APP_NAME } from "@/lib/env";
 import { analyzeRepository, getRepositoriesQuery } from "@/lib/github/api";
 import { loadAnalysis, saveAnalysis } from "@/lib/github/model";
 
+import type { UserProfile } from "@/components/navbar";
+
+const authMeQueryOptions = {
+	queryKey: ["authMe"],
+	queryFn: async (): Promise<UserProfile | null> => {
+		try {
+			const res = await fetch(`${BACKEND_URL}/auth/me`, { credentials: "include" });
+			if (!res.ok) return null;
+			const body = await res.json();
+			return body.data;
+		} catch {
+			return null;
+		}
+	},
+	staleTime: 60 * 1000,
+};
+
 export const Route = createFileRoute("/repositories/")({
 	component: RouteComponent,
-	beforeLoad: async () => {
-		const res = await fetch(`${BACKEND_URL}/auth/me`, { credentials: "include" });
-		if (!res.ok) throw redirect({ to: "/" });
+	beforeLoad: async ({ context }) => {
+		const profile = await context.queryClient.ensureQueryData(authMeQueryOptions);
+		if (!profile) throw redirect({ to: "/" });
 	},
 });
 
@@ -22,19 +39,7 @@ function RouteComponent(): JSX.Element {
 
 	const repositoriesQuery = useQuery(getRepositoriesQuery);
 
-	const { data: userProfile } = useQuery({
-		queryKey: ["authMe"],
-		queryFn: async () => {
-			try {
-				const res = await fetch(`${BACKEND_URL}/auth/me`, { credentials: "include" });
-				if (!res.ok) return null;
-				const body = await res.json();
-				return body.data;
-			} catch {
-				return null;
-			}
-		},
-	});
+	const { data: userProfile } = useQuery(authMeQueryOptions);
 
 	const analyzeMutation = useMutation({
 		mutationFn: analyzeRepository,
