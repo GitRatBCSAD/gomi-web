@@ -1,8 +1,8 @@
+import { useState, useRef, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import type { JSX } from "react/jsx-runtime";
 
-import { Button } from "@/components/ui/button";
 import { BACKEND_URL } from "@/lib/env";
 
 export interface UserProfile {
@@ -15,6 +15,18 @@ export interface UserProfile {
 export function Navbar(): JSX.Element {
 	const queryClient = useQueryClient();
 	const navigate = useNavigate();
+	const [dropdownOpen, setDropdownOpen] = useState(false);
+	const dropdownRef = useRef<HTMLDivElement>(null);
+
+	useEffect(() => {
+		function handleClickOutside(event: MouseEvent) {
+			if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+				setDropdownOpen(false);
+			}
+		}
+		document.addEventListener("mousedown", handleClickOutside);
+		return () => document.removeEventListener("mousedown", handleClickOutside);
+	}, []);
 
 	const { data: userProfile } = useQuery<UserProfile | null>({
 		queryKey: ["authMe"],
@@ -58,25 +70,42 @@ export function Navbar(): JSX.Element {
 				</Link>
 
 				{isAuthenticated && (
-					<div className="flex items-center gap-4">
-						{userProfile?.avatarUrl && (
-							<img
-								src={userProfile.avatarUrl}
-								alt={userProfile.githubUsername}
-								className="size-8 rounded-full border border-primary/20"
-							/>
-						)}
-						<span className="text-muted-foreground font-fira-mono text-sm hidden md:inline">
-							{userProfile?.githubUsername}
-						</span>
-						<Button
-							variant="destructive"
-							size="sm"
-							disabled={logoutMutation.isPending}
-							onClick={() => logoutMutation.mutate()}
+					<div className="relative" ref={dropdownRef}>
+						<button
+							onClick={() => setDropdownOpen(!dropdownOpen)}
+							className="flex items-center gap-2.5 rounded-md px-2 py-1 border border-transparent hover:border-white/10 hover:bg-white/5 transition-all outline-none cursor-pointer"
+							aria-label="User menu"
 						>
-							Logout
-						</Button>
+							{userProfile?.avatarUrl ? (
+								<img
+									src={userProfile.avatarUrl}
+									alt={userProfile.githubUsername}
+									className="size-12 rounded-full border border-primary/20"
+								/>
+							) : (
+								<div className="size-8 rounded-full border border-primary/20 bg-primary/10 flex items-center justify-center text-primary font-fira-mono-bold text-xs">
+									{userProfile?.githubUsername?.[0]?.toUpperCase() || "U"}
+								</div>
+							)}
+							<span className="text-muted-foreground font-fira-mono text-sm hidden md:inline">
+								{userProfile?.githubUsername}
+							</span>
+						</button>
+
+						{dropdownOpen && (
+							<div className="absolute right-0 mt-2 w-32 rounded-lg border border-white/10 bg-[#0b0d10] p-1 shadow-2xl animate-in fade-in slide-in-from-top-1 duration-100 z-50">
+								<button
+									disabled={logoutMutation.isPending}
+									onClick={() => {
+										setDropdownOpen(false);
+										logoutMutation.mutate();
+									}}
+									className="w-full flex items-center justify-center px-3 py-2 text-center text-xs font-fira-mono text-destructive hover:bg-destructive/10 rounded-md transition-colors cursor-pointer outline-none border-none"
+								>
+									{logoutMutation.isPending ? "Logging out..." : "Logout"}
+								</button>
+							</div>
+						)}
 					</div>
 				)}
 			</nav>
