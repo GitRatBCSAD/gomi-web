@@ -274,6 +274,11 @@ body {
 	--sidebar-accent-foreground: oklch(0.205 0 0);
 	--sidebar-border: oklch(0.922 0 0);
 	--sidebar-ring: oklch(0.708 0 0);
+
+	--bg-gradient-from: #0b231c;
+	--bg-gradient-to: #0b0d10;
+	--grid-size: 40px;
+	--grid-color: rgba(0, 233, 151, 0.05);
 }
 
 .dark {
@@ -310,14 +315,24 @@ body {
 	--sidebar-ring: oklch(0.556 0 0);
 }
 
+@utility bg-grid {
+	background-image:
+		linear-gradient(var(--grid-color) 1px, transparent 1px),
+		linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+	background-size: var(--grid-size) var(--grid-size);
+}
+
 @layer base {
 	* {
 		@apply border-border outline-ring/50;
 	}
 	body {
-		@apply to-dark-500 text-foreground bg-linear-to-b from-[#0B231C] to-80%;
-	}
-	html {
-		@apply font-fira-mono;
+		@apply min-h-screen text-foreground font-fira-mono bg-grid;
+		background-image:
+			linear-gradient(var(--grid-color) 1px, transparent 1px),
+			linear-gradient(90deg, var(--grid-color) 1px, transparent 1px),
+			linear-gradient(to bottom, var(--bg-gradient-from), var(--bg-gradient-to));
+		background-size: var(--grid-size) var(--grid-size), var(--grid-size) var(--grid-size), 100% 100%;
+		background-attachment: fixed;
 	}
 }
