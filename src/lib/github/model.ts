@@ -27,6 +27,7 @@ export type AnalyzeRepositoryRequest = {
 	id: string;
 	owner: string;
 	repository: string;
+	force?: boolean;
 };
 
 export const CommitSentimentSchema = v.object({

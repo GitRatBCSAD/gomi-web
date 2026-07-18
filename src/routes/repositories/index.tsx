@@ -157,27 +157,40 @@ function RouteComponent(): JSX.Element {
 							<span className="text-foreground flex-1 text-lg font-medium">
 								{repo.name}
 							</span>
-							<Button
-								disabled={analyzeMutation.isPending}
-								onClick={() => {
-									const cached = loadAnalysis(repo.fullName);
-									if (cached) {
-										navigate({
-											to: "/repositories/$repository",
-											params: { repository: repo.fullName },
-										});
-										return;
-									}
-									const [owner, name] = repo.fullName.split("/");
-									analyzeMutation.mutate({
-										id: String(repo.id),
-										owner,
-										repository: name,
-									});
-								}}
-							>
-								{analyzeMutation.isPending ? "Analyzing..." : "Analyze"}
-							</Button>
+							{(() => {
+								const cached = loadAnalysis(repo.fullName);
+								const [owner, name] = repo.fullName.split("/");
+								return (
+									<>
+										<Button
+											disabled={analyzeMutation.isPending}
+											onClick={() => {
+												if (cached) {
+													navigate({
+														to: "/repositories/$repository",
+														params: { repository: repo.fullName },
+													});
+													return;
+												}
+												analyzeMutation.mutate({ id: String(repo.id), owner, repository: name });
+											}}
+										>
+											{analyzeMutation.isPending ? "Analyzing..." : cached ? "View" : "Analyze"}
+										</Button>
+										{cached && (
+											<Button
+												variant="outline"
+												disabled={analyzeMutation.isPending}
+												onClick={() => {
+													analyzeMutation.mutate({ id: String(repo.id), owner, repository: name, force: true });
+												}}
+											>
+												Re-analyze
+											</Button>
+										)}
+									</>
+								);
+							})()}
 						</div>
 					))}
 
