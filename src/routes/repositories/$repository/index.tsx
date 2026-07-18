@@ -90,7 +90,7 @@ function RouteComponent(): JSX.Element {
 				</Card>
 			</section>
 
-			<Heatmap fileResults={analysis.fileResults} threshold={analysis.threshold} />
+			<Heatmap fileResults={analysis.fileResults} threshold={analysis.threshold} repository={repoName} />
 		</div>
 	);
 }

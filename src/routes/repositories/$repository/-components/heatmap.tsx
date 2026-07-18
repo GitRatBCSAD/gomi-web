@@ -3,6 +3,7 @@ import type { HierarchyRectangularNode } from "d3-hierarchy";
 import { CircleAlertIcon, CircleCheckIcon, Grid2X2Icon, ListIcon, MinusCircleIcon, TriangleAlertIcon } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import type { JSX } from "react";
+import { useNavigate } from "@tanstack/react-router";
 
 import { P } from "@/components/typography";
 import { Badge } from "@/components/ui/badge";
@@ -201,7 +202,7 @@ function RiskBadge(props: { file: FileInfo; threshold: number }): JSX.Element {
 	);
 }
 
-export function Heatmap(props: { fileResults: FileRiskResult[]; threshold: number }): JSX.Element {
+export function Heatmap(props: { fileResults: FileRiskResult[]; threshold: number; repository: string }): JSX.Element {
 	const [filter, setFilter] = useState<FilterKey>("all");
 	const [search, setSearch] = useState("");
 
@@ -369,6 +370,7 @@ export function Heatmap(props: { fileResults: FileRiskResult[]; threshold: numbe
 									key={`${l.data.dir}${l.data.name}`}
 									node={l}
 									threshold={props.threshold}
+									repository={props.repository}
 								/>
 							))}
 						</div>
@@ -406,6 +408,7 @@ export function Heatmap(props: { fileResults: FileRiskResult[]; threshold: numbe
 											file={f}
 											threshold={props.threshold}
 											even={i % 2 === 0}
+											repository={props.repository}
 										/>
 									))}
 								</tbody>
@@ -422,16 +425,25 @@ function ListRow(props: {
 	file: FileInfo;
 	threshold: number;
 	even: boolean;
+	repository: string;
 }): JSX.Element {
-	const { file, threshold, even } = props;
+	const { file, threshold, even, repository } = props;
+	const navigate = useNavigate();
 	return (
 		<tr
-			className="border-border/40 group border-b transition-colors last:border-0"
+			className="border-border/40 group border-b transition-colors last:border-0 cursor-pointer hover:bg-muted/30"
 			style={{
 				backgroundColor: even
 					? "var(--background-900)"
 					: "transparent",
 			}}
+			onClick={() =>
+				navigate({
+					to: "/repositories/$repository/file",
+					params: { repository },
+					search: { path: `${file.dir}${file.name}` },
+				})
+			}
 		>
 			<td className="px-4 py-3">
 				<p className="text-sm font-bold leading-tight text-white">{file.name}</p>
@@ -455,7 +467,7 @@ function ListRow(props: {
 	);
 }
 
-function Tile(props: { node: HierarchyRectangularNode<TreeNode>; threshold: number }): JSX.Element {
+function Tile(props: { node: HierarchyRectangularNode<TreeNode>; threshold: number; repository: string }): JSX.Element {
 	const w = props.node.x1 - props.node.x0;
 	const h = props.node.y1 - props.node.y0;
 	const risk = props.node.data.risk ?? 0;
@@ -470,6 +482,7 @@ function Tile(props: { node: HierarchyRectangularNode<TreeNode>; threshold: numb
 			? "risky"
 			: "acceptable";
 	const tooSmall = w < 52 || h < 34;
+	const navigate = useNavigate();
 
 	return (
 		<Tooltip>
@@ -482,6 +495,13 @@ function Tile(props: { node: HierarchyRectangularNode<TreeNode>; threshold: numb
 					height: h,
 					backgroundColor: riskColor(risk),
 				}}
+				onClick={() =>
+					navigate({
+						to: "/repositories/$repository/file",
+						params: { repository: props.repository },
+						search: { path: `${dir}${name}` },
+					})
+				}
 			>
 				{lowConf && (
 					<div
@@ -553,7 +573,7 @@ function getCategory(f: FileInfo, threshold: number): RiskCategory {
 	return f.risk >= threshold ? "risky" : "acceptable";
 }
 
-function riskColor(risk: number): string {
+export function riskColor(risk: number): string {
 	const stops: [number, [number, number, number]][] = [
 		[0.0, [32, 68, 38]],
 		[0.3, [58, 82, 42]],
