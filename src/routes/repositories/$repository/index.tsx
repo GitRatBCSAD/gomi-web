@@ -41,7 +41,12 @@ function RouteComponent(): JSX.Element {
 				<CardHeader>
 					<H1>{repoName}</H1>
 					<CardAction>
-						<Button variant="outline" size="sm" nativeButton={false} render={<Link to="/repositories" />}>
+						<Button
+							variant="outline"
+							size="sm"
+							nativeButton={false}
+							render={<Link to="/repositories" />}
+						>
 							Select Other Repo
 						</Button>
 					</CardAction>
@@ -90,7 +95,11 @@ function RouteComponent(): JSX.Element {
 				</Card>
 			</section>
 
-			<Heatmap fileResults={analysis.fileResults} threshold={analysis.threshold} repository={repoName} />
+			<Heatmap
+				fileResults={analysis.fileResults}
+				threshold={analysis.threshold}
+				repository={repoName}
+			/>
 		</div>
 	);
 }

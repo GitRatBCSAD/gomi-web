@@ -1,9 +1,16 @@
+import { useNavigate } from "@tanstack/react-router";
 import { hierarchy, treemap, treemapSquarify } from "d3-hierarchy";
 import type { HierarchyRectangularNode } from "d3-hierarchy";
-import { CircleAlertIcon, CircleCheckIcon, Grid2X2Icon, ListIcon, MinusCircleIcon, TriangleAlertIcon } from "lucide-react";
+import {
+	CircleAlertIcon,
+	CircleCheckIcon,
+	Grid2X2Icon,
+	ListIcon,
+	MinusCircleIcon,
+	TriangleAlertIcon,
+} from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import type { JSX } from "react";
-import { useNavigate } from "@tanstack/react-router";
 
 import { P } from "@/components/typography";
 import { Badge } from "@/components/ui/badge";
@@ -113,9 +120,7 @@ function SentimentBar(props: {
 				style={{
 					flex: empty ? 1 : props.risky,
 					minWidth: props.risky > 0 ? 2 : 0,
-					backgroundColor: empty
-						? "var(--background-700)"
-						: "var(--destructive-500)",
+					backgroundColor: empty ? "var(--background-700)" : "var(--destructive-500)",
 				}}
 			/>
 			<div
@@ -202,7 +207,11 @@ function RiskBadge(props: { file: FileInfo; threshold: number }): JSX.Element {
 	);
 }
 
-export function Heatmap(props: { fileResults: FileRiskResult[]; threshold: number; repository: string }): JSX.Element {
+export function Heatmap(props: {
+	fileResults: FileRiskResult[];
+	threshold: number;
+	repository: string;
+}): JSX.Element {
 	const [filter, setFilter] = useState<FilterKey>("all");
 	const [search, setSearch] = useState("");
 
@@ -431,11 +440,9 @@ function ListRow(props: {
 	const navigate = useNavigate();
 	return (
 		<tr
-			className="border-border/40 group border-b transition-colors last:border-0 cursor-pointer hover:bg-muted/30"
+			className="border-border/40 group hover:bg-muted/30 cursor-pointer border-b transition-colors last:border-0"
 			style={{
-				backgroundColor: even
-					? "var(--background-900)"
-					: "transparent",
+				backgroundColor: even ? "var(--background-900)" : "transparent",
 			}}
 			onClick={() =>
 				navigate({
@@ -446,10 +453,8 @@ function ListRow(props: {
 			}
 		>
 			<td className="px-4 py-3">
-				<p className="text-sm font-bold leading-tight text-white">{file.name}</p>
-				{file.dir && (
-					<p className="text-muted-foreground mt-0.5 text-xs">{file.dir}</p>
-				)}
+				<p className="text-sm leading-tight font-bold text-white">{file.name}</p>
+				{file.dir && <p className="text-muted-foreground mt-0.5 text-xs">{file.dir}</p>}
 			</td>
 			<td className="w-36 px-4 py-3">
 				<SentimentBar
@@ -467,7 +472,11 @@ function ListRow(props: {
 	);
 }
 
-function Tile(props: { node: HierarchyRectangularNode<TreeNode>; threshold: number; repository: string }): JSX.Element {
+function Tile(props: {
+	node: HierarchyRectangularNode<TreeNode>;
+	threshold: number;
+	repository: string;
+}): JSX.Element {
 	const w = props.node.x1 - props.node.x0;
 	const h = props.node.y1 - props.node.y0;
 	const risk = props.node.data.risk ?? 0;

@@ -327,12 +327,15 @@ body {
 		@apply border-border outline-ring/50;
 	}
 	body {
-		@apply min-h-screen text-foreground font-fira-mono bg-grid;
+		@apply text-foreground font-fira-mono bg-grid min-h-screen;
 		background-image:
 			linear-gradient(var(--grid-color) 1px, transparent 1px),
 			linear-gradient(90deg, var(--grid-color) 1px, transparent 1px),
 			linear-gradient(to bottom, var(--bg-gradient-from), var(--bg-gradient-to));
-		background-size: var(--grid-size) var(--grid-size), var(--grid-size) var(--grid-size), 100% 100%;
+		background-size:
+			var(--grid-size) var(--grid-size),
+			var(--grid-size) var(--grid-size),
+			100% 100%;
 		background-attachment: fixed;
 	}
 }

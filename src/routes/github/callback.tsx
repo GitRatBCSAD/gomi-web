@@ -1,6 +1,6 @@
-import { useEffect, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect, useRef } from "react";
 import type { JSX } from "react/jsx-runtime";
 import * as v from "valibot";
 
@@ -40,17 +40,19 @@ function RouteComponent(): JSX.Element {
 					return;
 				}
 				const data = await res.json();
-				
+
 				v.parse(ApiResponseSchema(v.object({ isNewUser: v.boolean() })), data);
-				
+
 				await queryClient.fetchQuery({
 					queryKey: ["authMe"],
 					queryFn: async () => {
-						const res = await fetch(`${BACKEND_URL}/auth/me`, { credentials: "include" });
+						const res = await fetch(`${BACKEND_URL}/auth/me`, {
+							credentials: "include",
+						});
 						if (!res.ok) return null;
 						const body = await res.json();
 						return body.data;
-					}
+					},
 				});
 
 				await navigate({ to: "/repositories" });
@@ -64,8 +66,8 @@ function RouteComponent(): JSX.Element {
 	}, [search.code, queryClient, navigate]);
 
 	return (
-		<div className="flex flex-1 items-center justify-center min-h-[60vh]">
-			<p className="text-muted-foreground font-fira-mono text-sm tracking-widest uppercase animate-pulse">
+		<div className="flex min-h-[60vh] flex-1 items-center justify-center">
+			<p className="text-muted-foreground font-fira-mono animate-pulse text-sm tracking-widest uppercase">
 				Authenticating...
 			</p>
 		</div>

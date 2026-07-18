@@ -3,12 +3,11 @@ import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { GithubIcon, SearchIcon, SettingsIcon } from "lucide-react";
 import { useState, type JSX } from "react";
 
+import type { UserProfile } from "@/components/navbar";
 import { Button } from "@/components/ui/button";
 import { BACKEND_URL, GITHUB_APP_NAME } from "@/lib/env";
 import { analyzeRepository, getRepositoriesQuery } from "@/lib/github/api";
 import { loadAnalysis, saveAnalysis } from "@/lib/github/model";
-
-import type { UserProfile } from "@/components/navbar";
 
 const authMeQueryOptions = {
 	queryKey: ["authMe"],
@@ -63,8 +62,8 @@ function RouteComponent(): JSX.Element {
 
 	if (repositoriesQuery.isLoading) {
 		return (
-			<div className="flex flex-1 items-center justify-center min-h-[60vh]">
-				<p className="text-muted-foreground font-fira-mono text-sm tracking-widest uppercase animate-pulse">
+			<div className="flex min-h-[60vh] flex-1 items-center justify-center">
+				<p className="text-muted-foreground font-fira-mono animate-pulse text-sm tracking-widest uppercase">
 					Loading repositories...
 				</p>
 			</div>
@@ -73,41 +72,36 @@ function RouteComponent(): JSX.Element {
 
 	return (
 		<div className="flex flex-1 flex-col items-center justify-center gap-4 px-4 py-12">
-			<div className="w-full max-w-3xl flex flex-col items-center gap-1 mb-2 text-center">
+			<div className="mb-2 flex w-full max-w-3xl flex-col items-center gap-1 text-center">
 				<h1 className="font-fira-mono-bold text-3xl font-bold text-white">
-					Welcome back, <span className="text-primary">{userProfile?.githubUsername || "user"}</span>
+					Welcome back,{" "}
+					<span className="text-primary">{userProfile?.githubUsername || "user"}</span>
 				</h1>
-				<p className="font-fira-mono-bold text-2xs text-gray-400">
-					Ready to scan?
-				</p>
+				<p className="font-fira-mono-bold text-2xs text-gray-400">Ready to scan?</p>
 			</div>
 
 			{analyzeMutation.isError && (
-				<p className="text-destructive text-sm w-full max-w-3xl text-left">
+				<p className="text-destructive w-full max-w-3xl text-left text-sm">
 					Analysis failed: {analyzeMutation.error?.message ?? "Unknown error"}
 				</p>
 			)}
 
 			{notInstalled && (
-				<div className="w-full max-w-3xl flex items-center justify-between gap-6 rounded-2xl border border-primary/20 bg-background-900 px-6 py-5 shadow-lg">
+				<div className="border-primary/20 bg-background-900 flex w-full max-w-3xl items-center justify-between gap-6 rounded-2xl border px-6 py-5 shadow-lg">
 					<div className="flex flex-col gap-1.5">
 						<p className="text-foreground font-fira-mono-bold text-base tracking-wide">
 							GitHub App Installation Required
 						</p>
-						<p className="text-muted-foreground text-xs leading-relaxed max-w-xl">
-							To analyze your repositories, Gomi must be installed on your GitHub account or organization. Grant access to your preferred repositories to get started.
+						<p className="text-muted-foreground max-w-xl text-xs leading-relaxed">
+							To analyze your repositories, Gomi must be installed on your GitHub
+							account or organization. Grant access to your preferred repositories to
+							get started.
 						</p>
 					</div>
 					<Button
 						size="sm"
 						nativeButton={false}
-						render={
-							<a
-								href={installUrl}
-								target="_blank"
-								rel="noopener noreferrer"
-							/>
-						}
+						render={<a href={installUrl} target="_blank" rel="noopener noreferrer" />}
 					>
 						Install Gomi App
 					</Button>
@@ -115,7 +109,7 @@ function RouteComponent(): JSX.Element {
 			)}
 
 			{!notInstalled && installationsCount !== null && (
-				<div className="w-full max-w-3xl flex items-center justify-between gap-4 rounded-xl border border-border/20 bg-dark-600/30 px-4 py-3">
+				<div className="border-border/20 bg-dark-600/30 flex w-full max-w-3xl items-center justify-between gap-4 rounded-xl border px-4 py-3">
 					<p className="text-muted-foreground text-xs leading-normal">
 						Want to add or remove repository access?
 					</p>
@@ -123,13 +117,7 @@ function RouteComponent(): JSX.Element {
 						variant="outline"
 						size="sm"
 						nativeButton={false}
-						render={
-							<a
-								href={installUrl}
-								target="_blank"
-								rel="noopener noreferrer"
-							/>
-						}
+						render={<a href={installUrl} target="_blank" rel="noopener noreferrer" />}
 					>
 						<SettingsIcon className="size-3.5" />
 						Configure Access
@@ -137,11 +125,17 @@ function RouteComponent(): JSX.Element {
 				</div>
 			)}
 
-			<div className={`bg-background-900 w-full max-w-3xl overflow-hidden rounded-2xl border ${notInstalled ? "opacity-40 pointer-events-none" : ""}`}>
+			<div
+				className={`bg-background-900 w-full max-w-3xl overflow-hidden rounded-2xl border ${notInstalled ? "pointer-events-none opacity-40" : ""}`}
+			>
 				<div className="flex items-center px-4 py-4">
 					<input
 						className="text-muted-foreground placeholder:text-muted-foreground/50 flex-1 bg-transparent text-sm tracking-widest outline-none"
-						placeholder={notInstalled ? "Install the GitHub App to search repositories" : "Search"}
+						placeholder={
+							notInstalled
+								? "Install the GitHub App to search repositories"
+								: "Search"
+						}
 						value={search}
 						onChange={(e) => setSearch(e.target.value)}
 						disabled={notInstalled}
@@ -150,7 +144,9 @@ function RouteComponent(): JSX.Element {
 				</div>
 			</div>
 
-			<div className={`bg-background-900 w-full max-w-3xl overflow-hidden rounded-2xl border ${notInstalled ? "opacity-40 pointer-events-none" : ""}`}>
+			<div
+				className={`bg-background-900 w-full max-w-3xl overflow-hidden rounded-2xl border ${notInstalled ? "pointer-events-none opacity-40" : ""}`}
+			>
 				<div className="h-120 overflow-y-auto">
 					{repos.map((repo) => (
 						<div
@@ -173,7 +169,11 @@ function RouteComponent(): JSX.Element {
 										return;
 									}
 									const [owner, name] = repo.fullName.split("/");
-									analyzeMutation.mutate({ id: String(repo.id), owner, repository: name });
+									analyzeMutation.mutate({
+										id: String(repo.id),
+										owner,
+										repository: name,
+									});
 								}}
 							>
 								{analyzeMutation.isPending ? "Analyzing..." : "Analyze"}
@@ -182,14 +182,15 @@ function RouteComponent(): JSX.Element {
 					))}
 
 					{repos.length === 0 && !notInstalled && (
-						<div className="flex flex-col items-center justify-center gap-3 py-12 px-4">
+						<div className="flex flex-col items-center justify-center gap-3 px-4 py-12">
 							<p className="text-muted-foreground text-center text-sm">
 								No repositories found.
 							</p>
 							{installationsCount !== null && installationsCount > 0 && (
 								<>
 									<p className="text-muted-foreground/60 text-center text-xs">
-										Your GitHub App is installed but no repositories are selected. Configure your access to add repositories.
+										Your GitHub App is installed but no repositories are
+										selected. Configure your access to add repositories.
 									</p>
 									<Button
 										variant="outline"
@@ -215,4 +216,3 @@ function RouteComponent(): JSX.Element {
 		</div>
 	);
 }
-
