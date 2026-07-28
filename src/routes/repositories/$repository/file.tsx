@@ -1,7 +1,6 @@
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import {
 	ArrowLeftIcon,
-	CircleAlertIcon,
 	CircleCheckIcon,
 	FileIcon,
 	MinusCircleIcon,
@@ -64,22 +63,7 @@ function RiskBadge({
 				}}
 			>
 				<TriangleAlertIcon className="size-3" />
-				High
-			</Badge>
-		);
-	}
-	if (score != null && score >= 0.4) {
-		return (
-			<Badge
-				className="gap-1"
-				style={{
-					backgroundColor: "var(--caution-900)",
-					color: "var(--caution-500)",
-					borderColor: "transparent",
-				}}
-			>
-				<CircleAlertIcon className="size-3" />
-				Moderate
+				Risky
 			</Badge>
 		);
 	}
@@ -93,7 +77,7 @@ function RiskBadge({
 			}}
 		>
 			<CircleCheckIcon className="size-3" />
-			Low
+			Acceptable
 		</Badge>
 	);
 }
