@@ -52,7 +52,7 @@ export const ShapBreakdownSchema = v.object({
 
 export const FileRiskResultSchema = v.object({
 	filename: v.string(),
-	riskScore: v.number(),
+	riskScore: v.nullable(v.number()),
 	sentimentScore: v.number(),
 	complexityScore: v.number(),
 	changeEntropy: v.number(),

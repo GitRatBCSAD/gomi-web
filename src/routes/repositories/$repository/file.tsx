@@ -34,7 +34,7 @@ function RiskBadge({
 	threshold,
 	lowConf,
 }: {
-	score: number;
+	score: number | null;
 	threshold: number;
 	lowConf: boolean;
 }): JSX.Element {
@@ -53,7 +53,7 @@ function RiskBadge({
 			</Badge>
 		);
 	}
-	if (score >= threshold) {
+	if (score != null && score >= threshold) {
 		return (
 			<Badge
 				className="gap-1"
@@ -68,7 +68,7 @@ function RiskBadge({
 			</Badge>
 		);
 	}
-	if (score >= 0.4) {
+	if (score != null && score >= 0.4) {
 		return (
 			<Badge
 				className="gap-1"
@@ -267,9 +267,9 @@ function ShapBreakdownCard({ file }: { file: FileRiskResult }): JSX.Element | nu
 					</span>
 					<span
 						className="font-fira-mono-bold text-2xl tabular-nums"
-						style={{ color: riskColor(file.riskScore) }}
+						style={{ color: riskColor(file.riskScore ?? 0) }}
 					>
-						{file.riskScore.toFixed(2)}
+						{(file.riskScore ?? 0).toFixed(2)}
 					</span>
 				</div>
 			</CardContent>
@@ -601,37 +601,39 @@ function RouteComponent(): JSX.Element {
 								lowConf={file.lowConfidence}
 							/>
 						</div>
-						{/* Risk bar */}
-						<div
-							style={{
-								display: "flex",
-								alignItems: "center",
-								gap: "0.75rem",
-								marginTop: "1rem",
-							}}
-						>
+						{/* Risk bar — only for files with a score */}
+						{!file.lowConfidence && file.riskScore != null && (
 							<div
 								style={{
-									flex: 1,
-									height: "0.75rem",
-									borderRadius: "999px",
-									overflow: "hidden",
-									backgroundColor: "var(--background-700)",
+									display: "flex",
+									alignItems: "center",
+									gap: "0.75rem",
+									marginTop: "1rem",
 								}}
 							>
 								<div
 									style={{
+										flex: 1,
 										height: "0.75rem",
 										borderRadius: "999px",
-										width: `${file.riskScore * 100}%`,
-										backgroundColor: riskColor(file.riskScore),
+										overflow: "hidden",
+										backgroundColor: "var(--background-700)",
 									}}
-								/>
+								>
+									<div
+										style={{
+											height: "0.75rem",
+											borderRadius: "999px",
+											width: `${file.riskScore * 100}%`,
+											backgroundColor: riskColor(file.riskScore),
+										}}
+									/>
+								</div>
+								<span className="font-fira-mono-bold text-foreground text-xl tabular-nums">
+									{file.riskScore.toFixed(2)}
+								</span>
 							</div>
-							<span className="font-fira-mono-bold text-foreground text-xl tabular-nums">
-								{file.riskScore.toFixed(2)}
-							</span>
-						</div>
+						)}
 					</div>
 				</CardHeader>
 			</Card>

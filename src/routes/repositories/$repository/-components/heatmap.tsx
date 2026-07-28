@@ -66,7 +66,7 @@ function toFileInfo(r: FileRiskResult): FileInfo {
 	return {
 		name,
 		dir,
-		risk: r.riskScore,
+		risk: r.riskScore ?? 0,
 		complexity: r.complexityScore,
 		commits: total,
 		lowConf: r.lowConfidence,
@@ -155,7 +155,7 @@ function RiskBadge(props: { file: FileInfo; threshold: number }): JSX.Element {
 				}}
 			>
 				<MinusCircleIcon className="size-3" />
-				{file.risk.toFixed(2)}
+				Low Conf
 			</Badge>
 		);
 	}
@@ -548,7 +548,7 @@ function Tile(props: {
 
 				<div className="flex w-full justify-between">
 					<Badge>{cat === "low-conf" ? "Low Conf" : cat}</Badge>
-					<P>{risk.toFixed(2)}</P>
+					{!lowConf && <P>{risk.toFixed(2)}</P>}
 				</div>
 
 				<div className="font-fira-mono space-y-1 text-xs">

@@ -22,10 +22,10 @@ function RouteComponent(): JSX.Element {
 	const analysis = Route.useLoaderData();
 
 	const risky = analysis.fileResults.filter(
-		(f) => !f.lowConfidence && f.riskScore >= analysis.threshold,
+		(f) => !f.lowConfidence && f.riskScore != null && f.riskScore >= analysis.threshold,
 	).length;
 	const acceptable = analysis.fileResults.filter(
-		(f) => !f.lowConfidence && f.riskScore < analysis.threshold,
+		(f) => !f.lowConfidence && f.riskScore != null && f.riskScore < analysis.threshold,
 	).length;
 	const lowConf = analysis.fileResults.filter((f) => f.lowConfidence).length;
 
