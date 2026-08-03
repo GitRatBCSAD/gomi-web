@@ -11,8 +11,9 @@ import {
 	type RepositoriesResponse,
 } from "./model";
 
-export async function getRepositories(): Promise<RepositoriesResponse> {
-	const response = await fetch(`${BACKEND_URL}/repositories`, {
+export async function getRepositories(forceRefresh?: boolean): Promise<RepositoriesResponse> {
+	const url = forceRefresh ? `${BACKEND_URL}/repositories?refresh=true` : `${BACKEND_URL}/repositories`;
+	const response = await fetch(url, {
 		method: "GET",
 		credentials: "include",
 	});
@@ -27,7 +28,7 @@ export async function getRepositories(): Promise<RepositoriesResponse> {
 
 export const getRepositoriesQuery = queryOptions({
 	queryKey: ["repository"],
-	queryFn: getRepositories,
+	queryFn: () => getRepositories(),
 	staleTime: 5 * 60 * 1000,
 	refetchOnWindowFocus: false,
 });

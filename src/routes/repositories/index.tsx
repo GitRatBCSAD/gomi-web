@@ -1,12 +1,13 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { GithubIcon, SearchIcon, SettingsIcon } from "lucide-react";
-import { useState, type JSX } from "react";
+import { useEffect, useState, type JSX } from "react";
+import * as v from "valibot";
 
 import type { UserProfile } from "@/components/navbar";
 import { Button } from "@/components/ui/button";
 import { BACKEND_URL, GITHUB_APP_NAME } from "@/lib/env";
-import { analyzeRepository, getRepositoriesQuery } from "@/lib/github/api";
+import { analyzeRepository, getRepositories, getRepositoriesQuery } from "@/lib/github/api";
 import { loadAnalysis, saveAnalysis } from "@/lib/github/model";
 
 const authMeQueryOptions = {
@@ -24,7 +25,13 @@ const authMeQueryOptions = {
 	staleTime: 60 * 1000,
 };
 
+const SearchSchema = v.object({
+	setup: v.optional(v.string()),
+	installation_id: v.optional(v.string()),
+});
+
 export const Route = createFileRoute("/repositories/")({
+	validateSearch: SearchSchema,
 	component: RouteComponent,
 	beforeLoad: async ({ context }) => {
 		const profile = await context.queryClient.ensureQueryData(authMeQueryOptions);
@@ -35,6 +42,18 @@ export const Route = createFileRoute("/repositories/")({
 function RouteComponent(): JSX.Element {
 	const [search, setSearch] = useState("");
 	const navigate = useNavigate();
+	const routeSearch = Route.useSearch();
+	const queryClient = useQueryClient();
+
+	useEffect(() => {
+		if (routeSearch.setup || routeSearch.installation_id) {
+			queryClient.fetchQuery({
+				queryKey: ["repository"],
+				queryFn: () => getRepositories(true),
+			});
+			navigate({ to: "/repositories", replace: true });
+		}
+	}, [routeSearch.setup, routeSearch.installation_id, queryClient, navigate]);
 
 	const repositoriesQuery = useQuery({
 		...getRepositoriesQuery,
