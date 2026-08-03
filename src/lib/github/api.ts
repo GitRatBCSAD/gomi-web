@@ -17,6 +17,9 @@ export async function getRepositories(): Promise<RepositoriesResponse> {
 		credentials: "include",
 	});
 	const result = await response.json();
+	if (!response.ok) {
+		throw new Error(result.message || "Failed to fetch repositories");
+	}
 	const parsed = v.parse(ApiResponseSchema(RepositoriesResponseSchema), result);
 
 	return parsed.data ?? { installationsCount: 0, repositories: [] };
@@ -37,6 +40,9 @@ export async function analyzeRepository(data: AnalyzeRepositoryRequest): Promise
 		body: JSON.stringify(data),
 	});
 	const json = await res.json();
+	if (!res.ok) {
+		throw new Error(json.message || "Failed to analyze repository");
+	}
 	const parsed = v.parse(ApiResponseSchema(AnalysisResultSchema), json);
 	return parsed.data;
 }
