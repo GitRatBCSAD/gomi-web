@@ -55,6 +55,9 @@ export function Navbar(): JSX.Element {
 		},
 		onSuccess: async () => {
 			queryClient.setQueryData(["authMe"], null);
+			for (const key of Object.keys(localStorage)) {
+				if (key.startsWith("gomi:")) localStorage.removeItem(key);
+			}
 			await navigate({ to: "/" });
 			queryClient.clear();
 		},
