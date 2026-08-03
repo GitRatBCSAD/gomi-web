@@ -36,7 +36,11 @@ function RouteComponent(): JSX.Element {
 	const [search, setSearch] = useState("");
 	const navigate = useNavigate();
 
-	const repositoriesQuery = useQuery(getRepositoriesQuery);
+	const repositoriesQuery = useQuery({
+		...getRepositoriesQuery,
+		refetchInterval: (query) =>
+			(query.state.data?.installationsCount ?? null) === 0 ? 3000 : false,
+	});
 
 	const { data: userProfile } = useQuery(authMeQueryOptions);
 
