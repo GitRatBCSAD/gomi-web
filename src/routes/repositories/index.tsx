@@ -26,8 +26,10 @@ const authMeQueryOptions = {
 };
 
 const SearchSchema = v.object({
-	setup: v.optional(v.string()),
-	installation_id: v.optional(v.string()),
+	code: v.optional(v.string()),
+	setup: v.optional(v.union([v.string(), v.boolean()])),
+	installation_id: v.optional(v.union([v.string(), v.number()])),
+	setup_action: v.optional(v.string()),
 });
 
 export const Route = createFileRoute("/repositories/")({
