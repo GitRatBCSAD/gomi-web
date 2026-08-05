@@ -28,7 +28,7 @@ export const Route = createFileRoute("/repositories/$repository/file")({
 		if (!analysis) throw redirect({ to: "/repositories" });
 		const file = analysis.fileResults.find((f) => f.filename === deps.path);
 		if (!file) throw redirect({ to: "/repositories/$repository", params });
-		return { file, threshold: analysis.threshold };
+		return { file, threshold: analysis.threshold, allFiles: analysis.fileResults };
 	},
 });
 
@@ -87,7 +87,7 @@ function RiskBadge({
 }
 
 function RouteComponent(): JSX.Element {
-	const { file, threshold } = Route.useLoaderData();
+	const { file, threshold, allFiles } = Route.useLoaderData();
 	const { repository } = Route.useParams();
 
 	const parts = file.filename.split("/");
@@ -189,7 +189,7 @@ function RouteComponent(): JSX.Element {
 			<SentimentTrajectoryCard file={file} threshold={threshold} />
 			<ShapBreakdownCard file={file} />
 			<CommitSentimentCard file={file} />
-			<ComplexityMetricsCard file={file} />
+			<ComplexityMetricsCard file={file} allFiles={allFiles} />
 		</div>
 	);
 }
