@@ -24,6 +24,7 @@ function RouteComponent(): JSX.Element {
 	const analysis = Route.useLoaderData();
 	const router = useRouter();
 	const [showConfirm, setShowConfirm] = useState(false);
+	const [selectedFilter, setSelectedFilter] = useState<"all" | "risky" | "acceptable" | "low-conf">("all");
 
 	const reposQuery = useQuery(getRepositoriesQuery);
 
@@ -88,7 +89,10 @@ function RouteComponent(): JSX.Element {
 			</Card>
 
 			<section className="grid grid-cols-4 gap-2">
-				<Card>
+				<Card
+					className={`cursor-pointer transition-all ${selectedFilter === "all" ? "border-primary" : "opacity-85"}`}
+					onClick={() => setSelectedFilter("all")}
+				>
 					<CardHeader>
 						<H2 variant="p">Files Analyzed</H2>
 					</CardHeader>
@@ -97,7 +101,10 @@ function RouteComponent(): JSX.Element {
 					</CardContent>
 				</Card>
 
-				<Card>
+				<Card
+					className={`cursor-pointer transition-all ${selectedFilter === "risky" ? "border-destructive" : "opacity-85"}`}
+					onClick={() => setSelectedFilter("risky")}
+				>
 					<CardHeader>
 						<H2 variant="p">Risky</H2>
 					</CardHeader>
@@ -106,7 +113,10 @@ function RouteComponent(): JSX.Element {
 					</CardContent>
 				</Card>
 
-				<Card>
+				<Card
+					className={`cursor-pointer transition-all ${selectedFilter === "acceptable" ? "border-primary" : "opacity-85"}`}
+					onClick={() => setSelectedFilter("acceptable")}
+				>
 					<CardHeader>
 						<H2 variant="p">Acceptable</H2>
 					</CardHeader>
@@ -115,7 +125,10 @@ function RouteComponent(): JSX.Element {
 					</CardContent>
 				</Card>
 
-				<Card>
+				<Card
+					className={`cursor-pointer transition-all ${selectedFilter === "low-conf" ? "border-muted-foreground" : "opacity-85"}`}
+					onClick={() => setSelectedFilter("low-conf")}
+				>
 					<CardHeader>
 						<H2 variant="p">Low Confidence</H2>
 					</CardHeader>
@@ -129,6 +142,8 @@ function RouteComponent(): JSX.Element {
 				fileResults={analysis.fileResults}
 				threshold={analysis.threshold}
 				repository={repoName}
+				filter={selectedFilter}
+				onFilterChange={setSelectedFilter}
 			/>
 
 			{showConfirm && (
