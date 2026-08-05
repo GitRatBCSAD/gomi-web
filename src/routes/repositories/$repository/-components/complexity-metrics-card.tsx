@@ -15,23 +15,41 @@ export function ComplexityMetricsCard({
 			? allFiles.reduce((acc, f) => acc + f.complexityScore, 0) / allFiles.length
 			: 0;
 
-	const diff = file.complexityScore - repoAvgComplexity;
-	const pctOver = repoAvgComplexity > 0 ? Math.round((diff / repoAvgComplexity) * 100) : 0;
-	const tagText =
-		diff > 0 ? `REPO AVG: ${repoAvgComplexity.toFixed(2)} · ${pctOver}% OVER` : `REPO AVG: ${repoAvgComplexity.toFixed(2)} · WITHIN AVG`;
+	const diffComplexity = file.complexityScore - repoAvgComplexity;
+	const pctOverComplexity =
+		repoAvgComplexity > 0 ? Math.round((diffComplexity / repoAvgComplexity) * 100) : 0;
+	const tagComplexity =
+		diffComplexity > 0
+			? `REPO AVG: ${repoAvgComplexity.toFixed(2)} · ${pctOverComplexity}% OVER`
+			: `REPO AVG: ${repoAvgComplexity.toFixed(2)} · WITHIN AVG`;
+
+	const repoAvgEntropy =
+		allFiles.length > 0
+			? allFiles.reduce((acc, f) => acc + f.changeEntropy, 0) / allFiles.length
+			: 0;
+
+	const diffEntropy = file.changeEntropy - repoAvgEntropy;
+	const pctOverEntropy =
+		repoAvgEntropy > 0 ? Math.round((diffEntropy / repoAvgEntropy) * 100) : 0;
+	const tagEntropy =
+		diffEntropy > 0
+			? `REPO AVG: ${repoAvgEntropy.toFixed(2)} · ${pctOverEntropy}% OVER`
+			: `REPO AVG: ${repoAvgEntropy.toFixed(2)} · WITHIN AVG`;
 
 	const metrics = [
 		{
 			label: "Complexity score",
 			value: file.complexityScore.toFixed(2),
 			desc: "normalized Lizard complexity",
-			tag: tagText,
-			isOver: diff > 0,
+			tag: tagComplexity,
+			isOver: diffComplexity > 0,
 		},
 		{
 			label: "Change entropy",
 			value: file.changeEntropy.toFixed(2),
 			desc: "how dispersed edits are across the file",
+			tag: tagEntropy,
+			isOver: diffEntropy > 0,
 		},
 		{
 			label: "NDev score",
