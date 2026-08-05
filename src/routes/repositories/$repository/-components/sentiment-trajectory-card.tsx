@@ -13,26 +13,33 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { ChartContainer } from "@/components/ui/chart";
 import type { FileRiskResult } from "@/lib/github/model";
 
+type SentimentCode = "caution" | "neutral" | "satisfaction";
+
+const SENTIMENT_COLOR: Record<SentimentCode, string> = {
+	caution: "var(--destructive-500)",
+	neutral: "var(--muted-foreground)",
+	satisfaction: "var(--success-500)",
+};
+
 type ChartPoint = {
 	index: number;
 	prob: number;
 	hash: string;
 	message: string;
 	date: string;
+	sentimentCode: SentimentCode;
 };
 
 function TooltipContent({
 	active,
 	payload,
-	threshold,
 }: {
 	active?: boolean;
 	payload?: ReadonlyArray<{ payload: ChartPoint }>;
-	threshold: number;
 }): JSX.Element | null {
 	if (!active || !payload?.length) return null;
 	const d = payload[0].payload;
-	const isRisky = d.prob >= threshold;
+	const color = SENTIMENT_COLOR[d.sentimentCode];
 	return (
 		<div
 			className="border-border/60 bg-background rounded-lg border p-2.5 shadow-xl"
@@ -46,13 +53,8 @@ function TooltipContent({
 			</p>
 			<div className="font-fira-mono text-muted-foreground mt-1 flex items-center justify-between gap-4 text-[10px]">
 				<span>{d.hash}</span>
-				<span
-					className="font-bold"
-					style={{
-						color: isRisky ? "var(--destructive-500)" : "var(--muted-foreground)",
-					}}
-				>
-					p(caution): {d.prob.toFixed(2)}
+				<span className="font-bold" style={{ color }}>
+					{d.sentimentCode}
 				</span>
 			</div>
 		</div>
@@ -87,7 +89,11 @@ export function SentimentTrajectoryCard({
 			month: "short",
 			day: "numeric",
 		});
-		return { index: idx, prob, hash: c.hash.slice(0, 7), message: c.message, date };
+		const sentimentCode: SentimentCode =
+			c.sentiment?.code === "caution" || c.sentiment?.code === "satisfaction"
+				? c.sentiment.code
+				: "neutral";
+		return { index: idx, prob, hash: c.hash.slice(0, 7), message: c.message, date, sentimentCode };
 	});
 
 	const dotRenderer = (props: {
@@ -97,8 +103,7 @@ export function SentimentTrajectoryCard({
 		payload?: ChartPoint;
 	}): JSX.Element => {
 		const { cx = 0, cy = 0, index = 0, payload } = props;
-		const prob = payload?.prob ?? 0;
-		const isRisky = prob >= threshold;
+		const sentimentCode = payload?.sentimentCode ?? "neutral";
 		const isActive = activeIdx === index;
 		return (
 			<circle
@@ -106,7 +111,7 @@ export function SentimentTrajectoryCard({
 				cx={cx}
 				cy={cy}
 				r={isActive ? 6 : 4}
-				fill={isRisky ? "var(--destructive-500)" : "var(--muted-foreground)"}
+				fill={SENTIMENT_COLOR[sentimentCode]}
 				stroke="var(--background)"
 				strokeWidth={2}
 				style={{ cursor: "pointer", transition: "r 0.1s" }}
@@ -166,7 +171,6 @@ export function SentimentTrajectoryCard({
 								<TooltipContent
 									active={props.active}
 									payload={props.payload as ReadonlyArray<{ payload: ChartPoint }>}
-									threshold={threshold}
 								/>
 							)}
 							cursor={{ stroke: "var(--border)", strokeWidth: 1 }}
