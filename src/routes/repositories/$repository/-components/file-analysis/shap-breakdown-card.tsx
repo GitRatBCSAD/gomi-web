@@ -3,7 +3,7 @@ import type { JSX } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import type { FileRiskResult } from "@/lib/github/model";
 
-import { riskColor } from "./heatmap";
+import { riskColor } from "../repo-overview/heatmap";
 
 export function ShapBreakdownCard({ file }: { file: FileRiskResult }): JSX.Element | null {
 	const s = file.shapBreakdown;

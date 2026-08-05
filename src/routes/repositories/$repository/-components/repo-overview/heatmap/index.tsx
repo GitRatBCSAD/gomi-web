@@ -6,9 +6,9 @@ import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import type { FileRiskResult } from "@/lib/github/model";
 
-import { HeatmapListView } from "./heatmap/heatmap-list-view";
-import { Tile } from "./heatmap/heatmap-tile";
-import { HeatmapToolbar } from "./heatmap/heatmap-toolbar";
+import { HeatmapListView } from "./heatmap-list-view";
+import { Tile } from "./heatmap-tile";
+import { HeatmapToolbar } from "./heatmap-toolbar";
 import {
 	DIR_LABEL_HEIGHT,
 	getCategory,
@@ -16,9 +16,9 @@ import {
 	type FilterKey,
 	type SortOption,
 	type TreeNode,
-} from "./heatmap/heatmap-utils";
+} from "./heatmap-utils";
 
-export { riskColor } from "./heatmap/heatmap-utils";
+export { riskColor } from "./heatmap-utils";
 
 export function Heatmap(props: {
 	fileResults: FileRiskResult[];
@@ -56,11 +56,11 @@ export function Heatmap(props: {
 			return true;
 		})
 		.sort((a, b) => {
-			if (sort === "risk-desc") return b.risk - a.risk;
-			if (sort === "risk-asc") return a.risk - b.risk;
-			if (sort === "complexity-desc") return b.complexity - a.complexity;
-			if (sort === "commits-desc") return b.commits - a.commits;
-			if (sort === "name-asc") return a.name.localeCompare(b.name);
+			if (sort === "risk-desc") return (b.risk ?? 0) - (a.risk ?? 0);
+			if (sort === "risk-asc") return (a.risk ?? 0) - (b.risk ?? 0);
+			if (sort === "complexity-desc") return (b.complexity ?? 0) - (a.complexity ?? 0);
+			if (sort === "commits-desc") return (b.commits ?? 0) - (a.commits ?? 0);
+			if (sort === "name-asc") return (a.name ?? "").localeCompare(b.name ?? "");
 			return 0;
 		});
 

@@ -1,23 +1,16 @@
-import { createFileRoute, Link, redirect } from "@tanstack/react-router";
-import {
-	ArrowLeftIcon,
-	CircleCheckIcon,
-	FileIcon,
-	MinusCircleIcon,
-	TriangleAlertIcon,
-} from "lucide-react";
+import { createFileRoute, redirect, Link } from "@tanstack/react-router";
+import { ArrowLeftIcon, FileIcon } from "lucide-react";
 import type { JSX } from "react";
 import * as v from "valibot";
 
-import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader } from "@/components/ui/card";
 import { loadAnalysis } from "@/lib/github/model";
 
-import { CommitSentimentCard } from "./-components/commit-sentiment-card";
-import { ComplexityMetricsCard } from "./-components/complexity-metrics-card";
-import { riskColor } from "./-components/heatmap";
-import { SentimentTrajectoryCard } from "./-components/sentiment-trajectory-card";
-import { ShapBreakdownCard } from "./-components/shap-breakdown-card";
+import { CommitSentimentCard } from "./-components/file-analysis/commit-sentiment-card";
+import { ComplexityMetricsCard } from "./-components/file-analysis/complexity-metrics-card";
+import { SentimentTrajectoryCard } from "./-components/file-analysis/sentiment-trajectory-card";
+import { ShapBreakdownCard } from "./-components/file-analysis/shap-breakdown-card";
+import { riskColor } from "./-components/repo-overview/heatmap";
 
 export const Route = createFileRoute("/repositories/$repository/file")({
 	validateSearch: v.object({ path: v.string() }),
@@ -43,46 +36,31 @@ function RiskBadge({
 }): JSX.Element {
 	if (lowConf) {
 		return (
-			<Badge
-				className="gap-1"
+			<span
+				className="font-fira-mono rounded px-2.5 py-1 text-xs font-medium"
 				style={{
 					backgroundColor: "var(--dark-500)",
 					color: "var(--text-subtle)",
-					borderColor: "transparent",
 				}}
 			>
-				<MinusCircleIcon className="size-3" />
-				Low Conf
-			</Badge>
+				Low Confidence
+			</span>
 		);
 	}
-	if (score != null && score >= threshold) {
-		return (
-			<Badge
-				className="gap-1"
-				style={{
-					backgroundColor: "var(--destructive-900)",
-					color: "var(--destructive-500)",
-					border: "1px solid color-mix(in srgb, var(--destructive-500) 40%, transparent)",
-				}}
-			>
-				<TriangleAlertIcon className="size-3" />
-				Risky
-			</Badge>
-		);
-	}
+
+	if (score == null) return <></>;
+
+	const isRisky = score >= threshold;
 	return (
-		<Badge
-			className="gap-1"
+		<span
+			className="font-fira-mono rounded px-2.5 py-1 text-xs font-bold"
 			style={{
-				backgroundColor: "var(--success-900)",
-				color: "var(--success-500)",
-				borderColor: "transparent",
+				backgroundColor: isRisky ? "var(--destructive-900)" : "var(--success-900)",
+				color: isRisky ? "var(--destructive-500)" : "var(--success-500)",
 			}}
 		>
-			<CircleCheckIcon className="size-3" />
-			Acceptable
-		</Badge>
+			{isRisky ? "Risky" : "Acceptable"} ({score.toFixed(2)})
+		</span>
 	);
 }
 
