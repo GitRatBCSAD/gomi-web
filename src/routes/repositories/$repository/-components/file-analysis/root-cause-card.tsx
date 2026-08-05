@@ -2,7 +2,7 @@ import { InfoIcon } from "lucide-react";
 import type { JSX } from "react";
 
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import type { FileRiskResult } from "@/lib/github/model";
 
 export function RootCauseCard({ file }: { file: FileRiskResult }): JSX.Element | null {
@@ -57,7 +57,13 @@ export function RootCauseCard({ file }: { file: FileRiskResult }): JSX.Element |
 
 	return (
 		<Card>
-			<CardContent className="space-y-4 pt-6">
+			<CardHeader>
+				<p className="font-fira-mono-bold text-foreground text-xl">Root Cause Commit</p>
+				<p className="font-fira-mono text-muted-foreground mt-1 text-xs">
+					Highest caution risk commit identified in the analysis window
+				</p>
+			</CardHeader>
+			<CardContent className="space-y-4">
 				<div className="flex items-start justify-between gap-4">
 					<div>
 						<div className="flex items-center gap-2">
