@@ -77,24 +77,22 @@ export function SentimentTrajectoryCard({
 	const commits = [...file.commitSentiments].sort((a, b) => a.committedAt - b.committedAt);
 	if (commits.length === 0) return null;
 
-	const data: ChartPoint[] = commits.map((c, idx) => {
-		const prob =
-			c.riskProbability ??
-			(c.sentiment?.code === "caution"
-				? 0.8
-				: c.sentiment?.code === "satisfaction"
-					? 0.1
-					: 0.5);
-		const date = new Date(c.committedAt * 1000).toLocaleDateString("en-US", {
-			month: "short",
-			day: "numeric",
+	const data: ChartPoint[] = commits
+		.filter((c) => c.riskProbability != null)
+		.map((c, idx) => {
+			const prob = c.riskProbability as number;
+			const date = new Date(c.committedAt * 1000).toLocaleDateString("en-US", {
+				month: "short",
+				day: "numeric",
+			});
+			const sentimentCode: SentimentCode =
+				c.sentiment?.code === "caution" || c.sentiment?.code === "satisfaction"
+					? c.sentiment.code
+					: "neutral";
+			return { index: idx, prob, hash: c.hash.slice(0, 7), message: c.message, date, sentimentCode };
 		});
-		const sentimentCode: SentimentCode =
-			c.sentiment?.code === "caution" || c.sentiment?.code === "satisfaction"
-				? c.sentiment.code
-				: "neutral";
-		return { index: idx, prob, hash: c.hash.slice(0, 7), message: c.message, date, sentimentCode };
-	});
+
+	if (data.length < 10) return null;
 
 	const dotRenderer = (props: {
 		cx?: number;
