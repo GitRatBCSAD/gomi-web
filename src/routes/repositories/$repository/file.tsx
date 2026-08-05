@@ -8,6 +8,8 @@ import { loadAnalysis } from "@/lib/github/model";
 
 import { CommitSentimentCard } from "./-components/file-analysis/commit-sentiment-card";
 import { ComplexityMetricsCard } from "./-components/file-analysis/complexity-metrics-card";
+import { RiskDriftCard } from "./-components/file-analysis/risk-drift-card";
+import { RootCauseCard } from "./-components/file-analysis/root-cause-card";
 import { SentimentTrajectoryCard } from "./-components/file-analysis/sentiment-trajectory-card";
 import { ShapBreakdownCard } from "./-components/file-analysis/shap-breakdown-card";
 import { riskColor } from "./-components/repo-overview/heatmap";
@@ -165,8 +167,10 @@ function RouteComponent(): JSX.Element {
 			</Card>
 
 			<SentimentTrajectoryCard file={file} threshold={threshold} />
-			<ShapBreakdownCard file={file} />
+			<RootCauseCard file={file} />
 			<CommitSentimentCard file={file} />
+			<RiskDriftCard file={file} />
+			<ShapBreakdownCard file={file} />
 			<ComplexityMetricsCard file={file} allFiles={allFiles} />
 		</div>
 	);

@@ -60,6 +60,22 @@ export function CommitSentimentCard({ file }: { file: FileRiskResult }): JSX.Ele
 	const commits = [...file.commitSentiments].sort((a, b) => b.committedAt - a.committedAt);
 	if (commits.length === 0) return null;
 
+	const total = commits.length;
+	let cautionCount = 0;
+	let neutralCount = 0;
+	let satisfactionCount = 0;
+
+	for (const c of commits) {
+		const code = c.sentiment?.code ?? null;
+		if (code === "caution") cautionCount++;
+		else if (code === "satisfaction") satisfactionCount++;
+		else neutralCount++;
+	}
+
+	const cautionPct = Math.round((cautionCount / total) * 100);
+	const neutralPct = Math.round((neutralCount / total) * 100);
+	const satisfactionPct = Math.round((satisfactionCount / total) * 100);
+
 	const totalPages = Math.ceil(commits.length / PAGE_SIZE);
 	const startIndex = (page - 1) * PAGE_SIZE;
 	const pageCommits = commits.slice(startIndex, startIndex + PAGE_SIZE);
@@ -71,15 +87,76 @@ export function CommitSentimentCard({ file }: { file: FileRiskResult }): JSX.Ele
 					<div>
 						<p className="font-fira-mono-bold text-foreground text-xl">Commit sentiment</p>
 						<p className="font-fira-mono text-muted-foreground mt-1 text-xs">
-							Per-commit sentiment extracted via DistilBERT
+							{total} COMMITS ANALYZED BY DISTILBERT · 6-MONTH WINDOW
 						</p>
 					</div>
-					<span className="font-fira-mono text-muted-foreground text-xs tabular-nums">
-						{commits.length} commits
-					</span>
 				</div>
 			</CardHeader>
-			<CardContent>
+			<CardContent className="space-y-4">
+				<div className="grid grid-cols-3 gap-3">
+					<div
+						style={{
+							borderRadius: "0.5rem",
+							border: "1px solid color-mix(in srgb, var(--border) 30%, transparent)",
+							padding: "1rem",
+							backgroundColor: "var(--background-800)",
+						}}
+					>
+						<p className="font-fira-mono-bold text-xs" style={{ color: "var(--destructive-500)" }}>
+							Caution
+						</p>
+						<div className="mt-1 flex items-baseline justify-between">
+							<p className="font-fira-mono-bold text-2xl" style={{ color: "var(--destructive-500)" }}>
+								{cautionPct}%
+							</p>
+							<p className="font-fira-mono text-muted-foreground/70 text-[10px] uppercase">
+								{cautionCount} OF {total} COMMITS
+							</p>
+						</div>
+					</div>
+
+					<div
+						style={{
+							borderRadius: "0.5rem",
+							border: "1px solid color-mix(in srgb, var(--border) 30%, transparent)",
+							padding: "1rem",
+							backgroundColor: "var(--background-800)",
+						}}
+					>
+						<p className="font-fira-mono-bold text-xs" style={{ color: "var(--text-subtle)" }}>
+							Neutral
+						</p>
+						<div className="mt-1 flex items-baseline justify-between">
+							<p className="font-fira-mono-bold text-2xl" style={{ color: "var(--text-subtle)" }}>
+								{neutralPct}%
+							</p>
+							<p className="font-fira-mono text-muted-foreground/70 text-[10px] uppercase">
+								{neutralCount} OF {total} COMMITS
+							</p>
+						</div>
+					</div>
+
+					<div
+						style={{
+							borderRadius: "0.5rem",
+							border: "1px solid color-mix(in srgb, var(--border) 30%, transparent)",
+							padding: "1rem",
+							backgroundColor: "var(--background-800)",
+						}}
+					>
+						<p className="font-fira-mono-bold text-xs" style={{ color: "var(--success-500)" }}>
+							Satisfaction
+						</p>
+						<div className="mt-1 flex items-baseline justify-between">
+							<p className="font-fira-mono-bold text-2xl" style={{ color: "var(--success-500)" }}>
+								{satisfactionPct}%
+							</p>
+							<p className="font-fira-mono text-muted-foreground/70 text-[10px] uppercase">
+								{satisfactionCount} OF {total} COMMITS
+							</p>
+						</div>
+					</div>
+				</div>
 				<div className="space-y-2">
 					{pageCommits.map((c) => {
 						const date = new Date(c.committedAt * 1000).toLocaleDateString("en-US", {
