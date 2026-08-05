@@ -1,7 +1,63 @@
 import { useState, type JSX } from "react";
+import {
+	CartesianGrid,
+	Line,
+	LineChart,
+	ReferenceLine,
+	Tooltip,
+	XAxis,
+	YAxis,
+} from "recharts";
 
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { ChartContainer } from "@/components/ui/chart";
 import type { FileRiskResult } from "@/lib/github/model";
+
+type ChartPoint = {
+	index: number;
+	prob: number;
+	hash: string;
+	message: string;
+	date: string;
+};
+
+function TooltipContent({
+	active,
+	payload,
+	threshold,
+}: {
+	active?: boolean;
+	payload?: ReadonlyArray<{ payload: ChartPoint }>;
+	threshold: number;
+}): JSX.Element | null {
+	if (!active || !payload?.length) return null;
+	const d = payload[0].payload;
+	const isRisky = d.prob >= threshold;
+	return (
+		<div
+			className="border-border/60 bg-background rounded-lg border p-2.5 shadow-xl"
+			style={{ maxWidth: "18rem" }}
+		>
+			<p
+				className="font-fira-mono truncate text-xs font-bold"
+				style={{ color: "var(--foreground)" }}
+			>
+				"{d.message}"
+			</p>
+			<div className="font-fira-mono text-muted-foreground mt-1 flex items-center justify-between gap-4 text-[10px]">
+				<span>{d.hash}</span>
+				<span
+					className="font-bold"
+					style={{
+						color: isRisky ? "var(--destructive-500)" : "var(--muted-foreground)",
+					}}
+				>
+					p(caution): {d.prob.toFixed(2)}
+				</span>
+			</div>
+		</div>
+	);
+}
 
 export function SentimentTrajectoryCard({
 	file,
@@ -10,7 +66,7 @@ export function SentimentTrajectoryCard({
 	file: FileRiskResult;
 	threshold: number;
 }): JSX.Element | null {
-	const [activeHoverIdx, setActiveHoverIdx] = useState<number | null>(null);
+	const [activeIdx, setActiveIdx] = useState<number | null>(null);
 
 	if (file.lowConfidence || file.commitSentiments.length < 10) {
 		return null;
@@ -19,39 +75,44 @@ export function SentimentTrajectoryCard({
 	const commits = [...file.commitSentiments].sort((a, b) => a.committedAt - b.committedAt);
 	if (commits.length === 0) return null;
 
-	const width = 640;
-	const height = 220;
-	const padding = { top: 25, right: 145, bottom: 45, left: 45 };
-	const chartW = width - padding.left - padding.right;
-	const chartH = height - padding.top - padding.bottom;
-
-	const points = commits.map((c, idx) => {
+	const data: ChartPoint[] = commits.map((c, idx) => {
 		const prob =
 			c.riskProbability ??
-			(c.sentiment?.code === "caution" ? 0.8 : c.sentiment?.code === "satisfaction" ? 0.1 : 0.5);
-		const x = padding.left + (idx / Math.max(commits.length - 1, 1)) * chartW;
-		const y = padding.top + (1 - Math.min(Math.max(prob, 0), 1)) * chartH;
-		return { x, y, prob, commit: c };
+			(c.sentiment?.code === "caution"
+				? 0.8
+				: c.sentiment?.code === "satisfaction"
+					? 0.1
+					: 0.5);
+		const date = new Date(c.committedAt * 1000).toLocaleDateString("en-US", {
+			month: "short",
+			day: "numeric",
+		});
+		return { index: idx, prob, hash: c.hash.slice(0, 7), message: c.message, date };
 	});
 
-	const pathD = points.reduce(
-		(acc, pt, idx) => (idx === 0 ? `M ${pt.x} ${pt.y}` : `${acc} L ${pt.x} ${pt.y}`),
-		"",
-	);
-
-	const thresholdY = padding.top + (1 - Math.min(Math.max(threshold, 0), 1)) * chartH;
-
-	const timeLabels = [
-		{ label: "6mo ago", x: padding.left },
-		{ label: "5mo", x: padding.left + chartW * 0.16 },
-		{ label: "4mo", x: padding.left + chartW * 0.33 },
-		{ label: "3mo", x: padding.left + chartW * 0.5 },
-		{ label: "2mo", x: padding.left + chartW * 0.66 },
-		{ label: "1mo", x: padding.left + chartW * 0.83 },
-		{ label: "now", x: padding.left + chartW },
-	];
-
-	const activePoint = activeHoverIdx !== null ? points[activeHoverIdx] : null;
+	const dotRenderer = (props: {
+		cx?: number;
+		cy?: number;
+		index?: number;
+		payload?: ChartPoint;
+	}): JSX.Element => {
+		const { cx = 0, cy = 0, index = 0, payload } = props;
+		const prob = payload?.prob ?? 0;
+		const isRisky = prob >= threshold;
+		const isActive = activeIdx === index;
+		return (
+			<circle
+				key={index}
+				cx={cx}
+				cy={cy}
+				r={isActive ? 6 : 4}
+				fill={isRisky ? "var(--destructive-500)" : "var(--muted-foreground)"}
+				stroke="var(--background)"
+				strokeWidth={2}
+				style={{ cursor: "pointer", transition: "r 0.1s" }}
+			/>
+		);
+	};
 
 	return (
 		<Card>
@@ -61,127 +122,81 @@ export function SentimentTrajectoryCard({
 					Per-commit caution probability over the 6-month analysis window
 				</p>
 			</CardHeader>
-			<CardContent className="overflow-x-auto">
-				<div className="relative min-w-[500px]">
-					<svg
-						viewBox={`0 0 ${width} ${height}`}
-						className="font-fira-mono h-auto w-full overflow-visible text-[10px]"
+			<CardContent>
+				<ChartContainer
+					config={{
+						prob: { label: "p(caution)", color: "var(--primary-500)" },
+					}}
+					className="h-[220px] w-full"
+				>
+					<LineChart
+						data={data}
+						margin={{ top: 8, right: 16, bottom: 8, left: 0 }}
+						onMouseMove={(s) => {
+							const idx = s?.activeTooltipIndex;
+							setActiveIdx(typeof idx === "number" ? idx : null);
+						}}
+						onMouseLeave={() => setActiveIdx(null)}
 					>
-						{[1.0, 0.75, 0.5, 0.25, 0.0].map((val) => {
-							const y = padding.top + (1 - val) * chartH;
-							return (
-								<g key={val}>
-									<line
-										x1={padding.left}
-										y1={y}
-										x2={padding.left + chartW}
-										y2={y}
-										stroke="var(--border)"
-										strokeOpacity={0.3}
-										strokeDasharray="2 2"
-									/>
-									<text
-										x={padding.left - 8}
-										y={y + 3}
-										textAnchor="end"
-										fill="var(--text-subtle)"
-									>
-										{val.toFixed(2)}
-									</text>
-								</g>
-							);
-						})}
-
-						{timeLabels.map(({ label, x }) => (
-							<text
-								key={label}
-								x={x}
-								y={height - 12}
-								textAnchor="middle"
-								fill="var(--text-subtle)"
-								className="text-[9px]"
-							>
-								{label}
-							</text>
-						))}
-
-						<line
-							x1={padding.left}
-							y1={thresholdY}
-							x2={padding.left + chartW}
-							y2={thresholdY}
+						<CartesianGrid
+							strokeDasharray="3 3"
+							stroke="var(--border)"
+							strokeOpacity={0.3}
+						/>
+						<XAxis
+							dataKey="index"
+							type="number"
+							domain={[0, data.length - 1]}
+							tickFormatter={(idx: number) => data[idx]?.date ?? ""}
+							tick={{ fontSize: 9, fill: "var(--muted-foreground)", fontFamily: "var(--font-fira-mono)" }}
+							interval="preserveStartEnd"
+							tickLine={false}
+							axisLine={false}
+						/>
+						<YAxis
+							domain={[0, 1]}
+							ticks={[0, 0.25, 0.5, 0.75, 1.0]}
+							tick={{ fontSize: 9, fill: "var(--muted-foreground)", fontFamily: "var(--font-fira-mono)" }}
+							tickLine={false}
+							axisLine={false}
+							width={32}
+						/>
+						<Tooltip
+							content={(props) => (
+								<TooltipContent
+									active={props.active}
+									payload={props.payload as ReadonlyArray<{ payload: ChartPoint }>}
+									threshold={threshold}
+								/>
+							)}
+							cursor={{ stroke: "var(--border)", strokeWidth: 1 }}
+						/>
+						<ReferenceLine
+							y={threshold}
 							stroke="#eab308"
-							strokeWidth={1.5}
 							strokeDasharray="4 4"
-						/>
-						<text
-							x={padding.left + chartW + 8}
-							y={thresholdY + 3}
-							fill="#eab308"
-							fontWeight="bold"
-							className="text-[9px] tracking-wider uppercase"
-						>
-							MODEL THRESHOLD {threshold.toFixed(2)}
-						</text>
-
-						<path
-							d={pathD}
-							fill="none"
-							stroke="#22c55e"
-							strokeWidth={2}
-							strokeLinecap="round"
-							strokeLinejoin="round"
-						/>
-
-						{points.map((pt, idx) => {
-							const isHovered = activeHoverIdx === idx;
-							const isAboveThreshold = pt.prob >= threshold;
-							return (
-								<g key={pt.commit.hash || idx}>
-									<circle
-										cx={pt.x}
-										cy={pt.y}
-										r={isHovered ? 6 : 4}
-										fill={isAboveThreshold ? "#ef4444" : "#22c55e"}
-										stroke="#0d1414"
-										strokeWidth={2}
-										className="cursor-pointer transition-all hover:scale-125"
-										onMouseEnter={() => setActiveHoverIdx(idx)}
-										onMouseLeave={() => setActiveHoverIdx(null)}
-									/>
-								</g>
-							);
-						})}
-					</svg>
-
-					{activePoint && (
-						<div
-							className="bg-background-900 border-border/60 pointer-events-none absolute z-20 max-w-xs -translate-x-1/2 -translate-y-full rounded-lg border p-2.5 shadow-xl"
-							style={{
-								left: `${(activePoint.x / width) * 100}%`,
-								top: `${(activePoint.y / height) * 100 - 8}%`,
+							strokeWidth={1.5}
+							label={{
+								value: `MODEL THRESHOLD ${threshold.toFixed(2)}`,
+								position: "insideTopRight",
+								fontSize: 9,
+								fill: "#eab308",
+								fontFamily: "var(--font-fira-mono)",
+								fontWeight: "bold",
 							}}
-						>
-							<p className="font-fira-mono text-foreground truncate text-xs font-bold">
-								"{activePoint.commit.message}"
-							</p>
-							<div className="font-fira-mono text-muted-foreground mt-1 flex items-center justify-between gap-4 text-[10px]">
-								<span>{activePoint.commit.hash.slice(0, 7)}</span>
-								<span
-									className="font-bold"
-									style={{
-										color:
-											activePoint.prob >= threshold
-												? "var(--destructive-500)"
-												: "var(--primary-500)",
-									}}
-								>
-									p(caution): {activePoint.prob.toFixed(2)}
-								</span>
-							</div>
-						</div>
-					)}
-				</div>
+						/>
+						<Line
+							type="monotone"
+							dataKey="prob"
+							stroke="var(--muted-foreground)"
+							strokeOpacity={0.5}
+							strokeWidth={2}
+							dot={dotRenderer}
+							activeDot={false}
+							isAnimationActive={false}
+						/>
+					</LineChart>
+				</ChartContainer>
 			</CardContent>
 		</Card>
 	);
