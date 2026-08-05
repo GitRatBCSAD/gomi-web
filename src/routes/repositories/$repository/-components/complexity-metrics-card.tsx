@@ -36,6 +36,19 @@ export function ComplexityMetricsCard({
 			? `REPO AVG: ${repoAvgEntropy.toFixed(2)} · ${pctOverEntropy}% OVER`
 			: `REPO AVG: ${repoAvgEntropy.toFixed(2)} · WITHIN AVG`;
 
+	const repoAvgNdev =
+		allFiles.length > 0
+			? allFiles.reduce((acc, f) => acc + f.ndevScore, 0) / allFiles.length
+			: 0;
+
+	const diffNdev = file.ndevScore - repoAvgNdev;
+	const pctOverNdev =
+		repoAvgNdev > 0 ? Math.round((diffNdev / repoAvgNdev) * 100) : 0;
+	const tagNdev =
+		diffNdev > 0
+			? `REPO AVG: ${repoAvgNdev.toFixed(2)} · ${pctOverNdev}% OVER`
+			: `REPO AVG: ${repoAvgNdev.toFixed(2)} · WITHIN AVG`;
+
 	const metrics = [
 		{
 			label: "Complexity score",
@@ -55,6 +68,8 @@ export function ComplexityMetricsCard({
 			label: "NDev score",
 			value: file.ndevScore.toFixed(2),
 			desc: "distinct developers who touched it",
+			tag: tagNdev,
+			isOver: diffNdev > 0,
 		},
 		{ label: "Age score", value: file.ageScore.toFixed(2), desc: "normalized churn recency" },
 		{
