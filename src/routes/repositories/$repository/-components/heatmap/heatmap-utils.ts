@@ -2,6 +2,7 @@ import type { FileRiskResult } from "@/lib/github/model";
 
 export type RiskCategory = "risky" | "acceptable" | "low-conf";
 export type FilterKey = "all" | RiskCategory;
+export type SortOption = "risk-desc" | "risk-asc" | "complexity-desc" | "commits-desc" | "name-asc";
 
 export type FileInfo = {
 	name: string;

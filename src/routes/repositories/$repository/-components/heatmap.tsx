@@ -14,6 +14,7 @@ import {
 	getCategory,
 	toFileInfo,
 	type FilterKey,
+	type SortOption,
 	type TreeNode,
 } from "./heatmap/heatmap-utils";
 
@@ -28,6 +29,7 @@ export function Heatmap(props: {
 }): JSX.Element {
 	const [internalFilter, setInternalFilter] = useState<FilterKey>("all");
 	const [search, setSearch] = useState("");
+	const [sort, setSort] = useState<SortOption>("risk-desc");
 
 	const activeFilter = props.filter ?? internalFilter;
 	const handleFilterChange = (f: FilterKey) => {
@@ -44,14 +46,23 @@ export function Heatmap(props: {
 		"low-conf": data.filter((f) => getCategory(f, props.threshold) === "low-conf").length,
 	};
 
-	const visible = data.filter((f) => {
-		if (activeFilter !== "all" && getCategory(f, props.threshold) !== activeFilter) return false;
-		if (search) {
-			const fullPath = `${f.dir}${f.name}`.toLowerCase();
-			if (!fullPath.includes(search.toLowerCase())) return false;
-		}
-		return true;
-	});
+	const visible = data
+		.filter((f) => {
+			if (activeFilter !== "all" && getCategory(f, props.threshold) !== activeFilter) return false;
+			if (search) {
+				const fullPath = `${f.dir}${f.name}`.toLowerCase();
+				if (!fullPath.includes(search.toLowerCase())) return false;
+			}
+			return true;
+		})
+		.sort((a, b) => {
+			if (sort === "risk-desc") return b.risk - a.risk;
+			if (sort === "risk-asc") return a.risk - b.risk;
+			if (sort === "complexity-desc") return b.complexity - a.complexity;
+			if (sort === "commits-desc") return b.commits - a.commits;
+			if (sort === "name-asc") return a.name.localeCompare(b.name);
+			return 0;
+		});
 
 	const [containerWidth, setContainerWidth] = useState(0);
 	const roRef = useRef<ResizeObserver | null>(null);
@@ -85,7 +96,14 @@ export function Heatmap(props: {
 			})),
 		})
 			.sum((d) => Math.max(d.complexity ?? 0, 0.1))
-			.sort((a, b) => (b.value ?? 0) - (a.value ?? 0));
+			.sort((a, b) => {
+				if (sort === "risk-desc") return (b.data.risk ?? 0) - (a.data.risk ?? 0);
+				if (sort === "risk-asc") return (a.data.risk ?? 0) - (b.data.risk ?? 0);
+				if (sort === "complexity-desc") return (b.data.complexity ?? 0) - (a.data.complexity ?? 0);
+				if (sort === "commits-desc") return (b.data.commits ?? 0) - (a.data.commits ?? 0);
+				if (sort === "name-asc") return (a.data.name ?? "").localeCompare(b.data.name ?? "");
+				return 0;
+			});
 
 		treemap<TreeNode>()
 			.size([containerWidth, contentHeight])
@@ -98,7 +116,7 @@ export function Heatmap(props: {
 			leaves: root.leaves() as HierarchyRectangularNode<TreeNode>[],
 			dirNodes: (root.children ?? []) as HierarchyRectangularNode<TreeNode>[],
 		};
-	}, [containerWidth, contentHeight, visible]);
+	}, [containerWidth, contentHeight, visible, sort]);
 
 	return (
 		<TooltipProvider>
@@ -111,6 +129,8 @@ export function Heatmap(props: {
 					onFilterChange={handleFilterChange}
 					search={search}
 					onSearchChange={setSearch}
+					sort={sort}
+					onSortChange={setSort}
 					counts={counts}
 				/>
 

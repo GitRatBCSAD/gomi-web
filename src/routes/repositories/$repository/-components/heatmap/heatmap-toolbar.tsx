@@ -11,6 +11,7 @@ import {
 	HATCH,
 	type FilterKey,
 	type RiskCategory,
+	type SortOption,
 } from "./heatmap-utils";
 
 export function HeatmapToolbar(props: {
@@ -18,9 +19,11 @@ export function HeatmapToolbar(props: {
 	onFilterChange: (f: FilterKey) => void;
 	search: string;
 	onSearchChange: (s: string) => void;
+	sort: SortOption;
+	onSortChange: (s: SortOption) => void;
 	counts: Record<FilterKey, number>;
 }): JSX.Element {
-	const { filter, onFilterChange, search, onSearchChange, counts } = props;
+	const { filter, onFilterChange, search, onSearchChange, sort, onSortChange, counts } = props;
 
 	return (
 		<>
@@ -47,6 +50,18 @@ export function HeatmapToolbar(props: {
 				</Tabs>
 
 				<div className="flex-1" />
+
+				<select
+					value={sort}
+					onChange={(e) => onSortChange(e.target.value as SortOption)}
+					className="border-input bg-background font-fira-mono text-muted-foreground focus-visible:ring-ring h-8 rounded-md border px-2.5 text-xs font-medium transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-1"
+				>
+					<option value="risk-desc">Sort: Highest Risk</option>
+					<option value="risk-asc">Sort: Lowest Risk</option>
+					<option value="complexity-desc">Sort: Highest Complexity</option>
+					<option value="commits-desc">Sort: Most Commits</option>
+					<option value="name-asc">Sort: Name (A-Z)</option>
+				</select>
 
 				<TabsList>
 					<TabsTrigger value="heatmap">
