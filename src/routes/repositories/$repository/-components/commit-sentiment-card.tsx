@@ -1,5 +1,7 @@
-import type { JSX } from "react";
+import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+import { useState, type JSX } from "react";
 
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import type { FileRiskResult } from "@/lib/github/model";
 
@@ -51,12 +53,19 @@ function timeAgo(ts: number): string {
 }
 
 export function CommitSentimentCard({ file }: { file: FileRiskResult }): JSX.Element {
+	const [page, setPage] = useState(1);
+	const pageSize = 5;
+
 	const commits = [...file.commitSentiments].sort((a, b) => b.committedAt - a.committedAt);
 	const total = commits.length;
+	const totalPages = Math.max(Math.ceil(total / pageSize), 1);
+
 	const cautionCount = commits.filter((c) => c.sentiment?.code === "caution").length;
 	const neutralCount = commits.filter((c) => c.sentiment?.code === "neutral").length;
 	const satisfactionCount = commits.filter((c) => c.sentiment?.code === "satisfaction").length;
 	const pct = (n: number) => (total > 0 ? Math.round((n / total) * 100) : 0);
+
+	const paginatedCommits = commits.slice((page - 1) * pageSize, page * pageSize);
 
 	const tiles = [
 		{
@@ -119,9 +128,16 @@ export function CommitSentimentCard({ file }: { file: FileRiskResult }): JSX.Ele
 				</div>
 
 				<div>
-					<p className="font-fira-mono text-muted-foreground mb-2 text-xs tracking-widest uppercase">
-						Commits
-					</p>
+					<div className="flex items-center justify-between mb-2">
+						<p className="font-fira-mono text-muted-foreground text-xs tracking-widest uppercase">
+							Commits ({total})
+						</p>
+						{totalPages > 1 && (
+							<span className="font-fira-mono text-muted-foreground text-xs">
+								Page {page} of {totalPages}
+							</span>
+						)}
+					</div>
 					<div
 						style={{
 							borderRadius: "0.5rem",
@@ -130,12 +146,12 @@ export function CommitSentimentCard({ file }: { file: FileRiskResult }): JSX.Ele
 							backgroundColor: "var(--background-800)",
 						}}
 					>
-						{commits.length === 0 ? (
+						{paginatedCommits.length === 0 ? (
 							<p className="font-fira-mono text-muted-foreground px-4 py-3 text-sm">
 								No commits in window.
 							</p>
 						) : (
-							commits.map((c) => (
+							paginatedCommits.map((c) => (
 								<div
 									key={c.hash}
 									style={{
@@ -168,8 +184,38 @@ export function CommitSentimentCard({ file }: { file: FileRiskResult }): JSX.Ele
 							))
 						)}
 					</div>
+
+					{totalPages > 1 && (
+						<div className="flex items-center justify-between mt-3 px-1">
+							<p className="font-fira-mono text-muted-foreground text-xs">
+								Showing {(page - 1) * pageSize + 1}–
+								{Math.min(page * pageSize, total)} of {total}
+							</p>
+							<div className="flex items-center gap-2">
+								<Button
+									variant="outline"
+									size="sm"
+									disabled={page <= 1}
+									onClick={() => setPage((p) => Math.max(p - 1, 1))}
+								>
+									<ChevronLeftIcon className="size-3.5" />
+									Previous
+								</Button>
+								<Button
+									variant="outline"
+									size="sm"
+									disabled={page >= totalPages}
+									onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
+								>
+									Next
+									<ChevronRightIcon className="size-3.5" />
+								</Button>
+							</div>
+						</div>
+					)}
 				</div>
 			</CardContent>
 		</Card>
 	);
 }
+
