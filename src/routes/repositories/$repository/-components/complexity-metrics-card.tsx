@@ -10,80 +10,90 @@ export function ComplexityMetricsCard({
 	file: FileRiskResult;
 	allFiles?: FileRiskResult[];
 }): JSX.Element {
-	const repoAvgComplexity =
-		allFiles.length > 0
-			? allFiles.reduce((acc, f) => acc + f.complexityScore, 0) / allFiles.length
-			: 0;
+	const calculateMetricTag = (
+		getValue: (f: FileRiskResult) => number,
+		currentValue: number,
+		decimals = 2,
+	) => {
+		const avg =
+			allFiles.length > 0
+				? allFiles.reduce((acc, f) => acc + getValue(f), 0) / allFiles.length
+				: 0;
+		const diff = currentValue - avg;
+		const pctOver = avg > 0 ? Math.round((diff / avg) * 100) : 0;
+		const isOver = diff > 0;
+		const tag = isOver
+			? `REPO AVG: ${avg.toFixed(decimals)} · ${pctOver}% OVER`
+			: `REPO AVG: ${avg.toFixed(decimals)} · WITHIN AVG`;
+		return { tag, isOver };
+	};
 
-	const diffComplexity = file.complexityScore - repoAvgComplexity;
-	const pctOverComplexity =
-		repoAvgComplexity > 0 ? Math.round((diffComplexity / repoAvgComplexity) * 100) : 0;
-	const tagComplexity =
-		diffComplexity > 0
-			? `REPO AVG: ${repoAvgComplexity.toFixed(2)} · ${pctOverComplexity}% OVER`
-			: `REPO AVG: ${repoAvgComplexity.toFixed(2)} · WITHIN AVG`;
-
-	const repoAvgEntropy =
-		allFiles.length > 0
-			? allFiles.reduce((acc, f) => acc + f.changeEntropy, 0) / allFiles.length
-			: 0;
-
-	const diffEntropy = file.changeEntropy - repoAvgEntropy;
-	const pctOverEntropy =
-		repoAvgEntropy > 0 ? Math.round((diffEntropy / repoAvgEntropy) * 100) : 0;
-	const tagEntropy =
-		diffEntropy > 0
-			? `REPO AVG: ${repoAvgEntropy.toFixed(2)} · ${pctOverEntropy}% OVER`
-			: `REPO AVG: ${repoAvgEntropy.toFixed(2)} · WITHIN AVG`;
-
-	const repoAvgNdev =
-		allFiles.length > 0
-			? allFiles.reduce((acc, f) => acc + f.ndevScore, 0) / allFiles.length
-			: 0;
-
-	const diffNdev = file.ndevScore - repoAvgNdev;
-	const pctOverNdev =
-		repoAvgNdev > 0 ? Math.round((diffNdev / repoAvgNdev) * 100) : 0;
-	const tagNdev =
-		diffNdev > 0
-			? `REPO AVG: ${repoAvgNdev.toFixed(2)} · ${pctOverNdev}% OVER`
-			: `REPO AVG: ${repoAvgNdev.toFixed(2)} · WITHIN AVG`;
+	const metricComplexity = calculateMetricTag((f) => f.complexityScore, file.complexityScore);
+	const metricEntropy = calculateMetricTag((f) => f.changeEntropy, file.changeEntropy);
+	const metricNdev = calculateMetricTag((f) => f.ndevScore, file.ndevScore);
+	const metricAge = calculateMetricTag((f) => f.ageScore, file.ageScore);
+	const metricLowInfo = calculateMetricTag((f) => f.lowInfoRatio, file.lowInfoRatio);
+	const metricCommits = calculateMetricTag((f) => f.commitCount, file.commitCount, 0);
+	const metricCcn = calculateMetricTag((f) => f.avgCcn, file.avgCcn, 1);
+	const metricNloc = calculateMetricTag((f) => f.avgNloc, file.avgNloc, 1);
 
 	const metrics = [
 		{
 			label: "Complexity score",
 			value: file.complexityScore.toFixed(2),
 			desc: "normalized Lizard complexity",
-			tag: tagComplexity,
-			isOver: diffComplexity > 0,
+			tag: metricComplexity.tag,
+			isOver: metricComplexity.isOver,
 		},
 		{
 			label: "Change entropy",
 			value: file.changeEntropy.toFixed(2),
 			desc: "how dispersed edits are across the file",
-			tag: tagEntropy,
-			isOver: diffEntropy > 0,
+			tag: metricEntropy.tag,
+			isOver: metricEntropy.isOver,
 		},
 		{
 			label: "NDev score",
 			value: file.ndevScore.toFixed(2),
 			desc: "distinct developers who touched it",
-			tag: tagNdev,
-			isOver: diffNdev > 0,
+			tag: metricNdev.tag,
+			isOver: metricNdev.isOver,
 		},
-		{ label: "Age score", value: file.ageScore.toFixed(2), desc: "normalized churn recency" },
+		{
+			label: "Age score",
+			value: file.ageScore.toFixed(2),
+			desc: "normalized churn recency",
+			tag: metricAge.tag,
+			isOver: metricAge.isOver,
+		},
 		{
 			label: "Low info ratio",
 			value: file.lowInfoRatio.toFixed(2),
 			desc: "share of low-information commits",
+			tag: metricLowInfo.tag,
+			isOver: metricLowInfo.isOver,
 		},
 		{
 			label: "Number of commits",
 			value: String(file.commitCount),
 			desc: "commits in analysis window",
+			tag: metricCommits.tag,
+			isOver: metricCommits.isOver,
 		},
-		{ label: "Avg CCN", value: file.avgCcn.toFixed(1), desc: "average cyclomatic complexity" },
-		{ label: "Avg NLOC", value: file.avgNloc.toFixed(1), desc: "average lines per function" },
+		{
+			label: "Avg CCN",
+			value: file.avgCcn.toFixed(1),
+			desc: "average cyclomatic complexity",
+			tag: metricCcn.tag,
+			isOver: metricCcn.isOver,
+		},
+		{
+			label: "Avg NLOC",
+			value: file.avgNloc.toFixed(1),
+			desc: "average lines per function",
+			tag: metricNloc.tag,
+			isOver: metricNloc.isOver,
+		},
 	];
 
 	return (
