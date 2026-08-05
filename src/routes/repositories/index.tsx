@@ -92,9 +92,13 @@ function RouteComponent(): JSX.Element {
 	const notInstalled = installationsCount === 0;
 	const installUrl = `https://github.com/apps/${GITHUB_APP_NAME}/installations/new`;
 
-	const repos = (repositoriesQuery.data?.repositories ?? []).filter((r) =>
-		r.name.toLowerCase().includes(search.toLowerCase()),
-	);
+	const repos = (repositoriesQuery.data?.repositories ?? [])
+		.filter((r) => r.name.toLowerCase().includes(search.toLowerCase()))
+		.sort((a, b) => {
+			const cachedA = loadAnalysis(a.fullName) != null ? 1 : 0;
+			const cachedB = loadAnalysis(b.fullName) != null ? 1 : 0;
+			return cachedB - cachedA;
+		});
 
 	if (repositoriesQuery.isLoading) {
 		return (
