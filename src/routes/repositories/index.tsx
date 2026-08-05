@@ -41,8 +41,19 @@ export const Route = createFileRoute("/repositories/")({
 	},
 });
 
+interface ConfirmAction {
+	type: "analyze" | "reanalyze";
+	repo: {
+		id: string;
+		fullName: string;
+		owner: string;
+		name: string;
+	};
+}
+
 function RouteComponent(): JSX.Element {
 	const [search, setSearch] = useState("");
+	const [confirmAction, setConfirmAction] = useState<ConfirmAction | null>(null);
 	const navigate = useNavigate();
 	const routeSearch = Route.useSearch();
 	const queryClient = useQueryClient();
@@ -185,35 +196,63 @@ function RouteComponent(): JSX.Element {
 							{(() => {
 								const cached = loadAnalysis(repo.fullName);
 								const [owner, name] = repo.fullName.split("/");
+								const isPendingThisRepo =
+									analyzeMutation.isPending &&
+									analyzeMutation.variables?.owner === owner &&
+									analyzeMutation.variables?.repository === name;
+
 								return (
-									<>
-										<Button
-											disabled={analyzeMutation.isPending}
-											onClick={() => {
-												if (cached) {
-													navigate({
-														to: "/repositories/$repository",
-														params: { repository: repo.fullName },
-													});
-													return;
-												}
-												analyzeMutation.mutate({ id: String(repo.id), owner, repository: name });
-											}}
-										>
-											{analyzeMutation.isPending ? "Analyzing..." : cached ? "View" : "Analyze"}
-										</Button>
-										{cached && (
+									<div className="flex items-center gap-2">
+										{cached ? (
+											<>
+												<Button
+													disabled={analyzeMutation.isPending}
+													onClick={() => {
+														navigate({
+															to: "/repositories/$repository",
+															params: { repository: repo.fullName },
+														});
+													}}
+												>
+													Review
+												</Button>
+												<Button
+													variant="outline"
+													disabled={analyzeMutation.isPending}
+													onClick={() => {
+														setConfirmAction({
+															type: "reanalyze",
+															repo: {
+																id: String(repo.id),
+																fullName: repo.fullName,
+																owner,
+																name,
+															},
+														});
+													}}
+												>
+													{isPendingThisRepo ? "Reanalyzing..." : "Reanalyze"}
+												</Button>
+											</>
+										) : (
 											<Button
-												variant="outline"
 												disabled={analyzeMutation.isPending}
 												onClick={() => {
-													analyzeMutation.mutate({ id: String(repo.id), owner, repository: name, force: true });
+													setConfirmAction({
+														type: "analyze",
+														repo: {
+															id: String(repo.id),
+															fullName: repo.fullName,
+															owner,
+															name,
+														},
+													});
 												}}
 											>
-												Re-analyze
+												{isPendingThisRepo ? "Analyzing..." : "Analyze"}
 											</Button>
 										)}
-									</>
+									</div>
 								);
 							})()}
 						</div>
@@ -251,6 +290,49 @@ function RouteComponent(): JSX.Element {
 					)}
 				</div>
 			</div>
+
+			{confirmAction && (
+				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
+					<div className="bg-background-900 border-border/40 flex w-full max-w-md flex-col gap-4 rounded-2xl border p-6 shadow-2xl">
+						<h2 className="font-fira-mono-bold text-foreground text-xl">
+							{confirmAction.type === "reanalyze" ? "Reanalyze" : "Analyze"}{" "}
+							{confirmAction.repo.name}?
+						</h2>
+						<p className="font-fira-mono text-muted-foreground text-xs leading-relaxed">
+							{confirmAction.type === "reanalyze"
+								? `Are you sure you want to reanalyze ${confirmAction.repo.fullName}? This will re-run static code analysis and sentiment extraction.`
+								: `Are you sure you want to analyze ${confirmAction.repo.fullName}? This will fetch commit sentiment and run static analysis.`}
+						</p>
+						<div className="flex justify-end gap-3 pt-2">
+							<Button
+								variant="outline"
+								size="sm"
+								onClick={() => setConfirmAction(null)}
+							>
+								No
+							</Button>
+							<Button
+								size="sm"
+								disabled={analyzeMutation.isPending}
+								onClick={() => {
+									const { id, owner, name } = confirmAction.repo;
+									const isReanalyze = confirmAction.type === "reanalyze";
+									setConfirmAction(null);
+									analyzeMutation.mutate({
+										id,
+										owner,
+										repository: name,
+										...(isReanalyze ? { force: true } : {}),
+									});
+								}}
+							>
+								Yes
+							</Button>
+						</div>
+					</div>
+				</div>
+			)}
 		</div>
 	);
 }
+
