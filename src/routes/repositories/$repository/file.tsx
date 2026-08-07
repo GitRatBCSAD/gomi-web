@@ -167,7 +167,7 @@ function RouteComponent(): JSX.Element {
 			</Card>
 
 			<SentimentTrajectoryCard file={file} threshold={threshold} />
-			<RootCauseCard file={file} />
+			<RootCauseCard file={file} threshold={threshold} />
 			<CommitSentimentCard file={file} />
 			<RiskDriftCard file={file} />
 			<ShapBreakdownCard file={file} />

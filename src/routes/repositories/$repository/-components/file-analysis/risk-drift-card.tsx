@@ -4,74 +4,48 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import type { FileRiskResult } from "@/lib/github/model";
 
+import { computeDrift } from "./drift-utils";
+
 export function RiskDriftCard({ file }: { file: FileRiskResult }): JSX.Element | null {
 	if (file.lowConfidence || file.commitSentiments.length < 10) {
 		return null;
 	}
 
-	const validCommits = [...file.commitSentiments]
+	const drift = computeDrift(file.commitSentiments, file.shapBreakdown);
+	if (!drift) return null;
+
+	// Display-only stats (earlierAvg, laterAvg, pctChange) — separate from categorization
+	const sorted = [...file.commitSentiments]
 		.filter((c) => c.riskProbability != null)
 		.sort((a, b) => a.committedAt - b.committedAt);
 
-	if (validCommits.length < 10) return null;
-
-	const mid = Math.floor(validCommits.length / 2);
-	const earlierCommits = validCommits.slice(0, mid);
-	const laterCommits = validCommits.slice(mid);
-
+	const mid = Math.floor(sorted.length / 2);
 	const earlierAvg =
-		earlierCommits.reduce((acc, c) => acc + (c.riskProbability ?? 0), 0) /
-		earlierCommits.length;
+		sorted.slice(0, mid).reduce((acc, c) => acc + (c.riskProbability ?? 0), 0) / mid;
 	const laterAvg =
-		laterCommits.reduce((acc, c) => acc + (c.riskProbability ?? 0), 0) /
-		laterCommits.length;
-
+		sorted.slice(mid).reduce((acc, c) => acc + (c.riskProbability ?? 0), 0) /
+		(sorted.length - mid);
 	const diff = laterAvg - earlierAvg;
 	const pctChange = earlierAvg > 0 ? Math.round((diff / earlierAvg) * 100) : 0;
-
-	const s = file.shapBreakdown;
-	const affectiveSum = (s?.sentimentContrib ?? 0) + Math.max(0, s?.lowInfoContrib ?? 0);
-	const structuralSum =
-		(s?.entropyContrib ?? 0) +
-		(s?.ndevContrib ?? 0) +
-		(s?.ageContrib ?? 0) +
-		(s?.complexityContrib ?? 0) +
-		(s?.commitsContrib ?? 0);
-
-	const isAffective = affectiveSum > structuralSum;
-
-	let categoryLabel = "Passive Legacy Debt";
-	let categoryBg = "var(--primary-900)";
-	let categoryFg = "var(--primary-500)";
-
-	if (diff > 0.05) {
-		if (isAffective) {
-			categoryLabel = "Developer Frustration Drift";
-			categoryBg = "var(--destructive-900)";
-			categoryFg = "var(--destructive-500)";
-		} else {
-			categoryLabel = "Accelerating Debt Hotspot";
-			categoryBg = "var(--destructive-900)";
-			categoryFg = "var(--destructive-500)";
-		}
-	} else if (diff < -0.05) {
-		categoryLabel = "Refactoring Recovery";
-		categoryBg = "var(--success-900)";
-		categoryFg = "var(--success-500)";
-	} else {
-		if (isAffective) {
-			categoryLabel = "Developer Frustration Drift";
-			categoryBg = "var(--caution-900)";
-			categoryFg = "var(--caution-500)";
-		} else {
-			categoryLabel = "Passive Legacy Debt";
-			categoryBg = "var(--primary-900)";
-			categoryFg = "var(--primary-500)";
-		}
-	}
-
 	const isUpward = diff > 0;
 	const signStr = isUpward ? "+" : "";
+
+	// Badge color keyed to spike direction, not raw diff threshold
+	let categoryBg: string;
+	let categoryFg: string;
+	if (drift.hasSpike && drift.spikeDirection === "up") {
+		categoryBg = "var(--destructive-900)";
+		categoryFg = "var(--destructive-500)";
+	} else if (drift.hasSpike && drift.spikeDirection === "down") {
+		categoryBg = "var(--success-900)";
+		categoryFg = "var(--success-500)";
+	} else if (drift.isAffective) {
+		categoryBg = "var(--caution-900)";
+		categoryFg = "var(--caution-500)";
+	} else {
+		categoryBg = "var(--primary-900)";
+		categoryFg = "var(--primary-500)";
+	}
 
 	return (
 		<Card>
@@ -90,7 +64,7 @@ export function RiskDriftCard({ file }: { file: FileRiskResult }): JSX.Element |
 							}}
 							className="text-[10px] uppercase font-bold tracking-wider"
 						>
-							{categoryLabel}
+							{drift.category}
 						</Badge>
 					</div>
 				</div>
