@@ -2,14 +2,15 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute, redirect, Link, useRouter } from "@tanstack/react-router";
 import { useState, type JSX } from "react";
 
-import { H1, H2, P } from "@/components/typography";
+import { H1 } from "@/components/typography";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardAction } from "@/components/ui/card";
 import { analyzeRepository, getRepositoriesQuery } from "@/lib/github/api";
 import { loadAnalysis, saveAnalysis } from "@/lib/github/model";
 
-import { Heatmap } from "./-components/heatmap";
+import { Heatmap } from "./-components/repo-overview/heatmap";
+import { RepoSummaryCards } from "./-components/repo-overview/repo-summary-cards";
 
 export const Route = createFileRoute("/repositories/$repository/")({
 	component: RouteComponent,
@@ -24,6 +25,7 @@ function RouteComponent(): JSX.Element {
 	const analysis = Route.useLoaderData();
 	const router = useRouter();
 	const [showConfirm, setShowConfirm] = useState(false);
+	const [selectedFilter, setSelectedFilter] = useState<"all" | "risky" | "acceptable" | "low-conf">("all");
 
 	const reposQuery = useQuery(getRepositoriesQuery);
 
@@ -87,48 +89,21 @@ function RouteComponent(): JSX.Element {
 				</CardContent>
 			</Card>
 
-			<section className="grid grid-cols-4 gap-2">
-				<Card>
-					<CardHeader>
-						<H2 variant="p">Files Analyzed</H2>
-					</CardHeader>
-					<CardContent className="flex items-center gap-4">
-						<P variant="h2">{analysis.fileResults.length}</P>
-					</CardContent>
-				</Card>
-
-				<Card>
-					<CardHeader>
-						<H2 variant="p">Risky</H2>
-					</CardHeader>
-					<CardContent className="flex items-center gap-4">
-						<P variant="h2">{risky}</P>
-					</CardContent>
-				</Card>
-
-				<Card>
-					<CardHeader>
-						<H2 variant="p">Acceptable</H2>
-					</CardHeader>
-					<CardContent className="flex items-center gap-4">
-						<P variant="h2">{acceptable}</P>
-					</CardContent>
-				</Card>
-
-				<Card>
-					<CardHeader>
-						<H2 variant="p">Low Confidence</H2>
-					</CardHeader>
-					<CardContent className="flex items-center gap-4">
-						<P variant="h2">{lowConf}</P>
-					</CardContent>
-				</Card>
-			</section>
+			<RepoSummaryCards
+				totalFiles={analysis.fileResults.length}
+				risky={risky}
+				acceptable={acceptable}
+				lowConf={lowConf}
+				selectedFilter={selectedFilter}
+				onSelectFilter={setSelectedFilter}
+			/>
 
 			<Heatmap
 				fileResults={analysis.fileResults}
 				threshold={analysis.threshold}
 				repository={repoName}
+				filter={selectedFilter}
+				onFilterChange={setSelectedFilter}
 			/>
 
 			{showConfirm && (
@@ -174,4 +149,3 @@ function RouteComponent(): JSX.Element {
 		</div>
 	);
 }
-
