@@ -80,6 +80,20 @@ export type ShapBreakdown = v.InferOutput<typeof ShapBreakdownSchema>;
 export type FileRiskResult = v.InferOutput<typeof FileRiskResultSchema>;
 export type AnalysisResult = v.InferOutput<typeof AnalysisResultSchema>;
 
+export const AnalyzeJobResponseSchema = v.object({
+	jobId: v.string(),
+});
+export type AnalyzeJobResponse = v.InferOutput<typeof AnalyzeJobResponseSchema>;
+
+export const JobStatusSchema = v.object({
+	status: v.string(),
+	step: v.string(),
+	progress: v.number(),
+	result: v.optional(AnalysisResultSchema),
+	error: v.optional(v.string()),
+});
+export type JobStatus = v.InferOutput<typeof JobStatusSchema>;
+
 const storageKey = (fullName: string) => `gomi:analysis:${fullName}`;
 
 export function saveAnalysis(fullName: string, result: AnalysisResult): void {

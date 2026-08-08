@@ -5,9 +5,12 @@ import { ApiResponseSchema } from "../api";
 import { BACKEND_URL } from "../env";
 import {
 	AnalysisResultSchema,
+	AnalyzeJobResponseSchema,
+	JobStatusSchema,
 	RepositoriesResponseSchema,
-	type AnalysisResult,
+	type AnalyzeJobResponse,
 	type AnalyzeRepositoryRequest,
+	type JobStatus,
 	type RepositoriesResponse,
 } from "./model";
 
@@ -33,7 +36,11 @@ export const getRepositoriesQuery = queryOptions({
 	refetchOnWindowFocus: false,
 });
 
-export async function analyzeRepository(data: AnalyzeRepositoryRequest): Promise<AnalysisResult> {
+export type AnalyzeRepositoryResponse =
+	| { type: "cached"; result: import("./model").AnalysisResult }
+	| { type: "job"; jobId: string };
+
+export async function analyzeRepository(data: AnalyzeRepositoryRequest): Promise<AnalyzeRepositoryResponse> {
 	const res = await fetch(`${BACKEND_URL}/repositories`, {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
@@ -44,6 +51,23 @@ export async function analyzeRepository(data: AnalyzeRepositoryRequest): Promise
 	if (!res.ok) {
 		throw new Error(json.message || "Failed to analyze repository");
 	}
-	const parsed = v.parse(ApiResponseSchema(AnalysisResultSchema), json);
+	if (res.status === 200) {
+		const parsed = v.parse(ApiResponseSchema(AnalysisResultSchema), json);
+		return { type: "cached", result: parsed.data };
+	}
+	// 202 — job started
+	const parsed = v.parse(ApiResponseSchema(AnalyzeJobResponseSchema), json);
+	return { type: "job", jobId: parsed.data.jobId };
+}
+
+export async function getJobStatus(jobId: string): Promise<JobStatus> {
+	const res = await fetch(`${BACKEND_URL}/repositories/jobs/${jobId}`, {
+		credentials: "include",
+	});
+	const json = await res.json();
+	if (!res.ok) {
+		throw new Error(json.message || "Failed to get job status");
+	}
+	const parsed = v.parse(ApiResponseSchema(JobStatusSchema), json);
 	return parsed.data;
 }
