@@ -2,6 +2,7 @@ import { hierarchy, treemap, treemapSquarify } from "d3-hierarchy";
 import type { HierarchyRectangularNode } from "d3-hierarchy";
 import { useMemo, useRef, useState, type JSX } from "react";
 
+import { useNavigate } from "@tanstack/react-router";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import type { FileRiskResult } from "@/lib/github/model";
@@ -20,6 +21,8 @@ import {
 
 export { riskColor } from "./heatmap-utils";
 
+const TREEMAP_CAP = 500;
+
 export function Heatmap(props: {
 	fileResults: FileRiskResult[];
 	threshold: number;
@@ -30,6 +33,8 @@ export function Heatmap(props: {
 	const [internalFilter, setInternalFilter] = useState<FilterKey>("all");
 	const [search, setSearch] = useState("");
 	const [sort, setSort] = useState<SortOption>("risk-desc");
+	// ponytail: hoisted — avoids N useNavigate hook calls inside each Tile
+	const navigate = useNavigate();
 
 	const activeFilter = props.filter ?? internalFilter;
 	const handleFilterChange = (f: FilterKey) => {
@@ -37,32 +42,45 @@ export function Heatmap(props: {
 		props.onFilterChange?.(f);
 	};
 
-	const data = props.fileResults.map(toFileInfo);
+	// ponytail: memoized — toFileInfo is O(N*commits), avoid re-running on every render
+	const data = useMemo(() => props.fileResults.map(toFileInfo), [props.fileResults]);
 
-	const counts: Record<FilterKey, number> = {
-		all: data.length,
-		risky: data.filter((f) => getCategory(f, props.threshold) === "risky").length,
-		acceptable: data.filter((f) => getCategory(f, props.threshold) === "acceptable").length,
-		"low-conf": data.filter((f) => getCategory(f, props.threshold) === "low-conf").length,
-	};
+	const counts = useMemo<Record<FilterKey, number>>(
+		() => ({
+			all: data.length,
+			risky: data.filter((f) => getCategory(f, props.threshold) === "risky").length,
+			acceptable: data.filter((f) => getCategory(f, props.threshold) === "acceptable").length,
+			"low-conf": data.filter((f) => getCategory(f, props.threshold) === "low-conf").length,
+		}),
+		[data, props.threshold],
+	);
 
-	const visible = data
-		.filter((f) => {
-			if (activeFilter !== "all" && getCategory(f, props.threshold) !== activeFilter) return false;
-			if (search) {
-				const fullPath = `${f.dir}${f.name}`.toLowerCase();
-				if (!fullPath.includes(search.toLowerCase())) return false;
-			}
-			return true;
-		})
-		.sort((a, b) => {
-			if (sort === "risk-desc") return (b.risk ?? 0) - (a.risk ?? 0);
-			if (sort === "risk-asc") return (a.risk ?? 0) - (b.risk ?? 0);
-			if (sort === "complexity-desc") return (b.complexity ?? 0) - (a.complexity ?? 0);
-			if (sort === "commits-desc") return (b.commits ?? 0) - (a.commits ?? 0);
-			if (sort === "name-asc") return (a.name ?? "").localeCompare(b.name ?? "");
-			return 0;
-		});
+	const visible = useMemo(
+		() =>
+			data
+				.filter((f) => {
+					if (activeFilter !== "all" && getCategory(f, props.threshold) !== activeFilter)
+						return false;
+					if (search) {
+						const fullPath = `${f.dir}${f.name}`.toLowerCase();
+						if (!fullPath.includes(search.toLowerCase())) return false;
+					}
+					return true;
+				})
+				.sort((a, b) => {
+					if (sort === "risk-desc") return (b.risk ?? 0) - (a.risk ?? 0);
+					if (sort === "risk-asc") return (a.risk ?? 0) - (b.risk ?? 0);
+					if (sort === "complexity-desc") return (b.complexity ?? 0) - (a.complexity ?? 0);
+					if (sort === "commits-desc") return (b.commits ?? 0) - (a.commits ?? 0);
+					if (sort === "name-asc") return (a.name ?? "").localeCompare(b.name ?? "");
+					return 0;
+				}),
+		[data, activeFilter, search, sort, props.threshold],
+	);
+
+	// ponytail: treemap cap — absolute-positioned tiles can't be virtualized; top N by risk is what matters
+	const treemapFiles = useMemo(() => visible.slice(0, TREEMAP_CAP), [visible]);
+	const isCapped = visible.length > TREEMAP_CAP;
 
 	const [containerWidth, setContainerWidth] = useState(0);
 	const roRef = useRef<ResizeObserver | null>(null);
@@ -78,21 +96,21 @@ export function Heatmap(props: {
 	};
 
 	const contentHeight = useMemo(() => {
-		if (!containerWidth || !visible.length) return 400;
-		return Math.max(400, Math.ceil((visible.length * 15000) / containerWidth));
-	}, [containerWidth, visible.length]);
+		if (!containerWidth || !treemapFiles.length) return 400;
+		return Math.max(400, Math.ceil((treemapFiles.length * 15000) / containerWidth));
+	}, [containerWidth, treemapFiles.length]);
 
 	const { leaves, dirNodes } = useMemo(() => {
-		if (!containerWidth || !visible.length) {
+		if (!containerWidth || !treemapFiles.length) {
 			return { leaves: [], dirNodes: [] };
 		}
 
-		const dirs = [...new Set(visible.map((f) => f.dir))];
+		const dirs = [...new Set(treemapFiles.map((f) => f.dir))];
 		const root = hierarchy<TreeNode>({
 			name: "root",
 			children: dirs.map((dir) => ({
 				name: dir,
-				children: visible.filter((f) => f.dir === dir).map((f) => ({ ...f })),
+				children: treemapFiles.filter((f) => f.dir === dir).map((f) => ({ ...f })),
 			})),
 		})
 			.sum((d) => Math.max(d.complexity ?? 0, 0.1))
@@ -116,7 +134,7 @@ export function Heatmap(props: {
 			leaves: root.leaves() as HierarchyRectangularNode<TreeNode>[],
 			dirNodes: (root.children ?? []) as HierarchyRectangularNode<TreeNode>[],
 		};
-	}, [containerWidth, contentHeight, visible, sort]);
+	}, [containerWidth, contentHeight, treemapFiles, sort]);
 
 	return (
 		<TooltipProvider>
@@ -140,36 +158,49 @@ export function Heatmap(props: {
 							No files match the current filter.
 						</div>
 					) : (
-						<div
-							ref={attachRef}
-							className="relative w-full"
-							style={{ height: contentHeight }}
-						>
-							{dirNodes.map((d) => (
-								<div
-									key={d.data.name}
-									className="pointer-events-none absolute flex items-center px-1.5"
-									style={{
-										left: d.x0,
-										top: d.y0,
-										width: d.x1 - d.x0,
-										height: DIR_LABEL_HEIGHT,
-									}}
-								>
-									<p className="font-fira-mono text-muted-foreground/70 truncate text-xs">
-										{d.data.name}
-									</p>
+						<>
+							{isCapped && (
+								<div className="text-muted-foreground border-border border-b px-4 py-2 text-xs">
+									Showing top {TREEMAP_CAP} files by risk score ({visible.length} total). Switch to list view to browse all.
 								</div>
-							))}
-							{leaves.map((l) => (
-								<Tile
-									key={`${l.data.dir}${l.data.name}`}
-									node={l}
-									threshold={props.threshold}
-									repository={props.repository}
-								/>
-							))}
-						</div>
+							)}
+							<div
+								ref={attachRef}
+								className="relative w-full"
+								style={{ height: contentHeight }}
+							>
+								{dirNodes.map((d) => (
+									<div
+										key={d.data.name}
+										className="pointer-events-none absolute flex items-center px-1.5"
+										style={{
+											left: d.x0,
+											top: d.y0,
+											width: d.x1 - d.x0,
+											height: DIR_LABEL_HEIGHT,
+										}}
+									>
+										<p className="font-fira-mono text-muted-foreground/70 truncate text-xs">
+											{d.data.name}
+										</p>
+									</div>
+								))}
+								{leaves.map((l) => (
+									<Tile
+										key={`${l.data.dir}${l.data.name}`}
+										node={l}
+										threshold={props.threshold}
+										onNavigate={(path) =>
+											navigate({
+												to: "/repositories/$repository/file",
+												params: { repository: props.repository },
+												search: { path },
+											})
+										}
+									/>
+								))}
+							</div>
+						</>
 					)}
 				</TabsContent>
 

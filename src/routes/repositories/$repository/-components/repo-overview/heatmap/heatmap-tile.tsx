@@ -1,4 +1,3 @@
-import { useNavigate } from "@tanstack/react-router";
 import type { HierarchyRectangularNode } from "d3-hierarchy";
 import { CircleAlertIcon, CircleCheckIcon, MinusCircleIcon, TriangleAlertIcon } from "lucide-react";
 import type { JSX } from "react";
@@ -130,7 +129,7 @@ export function RiskBadge(props: { file: FileInfo; threshold: number }): JSX.Ele
 export function Tile(props: {
 	node: HierarchyRectangularNode<TreeNode>;
 	threshold: number;
-	repository: string;
+	onNavigate: (path: string) => void;
 }): JSX.Element {
 	const w = props.node.x1 - props.node.x0;
 	const h = props.node.y1 - props.node.y0;
@@ -146,7 +145,6 @@ export function Tile(props: {
 			? "risky"
 			: "acceptable";
 	const tooSmall = w < 52 || h < 34;
-	const navigate = useNavigate();
 
 	return (
 		<Tooltip>
@@ -159,13 +157,7 @@ export function Tile(props: {
 					height: h,
 					backgroundColor: riskColor(risk),
 				}}
-				onClick={() =>
-					navigate({
-						to: "/repositories/$repository/file",
-						params: { repository: props.repository },
-						search: { path: `${dir}${name}` },
-					})
-				}
+				onClick={() => props.onNavigate(`${dir}${name}`)}
 			>
 				{lowConf && (
 					<div
