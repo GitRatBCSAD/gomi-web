@@ -94,18 +94,3 @@ export const JobStatusSchema = v.object({
 });
 export type JobStatus = v.InferOutput<typeof JobStatusSchema>;
 
-const storageKey = (fullName: string) => `gomi:analysis:${fullName}`;
-
-export function saveAnalysis(fullName: string, result: AnalysisResult): void {
-	localStorage.setItem(storageKey(fullName), JSON.stringify(result));
-}
-
-export function loadAnalysis(fullName: string): AnalysisResult | null {
-	const raw = localStorage.getItem(storageKey(fullName));
-	if (!raw) return null;
-	try {
-		return v.parse(AnalysisResultSchema, JSON.parse(raw));
-	} catch {
-		return null;
-	}
-}

@@ -7,8 +7,7 @@ import * as v from "valibot";
 import type { UserProfile } from "@/components/navbar";
 import { Button } from "@/components/ui/button";
 import { BACKEND_URL, GITHUB_APP_NAME } from "@/lib/env";
-import { analyzeRepository, getJobStatus, getRepositories, getRepositoriesQuery } from "@/lib/github/api";
-import { loadAnalysis, saveAnalysis } from "@/lib/github/model";
+import { analyzeRepository, getAnalyzedRepositories, getJobStatus, getRepositoriesQuery } from "@/lib/github/api";
 
 const STEP_LABELS: Record<string, string> = {
 	queued: "Queued...",
@@ -99,7 +98,7 @@ function RouteComponent(): JSX.Element {
 		onSuccess: (data, variables) => {
 			const fullName = `${variables.owner}/${variables.repository}`;
 			if (data.type === "cached") {
-				saveAnalysis(fullName, data.result);
+				queryClient.invalidateQueries({ queryKey: ["analyzedRepositories"] });
 				navigate({ to: "/repositories/$repository", params: { repository: fullName } });
 			} else {
 				setPendingJob({ jobId: data.jobId, fullName });
@@ -122,25 +121,32 @@ function RouteComponent(): JSX.Element {
 
 	useEffect(() => {
 		if (!pendingJob || !jobQuery.data) return;
-		const { status, result } = jobQuery.data;
-		if (status === "done" && result) {
-			saveAnalysis(pendingJob.fullName, result);
+		const { status } = jobQuery.data;
+		if (status === "done") {
+			queryClient.invalidateQueries({ queryKey: ["analyzedRepositories"] });
 			navigate({ to: "/repositories/$repository", params: { repository: pendingJob.fullName } });
 			setPendingJob(null);
 		} else if (status === "failed") {
 			setPendingJob(null);
 		}
-	}, [jobQuery.data, pendingJob, navigate]);
+	}, [jobQuery.data, pendingJob, navigate, queryClient]);
 
 	const installationsCount = repositoriesQuery.data?.installationsCount ?? null;
 	const notInstalled = installationsCount === 0;
 	const installUrl = `https://github.com/apps/${GITHUB_APP_NAME}/installations/new`;
 
+	const analyzedQuery = useQuery({
+		queryKey: ["analyzedRepositories"],
+		queryFn: getAnalyzedRepositories,
+		staleTime: 60 * 1000,
+	});
+	const analyzedSet = new Set(analyzedQuery.data ?? []);
+
 	const repos = (repositoriesQuery.data?.repositories ?? [])
 		.filter((r) => r.name.toLowerCase().includes(search.toLowerCase()))
 		.sort((a, b) => {
-			const cachedA = loadAnalysis(a.fullName) != null ? 1 : 0;
-			const cachedB = loadAnalysis(b.fullName) != null ? 1 : 0;
+			const cachedA = analyzedSet.has(a.fullName) ? 1 : 0;
+			const cachedB = analyzedSet.has(b.fullName) ? 1 : 0;
 			return cachedB - cachedA;
 		});
 
@@ -245,7 +251,7 @@ function RouteComponent(): JSX.Element {
 								{repo.name}
 							</span>
 							{(() => {
-								const cached = loadAnalysis(repo.fullName);
+								const cached = analyzedSet.has(repo.fullName);
 								const [owner, name] = repo.fullName.split("/");
 								const isBusy = analyzeMutation.isPending || pendingJob !== null;
 								const isPendingThisRepo =
