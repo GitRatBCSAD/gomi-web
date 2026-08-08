@@ -4,6 +4,7 @@ import { GithubIcon, SearchIcon, SettingsIcon } from "lucide-react";
 import { useEffect, useState, type JSX } from "react";
 import * as v from "valibot";
 
+import { AnalysisLoadingScreen } from "@/components/analysis-loading-screen";
 import type { UserProfile } from "@/components/navbar";
 import { Button } from "@/components/ui/button";
 import { BACKEND_URL, GITHUB_APP_NAME } from "@/lib/env";
@@ -161,6 +162,14 @@ function RouteComponent(): JSX.Element {
 	}
 
 	return (
+		<>
+		<AnalysisLoadingScreen
+			visible={pendingJob !== null}
+			repoFullName={pendingJob?.fullName ?? ""}
+			step={jobQuery.data?.step ?? "queued"}
+			progress={jobQuery.data?.progress ?? 0}
+			currentFile={jobQuery.data?.current_file}
+		/>
 		<div className="flex flex-1 flex-col items-center justify-center gap-4 px-4 py-12">
 			<div className="mb-2 flex w-full max-w-3xl flex-col items-center gap-1 text-center">
 				<h1 className="font-fira-mono-bold text-3xl font-bold text-white">
@@ -400,6 +409,7 @@ function RouteComponent(): JSX.Element {
 				</div>
 			)}
 		</div>
+		</>
 	);
 }
 

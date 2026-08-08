@@ -89,6 +89,7 @@ export const JobStatusSchema = v.object({
 	status: v.string(),
 	step: v.string(),
 	progress: v.number(),
+	current_file: v.optional(v.string()),
 	result: v.optional(AnalysisResultSchema),
 	error: v.optional(v.string()),
 });
