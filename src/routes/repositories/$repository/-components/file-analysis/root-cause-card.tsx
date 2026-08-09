@@ -30,16 +30,16 @@ export function RootCauseCard({
 	if (cautionProb < threshold) return null;
 
 	const s = file.shapBreakdown;
-	const affectiveSum = (s?.sentimentContrib ?? 0) + Math.max(0, s?.lowInfoContrib ?? 0);
+	const affectiveSum = Math.abs(s?.sentimentContrib ?? 0) + Math.max(0, s?.lowInfoContrib ?? 0);
 	const structuralSum =
-		(s?.entropyContrib ?? 0) +
-		(s?.ndevContrib ?? 0) +
-		(s?.ageContrib ?? 0) +
-		(s?.complexityContrib ?? 0) +
-		(s?.commitsContrib ?? 0);
-	const totalShap = Math.max(0.01, Math.max(0, affectiveSum) + Math.max(0, structuralSum));
-	const sentimentPct = Math.round((Math.max(0, affectiveSum) / totalShap) * 100);
-	const complexityPct = Math.round((Math.max(0, structuralSum) / totalShap) * 100);
+		Math.abs(s?.entropyContrib ?? 0) +
+		Math.abs(s?.ndevContrib ?? 0) +
+		Math.abs(s?.ageContrib ?? 0) +
+		Math.abs(s?.complexityContrib ?? 0) +
+		Math.abs(s?.commitsContrib ?? 0);
+	const totalShap = Math.max(0.01, affectiveSum + structuralSum);
+	const sentimentPct = Math.round((affectiveSum / totalShap) * 100);
+	const complexityPct = Math.round((structuralSum / totalShap) * 100);
 
 	const dateStr = new Date(rootCommit.committedAt * 1000).toLocaleDateString("en-US", {
 		month: "short",
