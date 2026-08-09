@@ -9,7 +9,6 @@ import {
 	JobStatusSchema,
 	RepositoriesResponseSchema,
 	type AnalysisResult,
-	type AnalyzeJobResponse,
 	type AnalyzeRepositoryRequest,
 	type JobStatus,
 	type RepositoriesResponse,

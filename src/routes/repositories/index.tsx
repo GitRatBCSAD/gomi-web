@@ -8,7 +8,7 @@ import { AnalysisLoadingScreen } from "@/components/analysis-loading-screen";
 import type { UserProfile } from "@/components/navbar";
 import { Button } from "@/components/ui/button";
 import { BACKEND_URL, GITHUB_APP_NAME } from "@/lib/env";
-import { analyzeRepository, getAnalyzedRepositories, getJobStatus, getRepositoriesQuery } from "@/lib/github/api";
+import { analyzeRepository, getAnalyzedRepositories, getJobStatus, getRepositories, getRepositoriesQuery } from "@/lib/github/api";
 
 const STEP_LABELS: Record<string, string> = {
 	queued: "Queued...",
