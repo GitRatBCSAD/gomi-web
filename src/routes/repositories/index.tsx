@@ -146,8 +146,8 @@ function RouteComponent(): JSX.Element {
 	const repos = (repositoriesQuery.data?.repositories ?? [])
 		.filter((r) => r.name.toLowerCase().includes(search.toLowerCase()))
 		.sort((a, b) => {
-			const cachedA = analyzedSet.has(a.fullName) ? 1 : 0;
-			const cachedB = analyzedSet.has(b.fullName) ? 1 : 0;
+			const cachedA = analyzedSet.has(String(a.id)) ? 1 : 0;
+			const cachedB = analyzedSet.has(String(b.id)) ? 1 : 0;
 			return cachedB - cachedA;
 		});
 
@@ -260,7 +260,7 @@ function RouteComponent(): JSX.Element {
 								{repo.name}
 							</span>
 							{(() => {
-								const cached = analyzedSet.has(repo.fullName);
+								const cached = analyzedSet.has(String(repo.id));
 								const [owner, name] = repo.fullName.split("/");
 								const isBusy = analyzeMutation.isPending || pendingJob !== null;
 								const isPendingThisRepo =
