@@ -41,10 +41,16 @@ export function RootCauseCard({
 	const sentimentPct = Math.round((affectiveSum / totalShap) * 100);
 	const complexityPct = Math.round((structuralSum / totalShap) * 100);
 
-	const dateStr = new Date(rootCommit.committedAt * 1000).toLocaleDateString("en-US", {
+	const commitDate = new Date(rootCommit.committedAt * 1000);
+	const dateStr = commitDate.toLocaleDateString("en-US", {
 		month: "short",
 		day: "numeric",
 		year: "numeric",
+	});
+	const dayLabel = commitDate.toLocaleDateString("en-US", { weekday: "long" });
+	const timeLabel = commitDate.toLocaleTimeString("en-US", {
+		hour: "numeric",
+		minute: "2-digit",
 	});
 
 	return (
@@ -128,6 +134,50 @@ export function RootCauseCard({
 						</div>
 					</div>
 				</div>
+
+				{/* Commit Provenance — Tier 1 socio-technical context */}
+				{(rootCommit.author ||
+					rootCommit.linesAdded != null ||
+					rootCommit.linesDeleted != null ||
+					rootCommit.coChangedFiles != null) && (
+					<div className="border-border/30 space-y-1.5 border-t pt-3">
+						<p className="font-fira-mono text-muted-foreground text-xs font-bold uppercase tracking-wider">
+							Commit Context
+						</p>
+						<div className="font-fira-mono text-muted-foreground grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+							<span className="text-muted-foreground/60">Author</span>
+							<span className="text-foreground truncate">
+								{rootCommit.author || <span className="text-muted-foreground/40 italic">unknown</span>}
+							</span>
+							<span className="text-muted-foreground/60">When</span>
+							<span className="text-foreground">
+								{dayLabel} · {timeLabel}
+							</span>
+							{rootCommit.linesAdded != null && rootCommit.linesDeleted != null && (
+								<>
+									<span className="text-muted-foreground/60">Lines</span>
+									<span>
+										<span style={{ color: "var(--success-500, #4ade80)" }}>
+											+{rootCommit.linesAdded}
+										</span>{" "}
+										<span style={{ color: "var(--destructive-500)" }}>
+											−{rootCommit.linesDeleted}
+										</span>
+									</span>
+								</>
+							)}
+							{rootCommit.coChangedFiles != null && (
+								<>
+									<span className="text-muted-foreground/60">Co-changed</span>
+									<span className="text-foreground">
+										{rootCommit.coChangedFiles}{" "}
+										{rootCommit.coChangedFiles === 1 ? "file" : "files"}
+									</span>
+								</>
+							)}
+						</div>
+					</div>
+				)}
 
 				<div className="bg-background-800 border-border/40 flex items-start gap-2.5 rounded-lg border p-3">
 					<InfoIcon className="text-muted-foreground mt-0.5 size-4 shrink-0" />

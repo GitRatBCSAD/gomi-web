@@ -37,6 +37,11 @@ export const CommitSentimentSchema = v.object({
 	sentiment: v.nullable(enumDetailSchema(Sentiment)),
 	lowInfo: v.boolean(),
 	riskProbability: v.nullable(v.number()),
+	// Commit provenance (Tier 1 — from git log --numstat)
+	author: v.optional(v.nullable(v.string())),
+	linesAdded: v.optional(v.nullable(v.number())),
+	linesDeleted: v.optional(v.nullable(v.number())),
+	coChangedFiles: v.optional(v.nullable(v.number())),
 });
 
 export const ShapBreakdownSchema = v.object({
