@@ -4,11 +4,23 @@ import { GithubIcon, SearchIcon, SettingsIcon } from "lucide-react";
 import { useEffect, useState, type JSX } from "react";
 import * as v from "valibot";
 
+import { AnalysisLoadingScreen } from "@/components/analysis-loading-screen";
 import type { UserProfile } from "@/components/navbar";
 import { Button } from "@/components/ui/button";
 import { BACKEND_URL, GITHUB_APP_NAME } from "@/lib/env";
-import { analyzeRepository, getRepositories, getRepositoriesQuery } from "@/lib/github/api";
-import { loadAnalysis, saveAnalysis } from "@/lib/github/model";
+import { analyzeRepository, getAnalyzedRepositories, getJobStatus, getRepositories, getRepositoriesQuery } from "@/lib/github/api";
+
+const STEP_LABELS: Record<string, string> = {
+	queued: "Queued...",
+	cloning: "Cloning...",
+	extracting_git: "Reading history...",
+	scanning_complexity: "Scanning...",
+	scoring_files: "Scoring...",
+};
+
+function stepLabel(step: string): string {
+	return STEP_LABELS[step] ?? "Analyzing...";
+}
 
 const authMeQueryOptions = {
 	queryKey: ["authMe"],
@@ -51,9 +63,15 @@ interface ConfirmAction {
 	};
 }
 
+interface PendingJob {
+	jobId: string;
+	fullName: string;
+}
+
 function RouteComponent(): JSX.Element {
 	const [search, setSearch] = useState("");
 	const [confirmAction, setConfirmAction] = useState<ConfirmAction | null>(null);
+	const [pendingJob, setPendingJob] = useState<PendingJob | null>(null);
 	const navigate = useNavigate();
 	const routeSearch = Route.useSearch();
 	const queryClient = useQueryClient();
@@ -80,23 +98,56 @@ function RouteComponent(): JSX.Element {
 		mutationFn: analyzeRepository,
 		onSuccess: (data, variables) => {
 			const fullName = `${variables.owner}/${variables.repository}`;
-			saveAnalysis(fullName, data);
-			navigate({ to: "/repositories/$repository", params: { repository: fullName } });
+			if (data.type === "cached") {
+				queryClient.invalidateQueries({ queryKey: ["analyzedRepositories"] });
+				navigate({ to: "/repositories/$repository", params: { repository: fullName } });
+			} else {
+				setPendingJob({ jobId: data.jobId, fullName });
+			}
 		},
 		onError: (error) => {
 			console.error("Analysis failed:", error);
 		},
 	});
 
+	const jobQuery = useQuery({
+		queryKey: ["analyzeJob", pendingJob?.jobId],
+		queryFn: () => getJobStatus(pendingJob!.jobId),
+		enabled: pendingJob !== null,
+		refetchInterval: (query) => {
+			const status = query.state.data?.status;
+			return !status || status === "pending" || status === "running" ? 2000 : false;
+		},
+	});
+
+	useEffect(() => {
+		if (!pendingJob || !jobQuery.data) return;
+		const { status } = jobQuery.data;
+		if (status === "done") {
+			queryClient.invalidateQueries({ queryKey: ["analyzedRepositories"] });
+			navigate({ to: "/repositories/$repository", params: { repository: pendingJob.fullName } });
+			setPendingJob(null);
+		} else if (status === "failed") {
+			setPendingJob(null);
+		}
+	}, [jobQuery.data, pendingJob, navigate, queryClient]);
+
 	const installationsCount = repositoriesQuery.data?.installationsCount ?? null;
 	const notInstalled = installationsCount === 0;
 	const installUrl = `https://github.com/apps/${GITHUB_APP_NAME}/installations/new`;
 
+	const analyzedQuery = useQuery({
+		queryKey: ["analyzedRepositories"],
+		queryFn: getAnalyzedRepositories,
+		staleTime: 60 * 1000,
+	});
+	const analyzedSet = new Set(analyzedQuery.data ?? []);
+
 	const repos = (repositoriesQuery.data?.repositories ?? [])
 		.filter((r) => r.name.toLowerCase().includes(search.toLowerCase()))
 		.sort((a, b) => {
-			const cachedA = loadAnalysis(a.fullName) != null ? 1 : 0;
-			const cachedB = loadAnalysis(b.fullName) != null ? 1 : 0;
+			const cachedA = analyzedSet.has(String(a.id)) ? 1 : 0;
+			const cachedB = analyzedSet.has(String(b.id)) ? 1 : 0;
 			return cachedB - cachedA;
 		});
 
@@ -111,6 +162,14 @@ function RouteComponent(): JSX.Element {
 	}
 
 	return (
+		<>
+		<AnalysisLoadingScreen
+			visible={pendingJob !== null}
+			repoFullName={pendingJob?.fullName ?? ""}
+			step={jobQuery.data?.step ?? "queued"}
+			progress={jobQuery.data?.progress ?? 0}
+			currentFile={jobQuery.data?.current_file}
+		/>
 		<div className="flex flex-1 flex-col items-center justify-center gap-4 px-4 py-12">
 			<div className="mb-2 flex w-full max-w-3xl flex-col items-center gap-1 text-center">
 				<h1 className="font-fira-mono-bold text-3xl font-bold text-white">
@@ -120,9 +179,12 @@ function RouteComponent(): JSX.Element {
 				<p className="font-fira-mono-bold text-2xs text-gray-400">Ready to scan?</p>
 			</div>
 
-			{analyzeMutation.isError && (
+			{(analyzeMutation.isError || jobQuery.data?.status === "failed") && (
 				<p className="text-destructive w-full max-w-3xl text-left text-sm">
-					Analysis failed: {analyzeMutation.error?.message ?? "Unknown error"}
+					Analysis failed:{" "}
+					{jobQuery.data?.status === "failed"
+						? (jobQuery.data.error ?? "Unknown error")
+						: (analyzeMutation.error?.message ?? "Unknown error")}
 				</p>
 			)}
 
@@ -198,19 +260,25 @@ function RouteComponent(): JSX.Element {
 								{repo.name}
 							</span>
 							{(() => {
-								const cached = loadAnalysis(repo.fullName);
+								const cached = analyzedSet.has(String(repo.id));
 								const [owner, name] = repo.fullName.split("/");
+								const isBusy = analyzeMutation.isPending || pendingJob !== null;
 								const isPendingThisRepo =
-									analyzeMutation.isPending &&
-									analyzeMutation.variables?.owner === owner &&
-									analyzeMutation.variables?.repository === name;
+									(analyzeMutation.isPending &&
+										analyzeMutation.variables?.owner === owner &&
+										analyzeMutation.variables?.repository === name) ||
+									pendingJob?.fullName === repo.fullName;
+								const currentStep =
+									isPendingThisRepo && pendingJob?.fullName === repo.fullName
+										? jobQuery.data?.step
+										: undefined;
 
 								return (
 									<div className="flex items-center gap-2">
 										{cached ? (
 											<>
 												<Button
-													disabled={analyzeMutation.isPending}
+													disabled={isBusy}
 													onClick={() => {
 														navigate({
 															to: "/repositories/$repository",
@@ -222,7 +290,7 @@ function RouteComponent(): JSX.Element {
 												</Button>
 												<Button
 													variant="outline"
-													disabled={analyzeMutation.isPending}
+													disabled={isBusy}
 													onClick={() => {
 														setConfirmAction({
 															type: "reanalyze",
@@ -235,12 +303,14 @@ function RouteComponent(): JSX.Element {
 														});
 													}}
 												>
-													{isPendingThisRepo ? "Reanalyzing..." : "Reanalyze"}
+													{isPendingThisRepo
+														? (currentStep ? stepLabel(currentStep) : "Analyzing...")
+														: "Reanalyze"}
 												</Button>
 											</>
 										) : (
 											<Button
-												disabled={analyzeMutation.isPending}
+												disabled={isBusy}
 												onClick={() => {
 													setConfirmAction({
 														type: "analyze",
@@ -253,7 +323,9 @@ function RouteComponent(): JSX.Element {
 													});
 												}}
 											>
-												{isPendingThisRepo ? "Analyzing..." : "Analyze"}
+												{isPendingThisRepo
+													? (currentStep ? stepLabel(currentStep) : "Analyzing...")
+													: "Analyze"}
 											</Button>
 										)}
 									</div>
@@ -337,6 +409,7 @@ function RouteComponent(): JSX.Element {
 				</div>
 			)}
 		</div>
+		</>
 	);
 }
 

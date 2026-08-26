@@ -1,33 +1,64 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, redirect, Link, useRouter } from "@tanstack/react-router";
-import { useState, type JSX } from "react";
+import { useEffect, useState, type JSX } from "react";
 
 import { H1 } from "@/components/typography";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardAction } from "@/components/ui/card";
-import { analyzeRepository, getRepositoriesQuery } from "@/lib/github/api";
-import { loadAnalysis, saveAnalysis } from "@/lib/github/model";
+import {
+	analyzeRepository,
+	getAnalysisQueryOptions,
+	getJobStatus,
+	getRepositoriesQuery,
+} from "@/lib/github/api";
 
 import { Heatmap } from "./-components/repo-overview/heatmap";
 import { RepoSummaryCards } from "./-components/repo-overview/repo-summary-cards";
 
+const STEP_LABELS: Record<string, string> = {
+	queued: "Queued...",
+	cloning: "Cloning...",
+	extracting_git: "Reading history...",
+	scanning_complexity: "Scanning...",
+	scoring_files: "Scoring...",
+};
+
 export const Route = createFileRoute("/repositories/$repository/")({
 	component: RouteComponent,
-	loader: ({ params }) => {
-		const result = loadAnalysis(params.repository);
-		if (!result) throw redirect({ to: "/repositories" });
-		return result;
+	loader: async ({ params, context }) => {
+		try {
+			return await context.queryClient.ensureQueryData(
+				getAnalysisQueryOptions(params.repository),
+			);
+		} catch (e) {
+			const msg = e instanceof Error ? e.message : String(e);
+			console.error("[loader] failed to load analysis for", params.repository, e);
+			// Only redirect for explicit "not found" — let other errors surface
+			if (msg.toLowerCase().includes("not found")) {
+				throw redirect({ to: "/repositories" });
+			}
+			throw e;
+		}
 	},
 });
 
 function RouteComponent(): JSX.Element {
 	const analysis = Route.useLoaderData();
+	const { repository } = Route.useParams();
 	const router = useRouter();
+	const queryClient = useQueryClient();
 	const [showConfirm, setShowConfirm] = useState(false);
 	const [selectedFilter, setSelectedFilter] = useState<"all" | "risky" | "acceptable" | "low-conf">("all");
+	const [pendingJobId, setPendingJobId] = useState<string | null>(null);
 
 	const reposQuery = useQuery(getRepositoriesQuery);
+
+	const repoName = analysis.repoUrl
+		.replace(/\.git$/, "")
+		.split("/")
+		.slice(-2)
+		.join("/");
 
 	const risky = analysis.fileResults.filter(
 		(f) => !f.lowConfidence && f.riskScore != null && f.riskScore >= analysis.threshold,
@@ -37,22 +68,47 @@ function RouteComponent(): JSX.Element {
 	).length;
 	const lowConf = analysis.fileResults.filter((f) => f.lowConfidence).length;
 
-	const repoName = analysis.repoUrl
-		.replace(/\.git$/, "")
-		.split("/")
-		.slice(-2)
-		.join("/");
-
 	const analyzeMutation = useMutation({
 		mutationFn: analyzeRepository,
 		onSuccess: (data) => {
-			saveAnalysis(repoName, data);
-			router.invalidate();
+			if (data.type === "cached") {
+				queryClient.invalidateQueries({ queryKey: ["analysis", repository] });
+				router.invalidate();
+			} else {
+				setPendingJobId(data.jobId);
+			}
 		},
 		onError: (error) => {
 			console.error("Reanalysis failed:", error);
 		},
 	});
+
+	const jobQuery = useQuery({
+		queryKey: ["analyzeJob", pendingJobId],
+		queryFn: () => getJobStatus(pendingJobId!),
+		enabled: pendingJobId !== null,
+		refetchInterval: (query) => {
+			const status = query.state.data?.status;
+			return !status || status === "pending" || status === "running" ? 2000 : false;
+		},
+	});
+
+	useEffect(() => {
+		if (!pendingJobId || !jobQuery.data) return;
+		const { status } = jobQuery.data;
+		if (status === "done") {
+			setPendingJobId(null);
+			queryClient.invalidateQueries({ queryKey: ["analysis", repository] });
+			router.invalidate();
+		} else if (status === "failed") {
+			setPendingJobId(null);
+		}
+	}, [jobQuery.data, pendingJobId, queryClient, router, repository]);
+
+	const isBusy = analyzeMutation.isPending || pendingJobId !== null;
+	const currentStep = pendingJobId && jobQuery.data?.step
+		? (STEP_LABELS[jobQuery.data.step] ?? "Analyzing...")
+		: null;
 
 	return (
 		<div className="mx-auto w-full max-w-7xl space-y-2 p-4">
@@ -63,10 +119,10 @@ function RouteComponent(): JSX.Element {
 						<Button
 							variant="outline"
 							size="sm"
-							disabled={analyzeMutation.isPending}
+							disabled={isBusy}
 							onClick={() => setShowConfirm(true)}
 						>
-							{analyzeMutation.isPending ? "Reanalyzing..." : "Reanalyze"}
+							{isBusy ? (currentStep ?? "Analyzing...") : "Reanalyze"}
 						</Button>
 						<Button
 							variant="outline"
@@ -81,9 +137,12 @@ function RouteComponent(): JSX.Element {
 
 				<CardContent className="flex items-center gap-4">
 					<Badge>Public</Badge>
-					{analyzeMutation.isError && (
+					{(analyzeMutation.isError || jobQuery.data?.status === "failed") && (
 						<p className="text-destructive font-fira-mono text-xs">
-							Reanalysis failed: {analyzeMutation.error?.message}
+							Reanalysis failed:{" "}
+							{jobQuery.data?.status === "failed"
+								? (jobQuery.data.error ?? "Unknown error")
+								: analyzeMutation.error?.message}
 						</p>
 					)}
 				</CardContent>
@@ -125,7 +184,7 @@ function RouteComponent(): JSX.Element {
 							</Button>
 							<Button
 								size="sm"
-								disabled={analyzeMutation.isPending}
+								disabled={isBusy}
 								onClick={() => {
 									setShowConfirm(false);
 									const [owner, name] = repoName.split("/");

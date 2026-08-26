@@ -4,7 +4,7 @@ import type { JSX } from "react";
 import * as v from "valibot";
 
 import { Card, CardHeader } from "@/components/ui/card";
-import { loadAnalysis } from "@/lib/github/model";
+import { getAnalysisQueryOptions } from "@/lib/github/api";
 
 import { CommitSentimentCard } from "./-components/file-analysis/commit-sentiment-card";
 import { ComplexityMetricsCard } from "./-components/file-analysis/complexity-metrics-card";
@@ -18,9 +18,20 @@ export const Route = createFileRoute("/repositories/$repository/file")({
 	validateSearch: v.object({ path: v.string() }),
 	loaderDeps: ({ search }) => ({ path: search.path }),
 	component: RouteComponent,
-	loader: ({ params, deps }) => {
-		const analysis = loadAnalysis(params.repository);
-		if (!analysis) throw redirect({ to: "/repositories" });
+	loader: async ({ params, deps, context }) => {
+		let analysis;
+		try {
+			analysis = await context.queryClient.ensureQueryData(
+				getAnalysisQueryOptions(params.repository),
+			);
+		} catch (e) {
+			const msg = e instanceof Error ? e.message : String(e);
+			console.error("[file loader] failed to load analysis for", params.repository, e);
+			if (msg.toLowerCase().includes("not found")) {
+				throw redirect({ to: "/repositories" });
+			}
+			throw e;
+		}
 		const file = analysis.fileResults.find((f) => f.filename === deps.path);
 		if (!file) throw redirect({ to: "/repositories/$repository", params });
 		return { file, threshold: analysis.threshold, allFiles: analysis.fileResults };
@@ -167,7 +178,7 @@ function RouteComponent(): JSX.Element {
 			</Card>
 
 			<SentimentTrajectoryCard file={file} threshold={threshold} />
-			<RootCauseCard file={file} />
+			<RootCauseCard file={file} threshold={threshold} />
 			<CommitSentimentCard file={file} />
 			<RiskDriftCard file={file} />
 			<ShapBreakdownCard file={file} />

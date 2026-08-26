@@ -37,6 +37,11 @@ export const CommitSentimentSchema = v.object({
 	sentiment: v.nullable(enumDetailSchema(Sentiment)),
 	lowInfo: v.boolean(),
 	riskProbability: v.nullable(v.number()),
+	// Commit provenance (Tier 1 — from git log --numstat)
+	author: v.optional(v.nullable(v.string())),
+	linesAdded: v.optional(v.nullable(v.number())),
+	linesDeleted: v.optional(v.nullable(v.number())),
+	coChangedFiles: v.optional(v.nullable(v.number())),
 });
 
 export const ShapBreakdownSchema = v.object({
@@ -80,18 +85,18 @@ export type ShapBreakdown = v.InferOutput<typeof ShapBreakdownSchema>;
 export type FileRiskResult = v.InferOutput<typeof FileRiskResultSchema>;
 export type AnalysisResult = v.InferOutput<typeof AnalysisResultSchema>;
 
-const storageKey = (fullName: string) => `gomi:analysis:${fullName}`;
+export const AnalyzeJobResponseSchema = v.object({
+	jobId: v.string(),
+});
+export type AnalyzeJobResponse = v.InferOutput<typeof AnalyzeJobResponseSchema>;
 
-export function saveAnalysis(fullName: string, result: AnalysisResult): void {
-	localStorage.setItem(storageKey(fullName), JSON.stringify(result));
-}
+export const JobStatusSchema = v.object({
+	status: v.string(),
+	step: v.string(),
+	progress: v.number(),
+	current_file: v.optional(v.string()),
+	result: v.optional(AnalysisResultSchema),
+	error: v.optional(v.string()),
+});
+export type JobStatus = v.InferOutput<typeof JobStatusSchema>;
 
-export function loadAnalysis(fullName: string): AnalysisResult | null {
-	const raw = localStorage.getItem(storageKey(fullName));
-	if (!raw) return null;
-	try {
-		return v.parse(AnalysisResultSchema, JSON.parse(raw));
-	} catch {
-		return null;
-	}
-}

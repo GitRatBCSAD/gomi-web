@@ -5,54 +5,52 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import type { FileRiskResult } from "@/lib/github/model";
 
-export function RootCauseCard({ file }: { file: FileRiskResult }): JSX.Element | null {
+import { computeDrift } from "./drift-utils";
+
+export function RootCauseCard({
+	file,
+	threshold,
+}: {
+	file: FileRiskResult;
+	threshold: number;
+}): JSX.Element | null {
 	if (file.lowConfidence || file.commitSentiments.length < 10) {
 		return null;
 	}
 
-	const validCommits = [...file.commitSentiments]
-		.filter((c) => c.riskProbability != null)
-		.sort((a, b) => (b.riskProbability ?? 0) - (a.riskProbability ?? 0));
+	const drift = computeDrift(file.commitSentiments, file.shapBreakdown);
 
-	if (validCommits.length === 0) return null;
+	// guidance only shown when a spike is detected and root cause commit is identified
+	if (!drift || !drift.rootCauseCommit) return null;
 
-	const rootCommit = validCommits[0];
+	const rootCommit = drift.rootCauseCommit;
 	const cautionProb = rootCommit.riskProbability ?? 0;
 
-	const s = file.shapBreakdown;
-	const affectiveSum = Math.max(
-		0,
-		(s?.sentimentContrib ?? 0) + Math.max(0, s?.lowInfoContrib ?? 0),
-	);
-	const structuralSum = Math.max(
-		0,
-		(s?.entropyContrib ?? 0) +
-			(s?.ndevContrib ?? 0) +
-			(s?.ageContrib ?? 0) +
-			(s?.complexityContrib ?? 0) +
-			(s?.commitsContrib ?? 0),
-	);
+	// Root cause only meaningful if the commit actually crossed the model threshold
+	if (cautionProb < threshold) return null;
 
+	const s = file.shapBreakdown;
+	const affectiveSum = Math.abs(s?.sentimentContrib ?? 0) + Math.max(0, s?.lowInfoContrib ?? 0);
+	const structuralSum =
+		Math.abs(s?.entropyContrib ?? 0) +
+		Math.abs(s?.ndevContrib ?? 0) +
+		Math.abs(s?.ageContrib ?? 0) +
+		Math.abs(s?.complexityContrib ?? 0) +
+		Math.abs(s?.commitsContrib ?? 0);
 	const totalShap = Math.max(0.01, affectiveSum + structuralSum);
 	const sentimentPct = Math.round((affectiveSum / totalShap) * 100);
 	const complexityPct = Math.round((structuralSum / totalShap) * 100);
 
-	const isAffective = affectiveSum > structuralSum;
-
-	let guidanceText =
-		"Complex but stable legacy file with no active degradation. Keep it in the routine maintenance queue.";
-	if (isAffective) {
-		guidanceText =
-			"Developer sentiment is declining without much structural change. Check for unclear specs, repeated rework, or ownership issues.";
-	} else {
-		guidanceText =
-			"This file is degrading quickly. Review recent commits before the next sprint to prevent further structural damage.";
-	}
-
-	const dateStr = new Date(rootCommit.committedAt * 1000).toLocaleDateString("en-US", {
+	const commitDate = new Date(rootCommit.committedAt * 1000);
+	const dateStr = commitDate.toLocaleDateString("en-US", {
 		month: "short",
 		day: "numeric",
 		year: "numeric",
+	});
+	const dayLabel = commitDate.toLocaleDateString("en-US", { weekday: "long" });
+	const timeLabel = commitDate.toLocaleTimeString("en-US", {
+		hour: "numeric",
+		minute: "2-digit",
 	});
 
 	return (
@@ -137,10 +135,54 @@ export function RootCauseCard({ file }: { file: FileRiskResult }): JSX.Element |
 					</div>
 				</div>
 
+				{/* Commit Provenance — Tier 1 socio-technical context */}
+				{(rootCommit.author ||
+					rootCommit.linesAdded != null ||
+					rootCommit.linesDeleted != null ||
+					rootCommit.coChangedFiles != null) && (
+					<div className="border-border/30 space-y-1.5 border-t pt-3">
+						<p className="font-fira-mono text-muted-foreground text-xs font-bold uppercase tracking-wider">
+							Commit Context
+						</p>
+						<div className="font-fira-mono text-muted-foreground grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+							<span className="text-muted-foreground/60">Author</span>
+							<span className="text-foreground truncate">
+								{rootCommit.author || <span className="text-muted-foreground/40 italic">unknown</span>}
+							</span>
+							<span className="text-muted-foreground/60">When</span>
+							<span className="text-foreground">
+								{dayLabel} · {timeLabel}
+							</span>
+							{rootCommit.linesAdded != null && rootCommit.linesDeleted != null && (
+								<>
+									<span className="text-muted-foreground/60">Lines</span>
+									<span>
+										<span style={{ color: "var(--success-500, #4ade80)" }}>
+											+{rootCommit.linesAdded}
+										</span>{" "}
+										<span style={{ color: "var(--destructive-500)" }}>
+											−{rootCommit.linesDeleted}
+										</span>
+									</span>
+								</>
+							)}
+							{rootCommit.coChangedFiles != null && (
+								<>
+									<span className="text-muted-foreground/60">Co-changed</span>
+									<span className="text-foreground">
+										{rootCommit.coChangedFiles}{" "}
+										{rootCommit.coChangedFiles === 1 ? "file" : "files"}
+									</span>
+								</>
+							)}
+						</div>
+					</div>
+				)}
+
 				<div className="bg-background-800 border-border/40 flex items-start gap-2.5 rounded-lg border p-3">
 					<InfoIcon className="text-muted-foreground mt-0.5 size-4 shrink-0" />
 					<p className="font-fira-mono text-muted-foreground text-xs leading-relaxed">
-						{guidanceText}
+						{drift.guidanceText}
 					</p>
 				</div>
 			</CardContent>
