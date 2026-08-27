@@ -1,6 +1,7 @@
 import type { JSX } from "react";
 
 import { Badge } from "@/components/ui/badge";
+import { GlossaryTerm } from "@/components/ui/glossary-term";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import type { FileRiskResult } from "@/lib/github/model";
 
@@ -55,14 +56,17 @@ export function RiskDriftCard({ file }: { file: FileRiskResult }): JSX.Element |
 					<p className="font-fira-mono text-muted-foreground mt-1 text-xs">
 						Trend analysis split across the first and second half of the analysis window
 					</p>
-					<div className="mt-2.5">
+					<div className="mt-2.5 flex flex-col gap-1">
+						<p className="font-fira-mono text-muted-foreground text-[10px] uppercase tracking-wider">
+							<GlossaryTerm termKey="driftCategory" variant="icon">Drift category</GlossaryTerm>
+						</p>
 						<Badge
 							style={{
 								backgroundColor: categoryBg,
 								color: categoryFg,
 								borderColor: "transparent",
 							}}
-							className="text-[10px] uppercase font-bold tracking-wider"
+							className="text-[10px] uppercase font-bold tracking-wider w-fit"
 						>
 							{drift.category}
 						</Badge>
@@ -125,7 +129,10 @@ export function RiskDriftCard({ file }: { file: FileRiskResult }): JSX.Element |
 							{pctChange}% {isUpward ? "↑" : "↓"}
 						</p>
 						<p className="font-fira-mono text-muted-foreground/60 mt-1 text-[10px] uppercase">
-							Directional drift in avg caution probability
+							Directional drift in avg{" "}
+							<GlossaryTerm termKey="cautionProbability" side="bottom">
+								caution probability
+							</GlossaryTerm>
 						</p>
 					</div>
 				</div>

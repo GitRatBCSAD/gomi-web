@@ -1,7 +1,9 @@
 import type { JSX } from "react";
 
+import { GlossaryTerm } from "@/components/ui/glossary-term";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import type { FileRiskResult } from "@/lib/github/model";
+import type { GlossaryKey } from "@/lib/glossary";
 
 import { riskColor } from "../repo-overview/heatmap";
 
@@ -9,7 +11,13 @@ export function ShapBreakdownCard({ file }: { file: FileRiskResult }): JSX.Eleme
 	const s = file.shapBreakdown;
 	if (!s) return null;
 
-	const rows = [
+	const rows: Array<{
+		label: string;
+		barWidth: number;
+		value: string;
+		contrib: number;
+		termKey?: GlossaryKey;
+	}> = [
 		{
 			label: "Sentiment score",
 			barWidth: file.sentimentScore,
@@ -27,24 +35,28 @@ export function ShapBreakdownCard({ file }: { file: FileRiskResult }): JSX.Eleme
 			barWidth: file.changeEntropy,
 			value: file.changeEntropy.toFixed(2),
 			contrib: s.entropyContrib,
+			termKey: "changeEntropy",
 		},
 		{
 			label: "NDev score",
 			barWidth: file.ndevScore,
 			value: file.ndevScore.toFixed(2),
 			contrib: s.ndevContrib,
+			termKey: "ndev",
 		},
 		{
 			label: "Low info ratio",
 			barWidth: file.lowInfoRatio,
 			value: file.lowInfoRatio.toFixed(2),
 			contrib: s.lowInfoContrib,
+			termKey: "lowInfoRatio",
 		},
 		{
 			label: "Age score",
 			barWidth: file.ageScore,
 			value: file.ageScore.toFixed(2),
 			contrib: s.ageContrib,
+			termKey: "ageScore",
 		},
 		{
 			label: "Number of commits",
@@ -58,7 +70,8 @@ export function ShapBreakdownCard({ file }: { file: FileRiskResult }): JSX.Eleme
 		<Card>
 			<CardHeader>
 				<p className="font-fira-mono-bold text-foreground text-xl">
-					Why this score? — SHAP Breakdown
+					Why this score? —{" "}
+					<GlossaryTerm termKey="shapScore" variant="icon">SHAP Breakdown</GlossaryTerm>
 				</p>
 				<p className="font-fira-mono text-muted-foreground mt-1 text-xs">
 					SHAP decomposition of the logistic regression output — right raises risk, left
@@ -81,7 +94,7 @@ export function ShapBreakdownCard({ file }: { file: FileRiskResult }): JSX.Eleme
 						className="font-fira-mono text-muted-foreground text-sm"
 						style={{ width: "11rem", flexShrink: 0 }}
 					>
-						Base rate
+						<GlossaryTerm termKey="baseRate" variant="icon">Base rate</GlossaryTerm>
 					</span>
 					<span
 						className="font-fira-mono text-muted-foreground/60 text-xs"
@@ -98,7 +111,7 @@ export function ShapBreakdownCard({ file }: { file: FileRiskResult }): JSX.Eleme
 					<span style={{ width: "3.5rem" }} />
 				</div>
 
-				{rows.map(({ label, barWidth, value, contrib }) => {
+				{rows.map(({ label, barWidth, value, contrib, termKey }) => {
 					const positive = contrib >= 0;
 					const fillColor = positive ? "var(--destructive-500)" : "var(--primary-500)";
 					return (
@@ -118,7 +131,13 @@ export function ShapBreakdownCard({ file }: { file: FileRiskResult }): JSX.Eleme
 								className="font-fira-mono text-foreground text-sm"
 								style={{ width: "11rem", flexShrink: 0 }}
 							>
-								{label}
+								{termKey ? (
+									<GlossaryTerm termKey={termKey} variant="icon">
+										{label}
+									</GlossaryTerm>
+								) : (
+									label
+								)}
 							</span>
 							<div
 								style={{

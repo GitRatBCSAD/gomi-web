@@ -1,7 +1,9 @@
 import type { JSX } from "react";
 
+import { GlossaryTerm } from "@/components/ui/glossary-term";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import type { FileRiskResult } from "@/lib/github/model";
+import type { GlossaryKey } from "@/lib/glossary";
 
 export function ComplexityMetricsCard({
 	file,
@@ -37,7 +39,14 @@ export function ComplexityMetricsCard({
 	const metricCcn = calculateMetricTag((f) => f.avgCcn, file.avgCcn, 1);
 	const metricNloc = calculateMetricTag((f) => f.avgNloc, file.avgNloc, 1);
 
-	const metrics = [
+	const metrics: Array<{
+		label: string;
+		value: string;
+		desc: string;
+		tag: string;
+		isOver: boolean;
+		termKey?: GlossaryKey;
+	}> = [
 		{
 			label: "Complexity score",
 			value: file.complexityScore.toFixed(2),
@@ -51,6 +60,7 @@ export function ComplexityMetricsCard({
 			desc: "how dispersed edits are across the file",
 			tag: metricEntropy.tag,
 			isOver: metricEntropy.isOver,
+			termKey: "changeEntropy",
 		},
 		{
 			label: "NDev score",
@@ -58,6 +68,7 @@ export function ComplexityMetricsCard({
 			desc: "distinct developers who touched it",
 			tag: metricNdev.tag,
 			isOver: metricNdev.isOver,
+			termKey: "ndev",
 		},
 		{
 			label: "Age score",
@@ -65,6 +76,7 @@ export function ComplexityMetricsCard({
 			desc: "normalized churn recency",
 			tag: metricAge.tag,
 			isOver: metricAge.isOver,
+			termKey: "ageScore",
 		},
 		{
 			label: "Low info ratio",
@@ -72,6 +84,7 @@ export function ComplexityMetricsCard({
 			desc: "share of low-information commits",
 			tag: metricLowInfo.tag,
 			isOver: metricLowInfo.isOver,
+			termKey: "lowInfoRatio",
 		},
 		{
 			label: "Number of commits",
@@ -86,6 +99,7 @@ export function ComplexityMetricsCard({
 			desc: "average cyclomatic complexity",
 			tag: metricCcn.tag,
 			isOver: metricCcn.isOver,
+			termKey: "ccn",
 		},
 		{
 			label: "Avg NLOC",
@@ -93,6 +107,7 @@ export function ComplexityMetricsCard({
 			desc: "average lines per function",
 			tag: metricNloc.tag,
 			isOver: metricNloc.isOver,
+			termKey: "nloc",
 		},
 	];
 
@@ -112,7 +127,7 @@ export function ComplexityMetricsCard({
 						gap: "0.75rem",
 					}}
 				>
-					{metrics.map(({ label, value, desc, tag, isOver }) => (
+					{metrics.map(({ label, value, desc, tag, isOver, termKey }) => (
 						<div
 							key={label}
 							style={{
@@ -131,7 +146,13 @@ export function ComplexityMetricsCard({
 								}}
 							>
 								<p className="font-fira-mono-bold text-foreground text-sm">
-									{label}
+									{termKey ? (
+										<GlossaryTerm termKey={termKey} variant="icon">
+											{label}
+										</GlossaryTerm>
+									) : (
+										label
+									)}
 								</p>
 								<p
 									className="font-fira-mono-bold shrink-0 text-lg tabular-nums"
