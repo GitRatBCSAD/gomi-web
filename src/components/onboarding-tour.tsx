@@ -139,9 +139,15 @@ export function OnboardingTour({
 		<Tour.Root tour={tour}>
 			<Tour.Backdrop className="fixed inset-0 z-[999] bg-black/70" />
 			<Tour.Spotlight className="ring-primary/60 rounded-lg ring-2" />
-			<Tour.Positioner className="z-[1000]">
-				<Tour.Content className="bg-background-900 border-border/40 font-fira-mono text-muted-foreground relative flex max-w-sm flex-col gap-3 rounded-2xl border p-6 text-sm leading-relaxed shadow-2xl">
-					<Tour.Title className="font-fira-mono-bold text-primary text-lg">
+			<Tour.Positioner
+				className={
+					tour.step?.type === "dialog"
+						? "fixed inset-0 z-[1000] flex items-center justify-center p-4"
+						: "z-[1000]"
+				}
+			>
+				<Tour.Content className="bg-background-900 border-border/40 font-fira-mono text-muted-foreground relative flex w-[min(92vw,26rem)] flex-col gap-3 rounded-2xl border p-6 text-sm leading-relaxed shadow-2xl">
+					<Tour.Title className="font-fira-mono-bold text-primary pr-6 text-lg">
 						{tour.step?.title}
 					</Tour.Title>
 					<Tour.Description className="text-muted-foreground text-sm leading-relaxed">
