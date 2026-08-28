@@ -65,9 +65,11 @@ function TooltipContent({
 export function SentimentTrajectoryCard({
 	file,
 	threshold,
+	id,
 }: {
 	file: FileRiskResult;
 	threshold: number;
+	id?: string;
 }): JSX.Element | null {
 	const [activeIdx, setActiveIdx] = useState<number | null>(null);
 
@@ -119,7 +121,7 @@ export function SentimentTrajectoryCard({
 	};
 
 	return (
-		<Card>
+		<Card id={id}>
 			<CardHeader>
 				<p className="font-fira-mono-bold text-foreground text-xl">
 					Sentiment Trajectory

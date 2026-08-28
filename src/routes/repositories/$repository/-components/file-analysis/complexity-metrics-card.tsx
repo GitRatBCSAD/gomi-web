@@ -8,9 +8,11 @@ import type { FileRiskResult } from "@/lib/github/model";
 export function ComplexityMetricsCard({
 	file,
 	allFiles = [],
+	id,
 }: {
 	file: FileRiskResult;
 	allFiles?: FileRiskResult[];
+	id?: string;
 }): JSX.Element {
 	const calculateMetricTag = (
 		getValue: (f: FileRiskResult) => number,
@@ -114,7 +116,7 @@ export function ComplexityMetricsCard({
 	];
 
 	return (
-		<Card>
+		<Card id={id}>
 			<CardHeader>
 				<p className="font-fira-mono-bold text-foreground text-xl">Complexity metrics</p>
 				<p className="font-fira-mono text-muted-foreground mt-1 text-xs">

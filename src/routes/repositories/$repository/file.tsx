@@ -1,8 +1,9 @@
 import { createFileRoute, redirect, Link } from "@tanstack/react-router";
 import { ArrowLeftIcon, FileIcon } from "lucide-react";
-import type { JSX } from "react";
+import { useState, type JSX } from "react";
 import * as v from "valibot";
 
+import { FileAnalysisTour } from "@/components/file-analysis-tour";
 import { Card, CardHeader } from "@/components/ui/card";
 import { getAnalysisQueryOptions } from "@/lib/github/api";
 
@@ -77,9 +78,20 @@ function RiskBadge({
 	);
 }
 
+const FILE_TOUR_SEEN_KEY = "gomi:file-tour-seen";
+
 function RouteComponent(): JSX.Element {
 	const { file, threshold, allFiles } = Route.useLoaderData();
 	const { repository } = Route.useParams();
+
+	const [showFileTour, setShowFileTour] = useState(
+		() => localStorage.getItem(FILE_TOUR_SEEN_KEY) !== "1",
+	);
+
+	function dismissFileTour() {
+		localStorage.setItem(FILE_TOUR_SEEN_KEY, "1");
+		setShowFileTour(false);
+	}
 
 	const parts = file.filename.split("/");
 	const name = parts.pop() ?? file.filename;
@@ -87,6 +99,8 @@ function RouteComponent(): JSX.Element {
 
 	return (
 		<div className="mx-auto w-full max-w-3xl space-y-3 p-4 pb-12">
+			{showFileTour && <FileAnalysisTour onDone={dismissFileTour} />}
+
 			<Link
 				to="/repositories/$repository"
 				params={{ repository }}
@@ -96,7 +110,7 @@ function RouteComponent(): JSX.Element {
 				Back to {repository}
 			</Link>
 
-			<Card>
+			<Card id="tour-file-header">
 				<CardHeader>
 					<div className="w-full">
 						{dir && (
@@ -177,12 +191,12 @@ function RouteComponent(): JSX.Element {
 				</CardHeader>
 			</Card>
 
-			<SentimentTrajectoryCard file={file} threshold={threshold} />
-			<RootCauseCard file={file} threshold={threshold} />
-			<CommitSentimentCard file={file} />
-			<RiskDriftCard file={file} />
-			<ShapBreakdownCard file={file} />
-			<ComplexityMetricsCard file={file} allFiles={allFiles} />
+			<SentimentTrajectoryCard file={file} threshold={threshold} id="tour-file-sentiment" />
+			<RootCauseCard file={file} threshold={threshold} id="tour-file-rootcause" />
+			<CommitSentimentCard file={file} id="tour-file-commits" />
+			<RiskDriftCard file={file} id="tour-file-drift" />
+			<ShapBreakdownCard file={file} id="tour-file-shap" />
+			<ComplexityMetricsCard file={file} allFiles={allFiles} id="tour-file-complexity" />
 		</div>
 	);
 }

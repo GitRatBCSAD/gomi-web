@@ -7,7 +7,13 @@ import type { FileRiskResult } from "@/lib/github/model";
 
 import { riskColor } from "../repo-overview/heatmap";
 
-export function ShapBreakdownCard({ file }: { file: FileRiskResult }): JSX.Element | null {
+export function ShapBreakdownCard({
+	file,
+	id,
+}: {
+	file: FileRiskResult;
+	id?: string;
+}): JSX.Element | null {
 	const s = file.shapBreakdown;
 	if (!s) return null;
 
@@ -70,7 +76,7 @@ export function ShapBreakdownCard({ file }: { file: FileRiskResult }): JSX.Eleme
 	];
 
 	return (
-		<Card>
+		<Card id={id}>
 			<CardHeader>
 				<p className="font-fira-mono-bold text-foreground text-xl">
 					Why this score? — SHAP Breakdown

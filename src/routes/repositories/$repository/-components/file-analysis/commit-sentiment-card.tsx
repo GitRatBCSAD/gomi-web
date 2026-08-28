@@ -50,7 +50,13 @@ function SentimentBadge({ code }: { code: string | null }): JSX.Element {
 	);
 }
 
-export function CommitSentimentCard({ file }: { file: FileRiskResult }): JSX.Element | null {
+export function CommitSentimentCard({
+	file,
+	id,
+}: {
+	file: FileRiskResult;
+	id?: string;
+}): JSX.Element | null {
 	const [page, setPage] = useState(1);
 
 	if (file.lowConfidence || file.commitSentiments.length < 10) {
@@ -81,7 +87,7 @@ export function CommitSentimentCard({ file }: { file: FileRiskResult }): JSX.Ele
 	const pageCommits = commits.slice(startIndex, startIndex + PAGE_SIZE);
 
 	return (
-		<Card>
+		<Card id={id}>
 			<CardHeader>
 				<div className="flex items-center justify-between">
 					<div>

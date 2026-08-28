@@ -11,9 +11,11 @@ import { computeDrift } from "./drift-utils";
 export function RootCauseCard({
 	file,
 	threshold,
+	id,
 }: {
 	file: FileRiskResult;
 	threshold: number;
+	id?: string;
 }): JSX.Element | null {
 	if (file.lowConfidence || file.commitSentiments.length < 10) {
 		return null;
@@ -55,7 +57,7 @@ export function RootCauseCard({
 	});
 
 	return (
-		<Card>
+		<Card id={id}>
 			<CardHeader>
 				<p className="font-fira-mono-bold text-foreground text-xl">Root Cause Commit</p>
 				<p className="font-fira-mono text-muted-foreground mt-1 text-xs">
