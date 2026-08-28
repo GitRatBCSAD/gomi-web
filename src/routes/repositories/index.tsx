@@ -1,10 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
-import { BookOpenIcon, GithubIcon, SearchIcon, SettingsIcon, XIcon } from "lucide-react";
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import { GithubIcon, SearchIcon, SettingsIcon } from "lucide-react";
 import { useEffect, useState, type JSX } from "react";
 import * as v from "valibot";
 
 import { AnalysisLoadingScreen } from "@/components/analysis-loading-screen";
+import { OnboardingModal } from "@/components/onboarding-modal";
 import type { UserProfile } from "@/components/navbar";
 import { Button } from "@/components/ui/button";
 import { BACKEND_URL, GITHUB_APP_NAME } from "@/lib/env";
@@ -72,13 +73,13 @@ const GUIDE_SEEN_KEY = "gomi:guide-seen";
 
 function RouteComponent(): JSX.Element {
 	const [search, setSearch] = useState("");
-	const [showWelcome, setShowWelcome] = useState(
+	const [showOnboarding, setShowOnboarding] = useState(
 		() => localStorage.getItem(GUIDE_SEEN_KEY) !== "1",
 	);
 
-	function dismissWelcome() {
+	function dismissOnboarding() {
 		localStorage.setItem(GUIDE_SEEN_KEY, "1");
-		setShowWelcome(false);
+		setShowOnboarding(false);
 	}
 
 	const [confirmAction, setConfirmAction] = useState<ConfirmAction | null>(null);
@@ -190,36 +191,7 @@ function RouteComponent(): JSX.Element {
 				<p className="font-fira-mono-bold text-2xs text-gray-400">Ready to scan?</p>
 			</div>
 
-			{showWelcome && (
-				<div className="border-primary/20 bg-background-900 relative flex w-full max-w-3xl items-start gap-4 rounded-2xl border px-6 py-5 shadow-lg">
-					<div className="border-primary/30 text-primary flex size-10 shrink-0 items-center justify-center rounded-full border">
-						<BookOpenIcon className="size-5" />
-					</div>
-					<div className="flex flex-1 flex-col gap-1.5 pr-6">
-						<p className="text-foreground font-fira-mono-bold text-base tracking-wide">
-							New to Gomi?
-						</p>
-						<p className="text-muted-foreground font-fira-mono max-w-xl text-xs leading-relaxed">
-							Gomi flags risky files before a bug is filed — by reading both your code
-							and how your team writes about it. The field guide explains how to read
-							the heatmap and what every term means.
-						</p>
-						<Link
-							to="/guide"
-							className="text-primary hover:text-primary/80 font-fira-mono mt-1.5 text-xs font-bold no-underline transition-colors"
-						>
-							Read the field guide →
-						</Link>
-					</div>
-					<button
-						onClick={dismissWelcome}
-						aria-label="Dismiss"
-						className="text-muted-foreground hover:text-foreground absolute top-4 right-4 cursor-pointer transition-colors"
-					>
-						<XIcon className="size-4" />
-					</button>
-				</div>
-			)}
+			{showOnboarding && <OnboardingModal onClose={dismissOnboarding} />}
 
 			{(analyzeMutation.isError || jobQuery.data?.status === "failed") && (
 				<p className="text-destructive w-full max-w-3xl text-left text-sm">

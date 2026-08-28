@@ -1,13 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import type { JSX } from "react";
 
-import { GLOSSARY } from "@/lib/glossary";
-
 import {
-	HATCH,
-	LEGEND_GRADIENT,
-	riskColor,
-} from "./repositories/$repository/-components/repo-overview/heatmap/heatmap-utils";
+	HeatmapLegendPreview,
+	RiskLegendRows,
+} from "@/components/heatmap-legend-preview";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { GLOSSARY } from "@/lib/glossary";
 
 export const Route = createFileRoute("/guide")({
 	component: Guide,
@@ -61,28 +60,11 @@ const STEPS = [
 	},
 ];
 
-// A few sample tiles for the legend — width encodes complexity, color encodes
-// risk, the hatched one is low-confidence. Same riskColor + HATCH the live map uses.
-const SAMPLE_TILES = [
-	{ name: "auth.go", risk: 0.86, w: 132, lowConf: false },
-	{ name: "parser.ts", risk: 0.58, w: 104, lowConf: false },
-	{ name: "utils.py", risk: 0.24, w: 72, lowConf: false },
-	{ name: "cli.rs", risk: 0.35, w: 60, lowConf: true },
-];
-
-function SectionLabel({ children }: { children: string }): JSX.Element {
-	return (
-		<p className="font-fira-mono text-primary mb-6 text-[0.8125rem] tracking-wider">
-			{children}
-		</p>
-	);
-}
-
 function Guide(): JSX.Element {
 	return (
 		<div className="mx-auto w-full max-w-4xl px-6 py-14">
 			{/* Hero */}
-			<header className="border-b border-white/10 pb-12">
+			<header className="pb-8">
 				<span className="font-fira-mono text-primary text-[0.8125rem] tracking-wider">
 					GOMI &bull; Field Guide
 				</span>
@@ -90,173 +72,120 @@ function Guide(): JSX.Element {
 					Read your repo like a <span className="text-primary">heatmap</span>
 				</h1>
 				<p className="font-fira-mono mt-4 max-w-2xl text-[0.9375rem] leading-relaxed text-gray-400">
-					Gomi flags risky files before a bug is ever filed. It does this by reading two
-					things at once: how your code is built, and how your developers write about it.
-					This guide explains what you are looking at and how to use it.
+					Gomi flags risky files before a bug is ever filed, by reading two things at once:
+					how your code is built, and how your developers write about it.
 				</p>
 			</header>
 
-			{/* Reading the heatmap — the signature */}
-			<section className="border-b border-white/10 py-12">
-				<SectionLabel>READING THE MAP</SectionLabel>
-				<div className="grid gap-8 md:grid-cols-[1fr_auto]">
-					<div>
-						<h2 className="font-fira-mono-bold mb-3 text-2xl text-white">
-							Size is structure. Color is risk.
-						</h2>
-						<p className="font-fira-mono mb-6 max-w-md text-sm leading-relaxed text-gray-400">
-							On the repository heatmap, each file is a tile.{" "}
-							<span className="text-white">Bigger tiles</span> are structurally heavier
-							files. <span className="text-white">Redder tiles</span> carry more risk.
-							The file you want to look at first is the big red one.
-						</p>
-						<ul className="font-fira-mono space-y-2.5 text-sm text-gray-400">
-							<li className="flex items-center gap-3">
-								<span
-									className="inline-block size-4 shrink-0 rounded-sm"
-									style={{ backgroundColor: riskColor(0.85) }}
-								/>
-								High risk — likely heading for a fix
-							</li>
-							<li className="flex items-center gap-3">
-								<span
-									className="inline-block size-4 shrink-0 rounded-sm"
-									style={{ backgroundColor: riskColor(0.5) }}
-								/>
-								Moderate — worth a glance
-							</li>
-							<li className="flex items-center gap-3">
-								<span
-									className="inline-block size-4 shrink-0 rounded-sm"
-									style={{ backgroundColor: riskColor(0.15) }}
-								/>
-								Low — quiet and stable
-							</li>
-							<li className="flex items-center gap-3">
-								<span
-									className="border-dark-500 inline-block size-4 shrink-0 rounded-sm border"
-									style={{ backgroundImage: HATCH, backgroundColor: "#1a1c1f" }}
-								/>
-								Hatched — too few commits to score confidently
-							</li>
-						</ul>
-					</div>
+			<Tabs defaultValue="overview" className="gap-6">
+				<TabsList variant="line" className="border-b border-white/10 pb-0">
+					<TabsTrigger value="overview">Overview</TabsTrigger>
+					<TabsTrigger value="map">Reading the map</TabsTrigger>
+					<TabsTrigger value="how">How it works</TabsTrigger>
+					<TabsTrigger value="glossary">Glossary</TabsTrigger>
+				</TabsList>
 
-					{/* Mini heatmap mock */}
-					<div className="flex flex-col items-start gap-2 self-start rounded-lg border border-white/10 bg-[#0b0d10] p-4">
-						<div className="flex flex-wrap items-end gap-1.5" style={{ maxWidth: 200 }}>
-							{SAMPLE_TILES.map((t) => (
-								<div
-									key={t.name}
-									className="border-dark-500 relative overflow-hidden border"
-									style={{
-										width: t.w,
-										height: t.w * 0.62,
-										backgroundColor: riskColor(t.risk),
-									}}
-									title={`${t.name} — ${t.lowConf ? "low confidence" : t.risk.toFixed(2)}`}
-								>
-									{t.lowConf && (
-										<div
-											className="absolute inset-0"
-											style={{ backgroundImage: HATCH }}
-										/>
-									)}
-									<span className="font-fira-mono absolute right-1 bottom-1 left-1 truncate text-[10px] text-white/80">
-										{t.name}
-									</span>
+				{/* Overview — the workflow */}
+				<TabsContent value="overview" className="pt-2">
+					<h2 className="font-fira-mono-bold mb-6 text-xl text-white">
+						From install to insight
+					</h2>
+					<ol className="space-y-6">
+						{STEPS.map((s) => (
+							<li key={s.n} className="flex gap-4">
+								<span className="border-primary/30 text-primary font-fira-mono-bold flex size-9 shrink-0 items-center justify-center rounded-full border text-sm">
+									{s.n}
+								</span>
+								<div className="pt-1">
+									<h3 className="font-fira-mono-bold text-base text-white">
+										{s.title}
+									</h3>
+									<p className="font-fira-mono mt-1 max-w-2xl text-sm leading-relaxed text-gray-400">
+										{s.body}
+									</p>
 								</div>
-							))}
-						</div>
-						<div
-							className="mt-1 h-2 w-full rounded-full"
-							style={{ backgroundImage: LEGEND_GRADIENT }}
-						/>
-						<div className="font-fira-mono flex w-full justify-between text-[10px] text-gray-500">
-							<span>low risk</span>
-							<span>high risk</span>
-						</div>
-					</div>
-				</div>
-			</section>
+							</li>
+						))}
+					</ol>
+				</TabsContent>
 
-			{/* Pipeline */}
-			<section className="border-b border-white/10 py-12">
-				<SectionLabel>HOW GOMI THINKS</SectionLabel>
-				<div className="grid gap-px overflow-hidden rounded-lg border border-white/10 bg-white/10 sm:grid-cols-2">
-					{PIPELINE.map((p) => (
-						<div key={p.n} className="bg-[#0b0d10] p-6">
-							<span className="font-fira-mono-bold text-primary/50 text-3xl tabular-nums">
-								{p.n}
-							</span>
-							<h3 className="font-fira-mono-bold mt-2 text-base text-white">
-								{p.title}
-							</h3>
-							<p className="font-fira-mono mt-2 text-sm leading-relaxed text-gray-400">
-								{p.body}
+				{/* Reading the map */}
+				<TabsContent value="map" className="pt-2">
+					<div className="grid gap-8 md:grid-cols-[1fr_auto]">
+						<div>
+							<h2 className="font-fira-mono-bold mb-3 text-xl text-white">
+								Size is structure. Color is risk.
+							</h2>
+							<p className="font-fira-mono mb-6 max-w-md text-sm leading-relaxed text-gray-400">
+								On the repository heatmap, each file is a tile.{" "}
+								<span className="text-white">Bigger tiles</span> are structurally
+								heavier files. <span className="text-white">Redder tiles</span> carry
+								more risk. The file you want to look at first is the big red one.
 							</p>
+							<RiskLegendRows />
 						</div>
-					))}
-				</div>
-			</section>
+						<HeatmapLegendPreview />
+					</div>
+				</TabsContent>
 
-			{/* Using it */}
-			<section className="border-b border-white/10 py-12">
-				<SectionLabel>USING GOMI</SectionLabel>
-				<ol className="space-y-6">
-					{STEPS.map((s) => (
-						<li key={s.n} className="flex gap-4">
-							<span className="border-primary/30 text-primary font-fira-mono-bold flex size-9 shrink-0 items-center justify-center rounded-full border text-sm">
-								{s.n}
-							</span>
-							<div className="pt-1">
-								<h3 className="font-fira-mono-bold text-base text-white">
-									{s.title}
+				{/* How it works */}
+				<TabsContent value="how" className="pt-2">
+					<h2 className="font-fira-mono-bold mb-6 text-xl text-white">
+						How Gomi thinks
+					</h2>
+					<div className="grid gap-px overflow-hidden rounded-lg border border-white/10 bg-white/10 sm:grid-cols-2">
+						{PIPELINE.map((p) => (
+							<div key={p.n} className="bg-[#0b0d10] p-6">
+								<span className="font-fira-mono-bold text-primary/50 text-3xl tabular-nums">
+									{p.n}
+								</span>
+								<h3 className="font-fira-mono-bold mt-2 text-base text-white">
+									{p.title}
 								</h3>
-								<p className="font-fira-mono mt-1 max-w-2xl text-sm leading-relaxed text-gray-400">
-									{s.body}
+								<p className="font-fira-mono mt-2 text-sm leading-relaxed text-gray-400">
+									{p.body}
 								</p>
 							</div>
-						</li>
-					))}
-				</ol>
-			</section>
+						))}
+					</div>
+				</TabsContent>
 
-			{/* Glossary */}
-			<section className="py-12">
-				<SectionLabel>GLOSSARY</SectionLabel>
-				<h2 className="font-fira-mono-bold mb-2 text-2xl text-white">
-					Every term, in plain language
-				</h2>
-				<p className="font-fira-mono mb-8 max-w-2xl text-sm leading-relaxed text-gray-400">
-					These are the same definitions behind the{" "}
-					<span className="text-white">ⓘ</span> icons throughout a file's analysis. Tap any
-					link to read the authoritative source.
-				</p>
-				<div className="grid gap-3 sm:grid-cols-2">
-					{Object.entries(GLOSSARY).map(([key, entry]) => (
-						<div
-							key={key}
-							className="rounded-lg border border-white/10 bg-[#0b0d10] p-4"
-						>
-							<p className="font-fira-mono-bold text-primary text-sm">{entry.title}</p>
-							<p className="font-fira-mono mt-1.5 text-xs leading-relaxed text-gray-400">
-								{entry.definition}
-							</p>
-							<a
-								href={entry.href}
-								target="_blank"
-								rel="noopener noreferrer"
-								className="text-primary hover:text-primary/80 font-fira-mono mt-2.5 inline-block text-[11px] transition-colors"
+				{/* Glossary */}
+				<TabsContent value="glossary" className="pt-2">
+					<h2 className="font-fira-mono-bold mb-2 text-xl text-white">
+						Every term, in plain language
+					</h2>
+					<p className="font-fira-mono mb-6 max-w-2xl text-sm leading-relaxed text-gray-400">
+						The same definitions behind the <span className="text-white">ⓘ</span> icons
+						throughout a file's analysis.
+					</p>
+					<div className="grid gap-3 sm:grid-cols-2">
+						{Object.entries(GLOSSARY).map(([key, entry]) => (
+							<div
+								key={key}
+								className="rounded-lg border border-white/10 bg-[#0b0d10] p-4"
 							>
-								Learn more →
-							</a>
-						</div>
-					))}
-				</div>
-			</section>
+								<p className="font-fira-mono-bold text-primary text-sm">
+									{entry.title}
+								</p>
+								<p className="font-fira-mono mt-1.5 text-xs leading-relaxed text-gray-400">
+									{entry.definition}
+								</p>
+								<a
+									href={entry.href}
+									target="_blank"
+									rel="noopener noreferrer"
+									className="text-primary hover:text-primary/80 font-fira-mono mt-2.5 inline-block text-[11px] transition-colors"
+								>
+									Learn more →
+								</a>
+							</div>
+						))}
+					</div>
+				</TabsContent>
+			</Tabs>
 
-			<div className="border-t border-white/10 pt-10 text-center">
+			<div className="mt-12 border-t border-white/10 pt-10 text-center">
 				<Link
 					to="/repositories"
 					className="bg-primary font-fira-mono-bold hover:bg-primary/90 inline-flex cursor-pointer items-center justify-center rounded-lg px-8 py-3 text-sm text-black no-underline transition-all"
