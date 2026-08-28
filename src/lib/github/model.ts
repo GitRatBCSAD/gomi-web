@@ -28,6 +28,10 @@ export type AnalyzeRepositoryRequest = {
 	owner: string;
 	repository: string;
 	force?: boolean;
+	/** ISO-8601 date string. If omitted, backend defaults to 6 months back. */
+	sinceDate?: string;
+	/** ISO-8601 date string. If omitted, backend defaults to now. */
+	untilDate?: string;
 };
 
 export const CommitSentimentSchema = v.object({

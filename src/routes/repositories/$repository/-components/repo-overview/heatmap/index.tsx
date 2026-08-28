@@ -150,6 +150,7 @@ export function Heatmap(props: {
 					sort={sort}
 					onSortChange={setSort}
 					counts={counts}
+					threshold={props.threshold}
 				/>
 
 				<TabsContent value="heatmap" className="m-0">

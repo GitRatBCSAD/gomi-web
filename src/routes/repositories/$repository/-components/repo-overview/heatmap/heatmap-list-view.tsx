@@ -1,12 +1,37 @@
 import { useNavigate } from "@tanstack/react-router";
-import { useVirtualizer } from "@tanstack/react-virtual";
-import { useRef, type JSX } from "react";
+import { useEffect, useState, type JSX } from "react";
+
+import {
+	Pagination,
+	PaginationContent,
+	PaginationEllipsis,
+	PaginationItem,
+	PaginationLink,
+	PaginationNext,
+	PaginationPrevious,
+} from "@/components/ui/pagination";
 
 import { RiskBadge, SentimentBar } from "./heatmap-tile";
 import type { FileInfo } from "./heatmap-utils";
 
-const ROW_HEIGHT = 44;
-const LIST_VIEWPORT_HEIGHT = 600;
+const PAGE_SIZE = 25;
+
+/** Returns page indices to render, with `null` meaning ellipsis. */
+function pageWindows(current: number, total: number): (number | null)[] {
+	if (total <= 9) return Array.from({ length: total }, (_, i) => i);
+	const show = new Set<number>();
+	show.add(0);
+	show.add(total - 1);
+	for (let i = Math.max(0, current - 2); i <= Math.min(total - 1, current + 2); i++) show.add(i);
+	const pages: (number | null)[] = [];
+	let prev = -1;
+	for (const p of [...show].sort((a, b) => a - b)) {
+		if (prev !== -1 && p - prev > 1) pages.push(null);
+		pages.push(p);
+		prev = p;
+	}
+	return pages;
+}
 
 function ListRow(props: {
 	file: FileInfo;
@@ -51,14 +76,12 @@ export function HeatmapListView(props: {
 	const { files, threshold, repository } = props;
 	// ponytail: hoisted — avoids N useNavigate hook calls inside each ListRow
 	const navigate = useNavigate();
-	const parentRef = useRef<HTMLDivElement>(null);
+	const [page, setPage] = useState(0);
 
-	const virtualizer = useVirtualizer({
-		count: files.length,
-		getScrollElement: () => parentRef.current,
-		estimateSize: () => ROW_HEIGHT,
-		overscan: 10,
-	});
+	// Reset to page 0 whenever the file list changes (filter / sort / search)
+	useEffect(() => {
+		setPage(0);
+	}, [files]);
 
 	if (files.length === 0) {
 		return (
@@ -68,48 +91,38 @@ export function HeatmapListView(props: {
 		);
 	}
 
-	const items = virtualizer.getVirtualItems();
-	const totalSize = virtualizer.getTotalSize();
-	const paddingTop = items.length > 0 ? items[0].start : 0;
-	const paddingBottom = items.length > 0 ? totalSize - items[items.length - 1].end : 0;
+	const totalPages = Math.ceil(files.length / PAGE_SIZE);
+	const pageFiles = files.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+	const rangeStart = page * PAGE_SIZE + 1;
+	const rangeEnd = Math.min((page + 1) * PAGE_SIZE, files.length);
 
 	return (
-		<div
-			ref={parentRef}
-			style={{ height: LIST_VIEWPORT_HEIGHT, overflowY: "auto" }}
-			className="w-full overflow-x-auto"
-		>
-			<table className="font-fira-mono w-full min-w-[520px]">
-				<thead className="sticky top-0 z-10 bg-card">
-					<tr className="border-border border-b">
-						<th className="text-muted-foreground px-4 py-2.5 text-left text-xs font-medium">
-							File
-						</th>
-						<th className="text-muted-foreground px-4 py-2.5 text-left text-xs font-medium">
-							Sentiment
-						</th>
-						<th className="text-muted-foreground px-4 py-2.5 text-left text-xs font-medium">
-							Risk
-						</th>
-						<th className="text-muted-foreground px-4 py-2.5 text-left text-xs font-medium">
-							Commits
-						</th>
-					</tr>
-				</thead>
-				<tbody>
-					{paddingTop > 0 && (
-						<tr>
-							<td style={{ height: paddingTop }} />
+		<div className="w-full">
+			<div className="w-full overflow-x-auto">
+				<table className="font-fira-mono w-full min-w-[520px]">
+					<thead className="bg-card">
+						<tr className="border-border border-b">
+							<th className="text-muted-foreground px-4 py-2.5 text-left text-xs font-medium">
+								File
+							</th>
+							<th className="text-muted-foreground px-4 py-2.5 text-left text-xs font-medium">
+								Sentiment
+							</th>
+							<th className="text-muted-foreground px-4 py-2.5 text-left text-xs font-medium">
+								Risk
+							</th>
+							<th className="text-muted-foreground px-4 py-2.5 text-left text-xs font-medium">
+								Commits
+							</th>
 						</tr>
-					)}
-					{items.map((vRow) => {
-						const f = files[vRow.index];
-						return (
+					</thead>
+					<tbody>
+						{pageFiles.map((f, i) => (
 							<ListRow
 								key={`${f.dir}${f.name}`}
 								file={f}
 								threshold={threshold}
-								even={vRow.index % 2 === 0}
+								even={(page * PAGE_SIZE + i) % 2 === 0}
 								onClick={() =>
 									navigate({
 										to: "/repositories/$repository/file",
@@ -118,15 +131,67 @@ export function HeatmapListView(props: {
 									})
 								}
 							/>
-						);
-					})}
-					{paddingBottom > 0 && (
-						<tr>
-							<td style={{ height: paddingBottom }} />
-						</tr>
-					)}
-				</tbody>
-			</table>
+						))}
+					</tbody>
+				</table>
+			</div>
+
+			{totalPages > 1 && (
+				<div className="border-border/40 flex items-center justify-between border-t px-4 py-3">
+					<span className="text-muted-foreground font-fira-mono text-xs">
+						{rangeStart}–{rangeEnd} of {files.length} files
+					</span>
+					<Pagination className="mx-0 w-auto">
+						<PaginationContent>
+							<PaginationItem>
+								<PaginationPrevious
+									href="#"
+									onClick={(e) => {
+										e.preventDefault();
+										setPage((p) => Math.max(0, p - 1));
+									}}
+									aria-disabled={page === 0}
+									className={page === 0 ? "pointer-events-none opacity-30" : ""}
+								/>
+							</PaginationItem>
+
+							{pageWindows(page, totalPages).map((p, idx) =>
+								p === null ? (
+									// eslint-disable-next-line react/no-array-index-key
+									<PaginationItem key={`ellipsis-${idx}`}>
+										<PaginationEllipsis />
+									</PaginationItem>
+								) : (
+									<PaginationItem key={p}>
+										<PaginationLink
+											href="#"
+											isActive={p === page}
+											onClick={(e) => {
+												e.preventDefault();
+												setPage(p);
+											}}
+										>
+											{p + 1}
+										</PaginationLink>
+									</PaginationItem>
+								),
+							)}
+
+							<PaginationItem>
+								<PaginationNext
+									href="#"
+									onClick={(e) => {
+										e.preventDefault();
+										setPage((p) => Math.min(totalPages - 1, p + 1));
+									}}
+									aria-disabled={page === totalPages - 1}
+									className={page === totalPages - 1 ? "pointer-events-none opacity-30" : ""}
+								/>
+							</PaginationItem>
+						</PaginationContent>
+					</Pagination>
+				</div>
+			)}
 		</div>
 	);
 }

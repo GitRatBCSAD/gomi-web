@@ -7,12 +7,21 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
 	DOT_COLOR,
 	FILTERS,
-	LEGEND_GRADIENT,
 	HATCH,
+	LEGEND_GRADIENT,
 	type FilterKey,
 	type RiskCategory,
 	type SortOption,
 } from "./heatmap-utils";
+
+const RISK_SCALE_MARKS = [
+	{ value: 0.0, label: "0.0" },
+	{ value: 0.3, label: "0.3" },
+	{ value: 0.5, label: "0.5" },
+	{ value: 0.65, label: "0.65" },
+	{ value: 0.8, label: "0.8" },
+	{ value: 1.0, label: "1.0" },
+];
 
 export function HeatmapToolbar(props: {
 	filter: FilterKey;
@@ -22,11 +31,14 @@ export function HeatmapToolbar(props: {
 	sort: SortOption;
 	onSortChange: (s: SortOption) => void;
 	counts: Record<FilterKey, number>;
+	threshold: number;
 }): JSX.Element {
-	const { filter, onFilterChange, search, onSearchChange, sort, onSortChange, counts } = props;
+	const { filter, onFilterChange, search, onSearchChange, sort, onSortChange, counts, threshold } =
+		props;
 
 	return (
 		<>
+			{/* ── Row 1: filter tabs / sort / view toggle / search ── */}
 			<div className="border-border flex flex-wrap items-center gap-2 border-b px-4 py-3">
 				<Tabs value={filter} onValueChange={(v) => onFilterChange(v as FilterKey)}>
 					<TabsList>
@@ -41,9 +53,7 @@ export function HeatmapToolbar(props: {
 									/>
 								)}
 								{label}
-								<span className="text-muted-foreground tabular-nums">
-									{counts[key]}
-								</span>
+								<span className="text-muted-foreground tabular-nums">{counts[key]}</span>
 							</TabsTrigger>
 						))}
 					</TabsList>
@@ -79,7 +89,7 @@ export function HeatmapToolbar(props: {
 						placeholder="Filter files..."
 						value={search}
 						onChange={(e) => onSearchChange(e.target.value)}
-						className="h-8 w-44 text-xs pr-6"
+						className="h-8 w-44 pr-6 text-xs"
 					/>
 					{search && (
 						<button
@@ -93,20 +103,84 @@ export function HeatmapToolbar(props: {
 				</div>
 			</div>
 
-			<div className="border-border flex flex-wrap items-center gap-4 border-b px-4 py-2.5">
-				<div className="flex shrink-0 items-center gap-2">
-					<span className="text-muted-foreground text-xs">Low</span>
-					<div
-						className="h-2.5 w-20 rounded-sm"
-						style={{ background: LEGEND_GRADIENT }}
-					/>
-					<span className="text-muted-foreground text-xs">High</span>
-					<div className="ml-2 flex items-center gap-1.5">
+			{/* ── Row 2: persistent legend panel ── */}
+			<div className="border-border flex flex-wrap items-start gap-x-6 gap-y-3 border-b px-4 py-3">
+				{/* Risk color scale */}
+				<div className="flex flex-col gap-1">
+					<span className="text-muted-foreground font-fira-mono text-[10px] uppercase tracking-wider">
+						Risk Score
+					</span>
+					<div className="flex items-center gap-2">
+						<span className="text-muted-foreground text-xs">Low</span>
+						<div className="relative h-2.5 w-32 rounded-sm" style={{ background: LEGEND_GRADIENT }}>
+							{RISK_SCALE_MARKS.map(({ value, label }) => (
+								<div
+									key={label}
+									className="absolute -bottom-4 flex -translate-x-1/2 flex-col items-center"
+									style={{ left: `${value * 100}%` }}
+								>
+									<div className="bg-muted-foreground/40 h-1 w-px" />
+									<span className="text-muted-foreground font-fira-mono text-[9px]">{label}</span>
+								</div>
+							))}
+						</div>
+						<span className="text-muted-foreground text-xs">High</span>
+					</div>
+					{/* spacer for the tick labels below the bar */}
+					<div className="h-4" />
+				</div>
+
+				{/* Risky / Acceptable classification */}
+				<div className="flex flex-col gap-1">
+					<span className="text-muted-foreground font-fira-mono text-[10px] uppercase tracking-wider">
+						Classification
+					</span>
+					<div className="flex flex-col gap-1">
+						<div className="flex items-center gap-1.5">
+							<span
+								className="size-2 shrink-0 rounded-full"
+								style={{ backgroundColor: DOT_COLOR.risky }}
+							/>
+							<span className="text-foreground/80 font-fira-mono text-xs">
+								Risky
+							</span>
+							<span className="text-muted-foreground font-fira-mono text-xs">
+								— risk score ≥ {threshold.toFixed(2)}
+							</span>
+						</div>
+						<div className="flex items-center gap-1.5">
+							<span
+								className="size-2 shrink-0 rounded-full"
+								style={{ backgroundColor: DOT_COLOR.acceptable }}
+							/>
+							<span className="text-foreground/80 font-fira-mono text-xs">
+								Acceptable
+							</span>
+							<span className="text-muted-foreground font-fira-mono text-xs">
+								— risk score &lt; {threshold.toFixed(2)}
+							</span>
+						</div>
+					</div>
+				</div>
+
+				{/* Low Confidence flag */}
+				<div className="flex flex-col gap-1">
+					<span className="text-muted-foreground font-fira-mono text-[10px] uppercase tracking-wider">
+						Flags
+					</span>
+					<div className="flex items-start gap-2">
 						<div
-							className="border-border/30 h-2.5 w-6 rounded-sm border"
+							className="border-border/30 mt-0.5 h-3.5 w-6 shrink-0 rounded-sm border"
 							style={{ backgroundImage: HATCH, backgroundColor: "#303338" }}
 						/>
-						<span className="text-muted-foreground text-xs">Low Conf</span>
+						<div className="flex flex-col">
+							<span className="text-foreground/80 font-fira-mono text-xs">Low Confidence</span>
+							<span className="text-muted-foreground font-fira-mono text-[10px] leading-tight">
+								Too few commits for a reliable risk prediction.
+								<br />
+								Score excluded from Risky / Acceptable counts.
+							</span>
+						</div>
 					</div>
 				</div>
 			</div>
