@@ -73,6 +73,7 @@ export function Navbar(): JSX.Element {
 					GO<span className="text-primary">MI</span>
 				</Link>
 				<Link
+					id="tour-guide"
 					to="/guide"
 					className="text-muted-foreground hover:text-primary font-fira-mono text-sm no-underline transition-colors"
 					activeProps={{ className: "text-primary" }}
