@@ -1,6 +1,6 @@
 import { Tour, useTour, type TourStepDetails } from "@ark-ui/react";
 import { XIcon } from "lucide-react";
-import { useEffect, type JSX } from "react";
+import { useEffect, useMemo, type JSX } from "react";
 import { createPortal } from "react-dom";
 
 import { HeatmapLegendPreview, RiskLegendRows } from "@/components/heatmap-legend-preview";
@@ -61,7 +61,7 @@ function buildSteps(notInstalled: boolean): TourStepDetails[] {
 		description: <DoneBody />,
 		actions: [
 			{ label: "Back", action: "prev" },
-			{ label: "Done", action: "next" },
+			{ label: "Done", action: "dismiss" },
 		],
 	};
 
@@ -121,8 +121,9 @@ export function OnboardingTour({
 	notInstalled: boolean;
 	onDone: () => void;
 }): JSX.Element | null {
+	const steps = useMemo(() => buildSteps(notInstalled), [notInstalled]);
 	const tour = useTour({
-		steps: buildSteps(notInstalled),
+		steps,
 		closeOnInteractOutside: false,
 		onStatusChange: (details) => {
 			if (ENDED.includes(details.status)) onDone();
@@ -137,7 +138,7 @@ export function OnboardingTour({
 
 	return createPortal(
 		<Tour.Root tour={tour}>
-			<Tour.Backdrop className="fixed inset-0 z-[999] bg-black/70" />
+			<Tour.Backdrop className="pointer-events-none fixed inset-0 z-[999] bg-black/70" />
 			<Tour.Spotlight className="ring-primary/60 rounded-lg ring-2" />
 			<Tour.Positioner
 				className={
