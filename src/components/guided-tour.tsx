@@ -1,6 +1,6 @@
 import { Tour, useTour, type TourStepDetails } from "@ark-ui/react";
 import { XIcon } from "lucide-react";
-import { useEffect, type JSX } from "react";
+import { useEffect, useState, type JSX } from "react";
 import { createPortal } from "react-dom";
 
 const ENDED = ["completed", "dismissed", "skipped"];
@@ -24,11 +24,25 @@ export function GuidedTour({
 		tour.start();
 	}, []);
 
+	const [pageHeight, setPageHeight] = useState(0);
+
+	useEffect(() => {
+		if (!tour.open) return;
+		setPageHeight(document.documentElement.scrollHeight);
+	}, [tour.open, tour.step?.id]);
+
 	if (!tour.open) return null;
 
 	return createPortal(
 		<Tour.Root tour={tour}>
-			<Tour.Backdrop className="pointer-events-none fixed inset-0 z-[999] bg-black/70" />
+			<Tour.Backdrop
+				className="pointer-events-none fixed inset-0 z-[999] bg-black/70"
+				style={
+					tour.step?.type === "tooltip"
+						? { position: "absolute", bottom: "auto", height: `${pageHeight}px` }
+						: undefined
+				}
+			/>
 			<Tour.Spotlight className="ring-primary/60 rounded-lg ring-2" />
 			<Tour.Positioner
 				className={
