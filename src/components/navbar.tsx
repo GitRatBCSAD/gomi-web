@@ -65,12 +65,21 @@ export function Navbar(): JSX.Element {
 
 	return (
 		<nav className="fixed top-0 right-0 left-0 z-999 flex h-[4.5rem] items-center justify-between border-b border-white/10 bg-[#0b0d10]/90 px-6 backdrop-blur-sm">
-			<Link
-				to={isAuthenticated ? "/repositories" : "/"}
-				className="hover:text-primary font-fira-mono-bold text-2xl tracking-tighter text-white no-underline transition-colors"
-			>
-				GO<span className="text-primary">MI</span>
-			</Link>
+			<div className="flex items-center gap-6">
+				<Link
+					to={isAuthenticated ? "/repositories" : "/"}
+					className="hover:text-primary font-fira-mono-bold text-2xl tracking-tighter text-white no-underline transition-colors"
+				>
+					GO<span className="text-primary">MI</span>
+				</Link>
+				<Link
+					to="/guide"
+					className="text-muted-foreground hover:text-primary font-fira-mono text-sm no-underline transition-colors"
+					activeProps={{ className: "text-primary" }}
+				>
+					Guide
+				</Link>
+			</div>
 
 			{isAuthenticated && (
 				<div className="relative" ref={dropdownRef}>
