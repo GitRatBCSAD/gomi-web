@@ -1,6 +1,7 @@
 import { InfoIcon } from "lucide-react";
 import type { JSX } from "react";
 
+import { GlossaryHint } from "@/components/glossary-hint";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import type { FileRiskResult } from "@/lib/github/model";
@@ -94,6 +95,7 @@ export function RootCauseCard({
 						<span style={{ color: "var(--destructive-500)" }}>
 							{cautionProb.toFixed(2)}
 						</span>
+						<GlossaryHint term="caution-probability" />
 					</p>
 
 					<div className="space-y-2">

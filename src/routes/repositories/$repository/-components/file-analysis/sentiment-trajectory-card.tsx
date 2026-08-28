@@ -9,6 +9,7 @@ import {
 	YAxis,
 } from "recharts";
 
+import { GlossaryHint } from "@/components/glossary-hint";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { ChartContainer } from "@/components/ui/chart";
 import type { FileRiskResult } from "@/lib/github/model";
@@ -120,9 +121,13 @@ export function SentimentTrajectoryCard({
 	return (
 		<Card>
 			<CardHeader>
-				<p className="font-fira-mono-bold text-foreground text-xl">Sentiment Trajectory</p>
+				<p className="font-fira-mono-bold text-foreground text-xl">
+					Sentiment Trajectory
+					<GlossaryHint term="sentiment-trajectory" />
+				</p>
 				<p className="font-fira-mono text-muted-foreground mt-1 text-xs">
 					Per-commit caution probability over the 6-month analysis window
+					<GlossaryHint term="caution-probability" />
 				</p>
 			</CardHeader>
 			<CardContent>

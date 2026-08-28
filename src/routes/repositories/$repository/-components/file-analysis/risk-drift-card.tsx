@@ -1,5 +1,6 @@
 import type { JSX } from "react";
 
+import { GlossaryHint } from "@/components/glossary-hint";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import type { FileRiskResult } from "@/lib/github/model";
@@ -51,7 +52,10 @@ export function RiskDriftCard({ file }: { file: FileRiskResult }): JSX.Element |
 		<Card>
 			<CardHeader>
 				<div>
-					<p className="font-fira-mono-bold text-foreground text-xl">Risk Drift</p>
+					<p className="font-fira-mono-bold text-foreground text-xl">
+						Risk Drift
+						<GlossaryHint term="drift-category" />
+					</p>
 					<p className="font-fira-mono text-muted-foreground mt-1 text-xs">
 						Trend analysis split across the first and second half of the analysis window
 					</p>

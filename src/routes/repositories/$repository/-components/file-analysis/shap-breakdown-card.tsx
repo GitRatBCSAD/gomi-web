@@ -1,6 +1,8 @@
 import type { JSX } from "react";
 
+import { GlossaryHint } from "@/components/glossary-hint";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import type { GlossaryKey } from "@/lib/glossary";
 import type { FileRiskResult } from "@/lib/github/model";
 
 import { riskColor } from "../repo-overview/heatmap";
@@ -9,45 +11,58 @@ export function ShapBreakdownCard({ file }: { file: FileRiskResult }): JSX.Eleme
 	const s = file.shapBreakdown;
 	if (!s) return null;
 
-	const rows = [
+	const rows: {
+		label: string;
+		term: GlossaryKey;
+		barWidth: number;
+		value: string;
+		contrib: number;
+	}[] = [
 		{
 			label: "Sentiment score",
+			term: "sentiment-score",
 			barWidth: file.sentimentScore,
 			value: file.sentimentScore.toFixed(2),
 			contrib: s.sentimentContrib,
 		},
 		{
 			label: "Complexity score",
+			term: "complexity-score",
 			barWidth: file.complexityScore,
 			value: file.complexityScore.toFixed(2),
 			contrib: s.complexityContrib,
 		},
 		{
 			label: "Change entropy",
+			term: "change-entropy",
 			barWidth: file.changeEntropy,
 			value: file.changeEntropy.toFixed(2),
 			contrib: s.entropyContrib,
 		},
 		{
 			label: "NDev score",
+			term: "ndev",
 			barWidth: file.ndevScore,
 			value: file.ndevScore.toFixed(2),
 			contrib: s.ndevContrib,
 		},
 		{
 			label: "Low info ratio",
+			term: "low-info-ratio",
 			barWidth: file.lowInfoRatio,
 			value: file.lowInfoRatio.toFixed(2),
 			contrib: s.lowInfoContrib,
 		},
 		{
 			label: "Age score",
+			term: "age-score",
 			barWidth: file.ageScore,
 			value: file.ageScore.toFixed(2),
 			contrib: s.ageContrib,
 		},
 		{
 			label: "Number of commits",
+			term: "n-commits",
 			barWidth: Math.min(file.commitCount / 50, 1),
 			value: String(file.commitCount),
 			contrib: s.commitsContrib,
@@ -59,6 +74,7 @@ export function ShapBreakdownCard({ file }: { file: FileRiskResult }): JSX.Eleme
 			<CardHeader>
 				<p className="font-fira-mono-bold text-foreground text-xl">
 					Why this score? — SHAP Breakdown
+					<GlossaryHint term="shap" />
 				</p>
 				<p className="font-fira-mono text-muted-foreground mt-1 text-xs">
 					SHAP decomposition of the logistic regression output — right raises risk, left
@@ -82,6 +98,7 @@ export function ShapBreakdownCard({ file }: { file: FileRiskResult }): JSX.Eleme
 						style={{ width: "11rem", flexShrink: 0 }}
 					>
 						Base rate
+						<GlossaryHint term="base-rate" />
 					</span>
 					<span
 						className="font-fira-mono text-muted-foreground/60 text-xs"
@@ -98,7 +115,7 @@ export function ShapBreakdownCard({ file }: { file: FileRiskResult }): JSX.Eleme
 					<span style={{ width: "3.5rem" }} />
 				</div>
 
-				{rows.map(({ label, barWidth, value, contrib }) => {
+				{rows.map(({ label, term, barWidth, value, contrib }) => {
 					const positive = contrib >= 0;
 					const fillColor = positive ? "var(--destructive-500)" : "var(--primary-500)";
 					return (
@@ -119,6 +136,7 @@ export function ShapBreakdownCard({ file }: { file: FileRiskResult }): JSX.Eleme
 								style={{ width: "11rem", flexShrink: 0 }}
 							>
 								{label}
+								<GlossaryHint term={term} />
 							</span>
 							<div
 								style={{
