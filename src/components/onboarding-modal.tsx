@@ -41,21 +41,44 @@ const STEPS: Step[] = [
 		body: "Static analysis measures complexity. A sentiment model reads your commit messages for frustration and caution. Gomi fuses both into a single risk score — and breaks down exactly why each file was flagged, so nothing is a black box.",
 		visual: <RiskLegendRows />,
 	},
-	{
-		eyebrow: "YOU'RE SET",
-		title: <>Analyze your first repository</>,
-		body: "Pick a repo below and hit Analyze. Gomi reads the last six months of history — it never writes to your code — and caches the result so you can reopen it instantly. Every technical term has an ⓘ you can hover for a plain-language definition.",
-	},
+	// The final step is filled in per install state at render time.
+	{ eyebrow: "", title: null, body: "" },
 ];
 
 /**
  * First-run onboarding shown once per user on the repositories screen. Purely
  * presentational — the parent owns whether it renders and what "done" does.
+ * The last step adapts to install state: an uninstalled user is pointed at
+ * installing the GitHub App; an installed one, at analyzing a repo.
  */
-export function OnboardingModal({ onClose }: { onClose: () => void }): JSX.Element {
+export function OnboardingModal({
+	onClose,
+	notInstalled,
+	installUrl,
+}: {
+	onClose: () => void;
+	notInstalled: boolean;
+	installUrl: string;
+}): JSX.Element {
 	const [step, setStep] = useState(0);
-	const current = STEPS[step];
 	const isLast = step === STEPS.length - 1;
+	const current: Step = isLast
+		? notInstalled
+			? {
+					eyebrow: "ONE STEP FIRST",
+					title: (
+						<>
+							Install the <span className="text-primary">GitHub App</span>
+						</>
+					),
+					body: "Gomi needs read access to a repository before it can analyze anything. Install the app, choose which repos to share, and you'll come right back here to start scanning. Every technical term has an ⓘ you can hover for a plain-language definition.",
+				}
+			: {
+					eyebrow: "YOU'RE SET",
+					title: <>Analyze your first repository</>,
+					body: "Pick a repo below and hit Analyze. Gomi reads the last six months of history — it never writes to your code — and caches the result so you can reopen it instantly. Every technical term has an ⓘ you can hover for a plain-language definition.",
+				}
+		: STEPS[step];
 
 	return (
 		<div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
@@ -108,14 +131,26 @@ export function OnboardingModal({ onClose }: { onClose: () => void }): JSX.Eleme
 								Skip
 							</Button>
 						)}
-						{isLast ? (
+						{!isLast ? (
+							<Button size="sm" onClick={() => setStep(step + 1)}>
+								Next
+							</Button>
+						) : notInstalled ? (
+							<Button
+								size="sm"
+								nativeButton={false}
+								onClick={onClose}
+								render={
+									<a href={installUrl} target="_blank" rel="noopener noreferrer" />
+								}
+							>
+								<GithubIcon className="size-4" />
+								Install Gomi App
+							</Button>
+						) : (
 							<Button size="sm" onClick={onClose}>
 								<GithubIcon className="size-4" />
 								Let's go
-							</Button>
-						) : (
-							<Button size="sm" onClick={() => setStep(step + 1)}>
-								Next
 							</Button>
 						)}
 					</div>

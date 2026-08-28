@@ -191,7 +191,13 @@ function RouteComponent(): JSX.Element {
 				<p className="font-fira-mono-bold text-2xs text-gray-400">Ready to scan?</p>
 			</div>
 
-			{showOnboarding && <OnboardingModal onClose={dismissOnboarding} />}
+			{showOnboarding && (
+				<OnboardingModal
+					onClose={dismissOnboarding}
+					notInstalled={notInstalled}
+					installUrl={installUrl}
+				/>
+			)}
 
 			{(analyzeMutation.isError || jobQuery.data?.status === "failed") && (
 				<p className="text-destructive w-full max-w-3xl text-left text-sm">
