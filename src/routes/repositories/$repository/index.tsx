@@ -2,7 +2,11 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, redirect, Link, useRouter } from "@tanstack/react-router";
 import { useEffect, useState, type JSX } from "react";
 
-import { RepoDetailTour, TourTriggerButton } from "@/components/repo-detail-tour";
+import {
+	RepoDriverTour,
+	startRepoDriverTour,
+	TourTriggerButton,
+} from "@/components/repo-driver-tour";
 import { H1 } from "@/components/typography";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -118,15 +122,19 @@ function RouteComponent(): JSX.Element {
 		setShowTour(false);
 	};
 
+	const handleStartTour = () => {
+		startRepoDriverTour(handleDismissTour);
+	};
+
 	return (
 		<div className="mx-auto w-full max-w-7xl space-y-2 p-4">
-			{showTour && <RepoDetailTour onDone={handleDismissTour} />}
+			{showTour && <RepoDriverTour onDone={handleDismissTour} />}
 
 			<Card>
 				<CardHeader id="tour-repo-header">
 					<H1>{repoName}</H1>
 					<CardAction className="flex items-center gap-2">
-						<TourTriggerButton onClick={() => setShowTour(true)} />
+						<TourTriggerButton onClick={handleStartTour} />
 						<Button
 							variant="outline"
 							size="sm"
