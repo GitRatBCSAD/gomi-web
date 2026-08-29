@@ -1,14 +1,18 @@
 import type { JSX } from "react";
 
+import { GlossaryHint } from "@/components/glossary-hint";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import type { GlossaryKey } from "@/lib/glossary";
 import type { FileRiskResult } from "@/lib/github/model";
 
 export function ComplexityMetricsCard({
 	file,
 	allFiles = [],
+	id,
 }: {
 	file: FileRiskResult;
 	allFiles?: FileRiskResult[];
+	id?: string;
 }): JSX.Element {
 	const calculateMetricTag = (
 		getValue: (f: FileRiskResult) => number,
@@ -37,9 +41,17 @@ export function ComplexityMetricsCard({
 	const metricCcn = calculateMetricTag((f) => f.avgCcn, file.avgCcn, 1);
 	const metricNloc = calculateMetricTag((f) => f.avgNloc, file.avgNloc, 1);
 
-	const metrics = [
+	const metrics: {
+		label: string;
+		term: GlossaryKey;
+		value: string;
+		desc: string;
+		tag: string;
+		isOver: boolean;
+	}[] = [
 		{
 			label: "Complexity score",
+			term: "complexity-score",
 			value: file.complexityScore.toFixed(2),
 			desc: "normalized Lizard complexity",
 			tag: metricComplexity.tag,
@@ -47,6 +59,7 @@ export function ComplexityMetricsCard({
 		},
 		{
 			label: "Change entropy",
+			term: "change-entropy",
 			value: file.changeEntropy.toFixed(2),
 			desc: "how dispersed edits are across the file",
 			tag: metricEntropy.tag,
@@ -54,6 +67,7 @@ export function ComplexityMetricsCard({
 		},
 		{
 			label: "NDev score",
+			term: "ndev",
 			value: file.ndevScore.toFixed(2),
 			desc: "distinct developers who touched it",
 			tag: metricNdev.tag,
@@ -61,6 +75,7 @@ export function ComplexityMetricsCard({
 		},
 		{
 			label: "Age score",
+			term: "age-score",
 			value: file.ageScore.toFixed(2),
 			desc: "normalized churn recency",
 			tag: metricAge.tag,
@@ -68,6 +83,7 @@ export function ComplexityMetricsCard({
 		},
 		{
 			label: "Low info ratio",
+			term: "low-info-ratio",
 			value: file.lowInfoRatio.toFixed(2),
 			desc: "share of low-information commits",
 			tag: metricLowInfo.tag,
@@ -75,6 +91,7 @@ export function ComplexityMetricsCard({
 		},
 		{
 			label: "Number of commits",
+			term: "n-commits",
 			value: String(file.commitCount),
 			desc: "commits in analysis window",
 			tag: metricCommits.tag,
@@ -82,6 +99,7 @@ export function ComplexityMetricsCard({
 		},
 		{
 			label: "Avg CCN",
+			term: "cyclomatic-complexity",
 			value: file.avgCcn.toFixed(1),
 			desc: "average cyclomatic complexity",
 			tag: metricCcn.tag,
@@ -89,6 +107,7 @@ export function ComplexityMetricsCard({
 		},
 		{
 			label: "Avg NLOC",
+			term: "nloc",
 			value: file.avgNloc.toFixed(1),
 			desc: "average lines per function",
 			tag: metricNloc.tag,
@@ -97,7 +116,7 @@ export function ComplexityMetricsCard({
 	];
 
 	return (
-		<Card>
+		<Card id={id}>
 			<CardHeader>
 				<p className="font-fira-mono-bold text-foreground text-xl">Complexity metrics</p>
 				<p className="font-fira-mono text-muted-foreground mt-1 text-xs">
@@ -112,7 +131,7 @@ export function ComplexityMetricsCard({
 						gap: "0.75rem",
 					}}
 				>
-					{metrics.map(({ label, value, desc, tag, isOver }) => (
+					{metrics.map(({ label, term, value, desc, tag, isOver }) => (
 						<div
 							key={label}
 							style={{
@@ -132,6 +151,7 @@ export function ComplexityMetricsCard({
 							>
 								<p className="font-fira-mono-bold text-foreground text-sm">
 									{label}
+									<GlossaryHint term={term} />
 								</p>
 								<p
 									className="font-fira-mono-bold shrink-0 text-lg tabular-nums"

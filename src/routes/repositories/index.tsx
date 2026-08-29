@@ -5,6 +5,7 @@ import { useEffect, useState, type JSX } from "react";
 import * as v from "valibot";
 
 import { AnalysisLoadingScreen } from "@/components/analysis-loading-screen";
+import { OnboardingTour } from "@/components/onboarding-tour";
 import type { UserProfile } from "@/components/navbar";
 import { Button } from "@/components/ui/button";
 import { BACKEND_URL, GITHUB_APP_NAME } from "@/lib/env";
@@ -68,8 +69,19 @@ interface PendingJob {
 	fullName: string;
 }
 
+const GUIDE_SEEN_KEY = "gomi:guide-seen";
+
 function RouteComponent(): JSX.Element {
 	const [search, setSearch] = useState("");
+	const [showOnboarding, setShowOnboarding] = useState(
+		() => localStorage.getItem(GUIDE_SEEN_KEY) !== "1",
+	);
+
+	function dismissOnboarding() {
+		localStorage.setItem(GUIDE_SEEN_KEY, "1");
+		setShowOnboarding(false);
+	}
+
 	const [confirmAction, setConfirmAction] = useState<ConfirmAction | null>(null);
 	const [pendingJob, setPendingJob] = useState<PendingJob | null>(null);
 	const navigate = useNavigate();
@@ -179,6 +191,10 @@ function RouteComponent(): JSX.Element {
 				<p className="font-fira-mono-bold text-2xs text-gray-400">Ready to scan?</p>
 			</div>
 
+			{showOnboarding && (
+				<OnboardingTour notInstalled={notInstalled} onDone={dismissOnboarding} />
+			)}
+
 			{(analyzeMutation.isError || jobQuery.data?.status === "failed") && (
 				<p className="text-destructive w-full max-w-3xl text-left text-sm">
 					Analysis failed:{" "}
@@ -189,7 +205,10 @@ function RouteComponent(): JSX.Element {
 			)}
 
 			{notInstalled && (
-				<div className="border-primary/20 bg-background-900 flex w-full max-w-3xl items-center justify-between gap-6 rounded-2xl border px-6 py-5 shadow-lg">
+				<div
+					id="tour-install"
+					className="border-primary/20 bg-background-900 flex w-full max-w-3xl items-center justify-between gap-6 rounded-2xl border px-6 py-5 shadow-lg"
+				>
 					<div className="flex flex-col gap-1.5">
 						<p className="text-foreground font-fira-mono-bold text-base tracking-wide">
 							GitHub App Installation Required
@@ -228,6 +247,7 @@ function RouteComponent(): JSX.Element {
 			)}
 
 			<div
+				id="tour-search"
 				className={`bg-background-900 w-full max-w-3xl overflow-hidden rounded-2xl border ${notInstalled ? "pointer-events-none opacity-40" : ""}`}
 			>
 				<div className="flex items-center px-4 py-4">
@@ -247,6 +267,7 @@ function RouteComponent(): JSX.Element {
 			</div>
 
 			<div
+				id="tour-repos"
 				className={`bg-background-900 w-full max-w-3xl overflow-hidden rounded-2xl border ${notInstalled ? "pointer-events-none opacity-40" : ""}`}
 			>
 				<div className="h-120 overflow-y-auto">

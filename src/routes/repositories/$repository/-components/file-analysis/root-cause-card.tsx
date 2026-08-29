@@ -1,6 +1,7 @@
 import { InfoIcon } from "lucide-react";
 import type { JSX } from "react";
 
+import { GlossaryHint } from "@/components/glossary-hint";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import type { FileRiskResult } from "@/lib/github/model";
@@ -10,9 +11,11 @@ import { computeDrift } from "./drift-utils";
 export function RootCauseCard({
 	file,
 	threshold,
+	id,
 }: {
 	file: FileRiskResult;
 	threshold: number;
+	id?: string;
 }): JSX.Element | null {
 	if (file.lowConfidence || file.commitSentiments.length < 10) {
 		return null;
@@ -54,7 +57,7 @@ export function RootCauseCard({
 	});
 
 	return (
-		<Card>
+		<Card id={id}>
 			<CardHeader>
 				<p className="font-fira-mono-bold text-foreground text-xl">Root Cause Commit</p>
 				<p className="font-fira-mono text-muted-foreground mt-1 text-xs">
@@ -94,6 +97,7 @@ export function RootCauseCard({
 						<span style={{ color: "var(--destructive-500)" }}>
 							{cautionProb.toFixed(2)}
 						</span>
+						<GlossaryHint term="caution-probability" />
 					</p>
 
 					<div className="space-y-2">
