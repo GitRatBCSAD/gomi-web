@@ -1,4 +1,3 @@
-import { InfoIcon } from "lucide-react";
 import type { JSX } from "react";
 
 import { GlossaryHint } from "@/components/glossary-hint";
@@ -6,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import type { FileRiskResult } from "@/lib/github/model";
 
+import { DriftGuidanceBanner } from "./drift-guidance-banner";
 import { computeDrift } from "./drift-utils";
 
 export function RootCauseCard({
@@ -65,6 +65,8 @@ export function RootCauseCard({
 				</p>
 			</CardHeader>
 			<CardContent className="space-y-4">
+				<DriftGuidanceBanner file={file} />
+
 				<div className="flex items-start justify-between gap-4">
 					<div>
 						<div className="flex items-center gap-2">
@@ -91,7 +93,7 @@ export function RootCauseCard({
 					</Badge>
 				</div>
 
-				<div className="space-y-2 border-t border-border/30 pt-3">
+				<div className="border-border/30 space-y-2 border-t pt-3">
 					<p className="font-fira-mono text-muted-foreground text-xs font-bold">
 						Caution probability:{" "}
 						<span style={{ color: "var(--destructive-500)" }}>
@@ -145,13 +147,15 @@ export function RootCauseCard({
 					rootCommit.linesDeleted != null ||
 					rootCommit.coChangedFiles != null) && (
 					<div className="border-border/30 space-y-1.5 border-t pt-3">
-						<p className="font-fira-mono text-muted-foreground text-xs font-bold uppercase tracking-wider">
+						<p className="font-fira-mono text-muted-foreground text-xs font-bold tracking-wider uppercase">
 							Commit Context
 						</p>
 						<div className="font-fira-mono text-muted-foreground grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
 							<span className="text-muted-foreground/60">Author</span>
 							<span className="text-foreground truncate">
-								{rootCommit.author || <span className="text-muted-foreground/40 italic">unknown</span>}
+								{rootCommit.author || (
+									<span className="text-muted-foreground/40 italic">unknown</span>
+								)}
 							</span>
 							<span className="text-muted-foreground/60">When</span>
 							<span className="text-foreground">
@@ -182,13 +186,6 @@ export function RootCauseCard({
 						</div>
 					</div>
 				)}
-
-				<div className="bg-background-800 border-border/40 flex items-start gap-2.5 rounded-lg border p-3">
-					<InfoIcon className="text-muted-foreground mt-0.5 size-4 shrink-0" />
-					<p className="font-fira-mono text-muted-foreground text-xs leading-relaxed">
-						{drift.guidanceText}
-					</p>
-				</div>
 			</CardContent>
 		</Card>
 	);
