@@ -16,12 +16,12 @@ function Home() {
 	const authUrl = `https://github.com/login/oauth/authorize?client_id=${GITHUB_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=repo`;
 
 	return (
-		<div className="relative mx-auto flex min-h-[calc(100vh-4.5rem)] max-w-6xl flex-1 flex-col items-center justify-center gap-5 overflow-hidden px-6 py-8 text-center">
+		<div className="relative mx-auto flex min-h-[calc(100vh-4.5rem)] max-w-6xl flex-1 flex-col items-center justify-center gap-5 px-6 py-8 text-center">
 			<div
-				className="pointer-events-none absolute inset-0 -z-10"
+				className="pointer-events-none absolute bottom-0 left-1/2 -z-10 h-full w-screen -translate-x-1/2"
 				style={{
 					background:
-						"linear-gradient(to bottom, transparent 0%, color-mix(in srgb, var(--primary) 25%, transparent) 100%)",
+						"radial-gradient(ellipse 80% 62% at 50% 100%, color-mix(in srgb, var(--primary) 65%, transparent) 0%, color-mix(in srgb, var(--primary) 28%, transparent) 42%, transparent 74%)",
 				}}
 			/>
 			<h1 className="font-fira-mono-bold text-foreground m-0 text-[clamp(2rem,_5vw,_3.25rem)] leading-tight font-bold">
