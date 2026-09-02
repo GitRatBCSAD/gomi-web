@@ -2,23 +2,12 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/inter";
+@import "@fontsource/roboto/700.css";
 
 @custom-variant dark (&:is(.dark *));
 
 * {
 	box-sizing: border-box;
-}
-
-@font-face {
-	font-family: fira-mono;
-	src: url("/fonts/Fira_Mono/FiraMono-Regular.ttf");
-	font-display: swap;
-}
-
-@font-face {
-	font-family: fira-mono-bold;
-	src: url("/fonts/Fira_Mono/FiraMono-Bold.ttf");
-	font-display: swap;
 }
 
 html,
@@ -34,8 +23,8 @@ body {
 @theme inline {
 	--font-heading: var(--font-sans);
 	--font-sans: "Inter Variable", sans-serif;
-	--font-fira-mono: "fira-mono", sans-serif;
-	--font-fira-mono-bold: "fira-mono-bold", sans-serif;
+	--font-fira-mono: "Inter Variable", sans-serif;
+	--font-fira-mono-bold: "Roboto", sans-serif;
 
 	--color-primary-50: var(--primary-50);
 	--color-primary-100: var(--primary-100);
