@@ -44,7 +44,7 @@ export function HeatmapToolbar(props: {
 								)}
 								{label}
 								<span className="text-muted-foreground tabular-nums">
-									{counts[key]}
+									{counts[key].toLocaleString()}
 								</span>
 							</TabsTrigger>
 						))}

@@ -23,7 +23,9 @@ export function RepoSummaryCards(props: {
 					<H2 variant="p">Files Analyzed</H2>
 				</CardHeader>
 				<CardContent className="flex items-center gap-4">
-					<P variant="h2">{totalFiles}</P>
+					<P variant="h2" className="text-primary">
+						{totalFiles.toLocaleString()}
+					</P>
 				</CardContent>
 			</Card>
 
@@ -35,7 +37,9 @@ export function RepoSummaryCards(props: {
 					<H2 variant="p">Risky</H2>
 				</CardHeader>
 				<CardContent className="flex items-center gap-4">
-					<P variant="h2">{risky}</P>
+					<P variant="h2" className="text-destructive">
+						{risky.toLocaleString()}
+					</P>
 				</CardContent>
 			</Card>
 
@@ -47,7 +51,9 @@ export function RepoSummaryCards(props: {
 					<H2 variant="p">Acceptable</H2>
 				</CardHeader>
 				<CardContent className="flex items-center gap-4">
-					<P variant="h2">{acceptable}</P>
+					<P variant="h2" className="text-success-500">
+						{acceptable.toLocaleString()}
+					</P>
 				</CardContent>
 			</Card>
 
@@ -59,7 +65,9 @@ export function RepoSummaryCards(props: {
 					<H2 variant="p">Low Confidence</H2>
 				</CardHeader>
 				<CardContent className="flex items-center gap-4">
-					<P variant="h2">{lowConf}</P>
+					<P variant="h2" className="text-caution-500">
+						{lowConf.toLocaleString()}
+					</P>
 				</CardContent>
 			</Card>
 		</section>
