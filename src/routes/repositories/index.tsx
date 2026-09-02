@@ -5,11 +5,22 @@ import { useEffect, useState, type JSX } from "react";
 import * as v from "valibot";
 
 import { AnalysisLoadingScreen } from "@/components/analysis-loading-screen";
-import { OnboardingTour } from "@/components/onboarding-tour";
 import type { UserProfile } from "@/components/navbar";
+import { OnboardingTour } from "@/components/onboarding-tour";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BACKEND_URL, GITHUB_APP_NAME } from "@/lib/env";
-import { analyzeRepository, getAnalyzedRepositories, getJobStatus, getRepositories, getRepositoriesQuery } from "@/lib/github/api";
+import {
+	analyzeRepository,
+	getAnalyzedRepositories,
+	getJobStatus,
+	getRepositories,
+	getRepositoriesQuery,
+} from "@/lib/github/api";
+
+type RepoFilter = "all" | "unanalyzed" | "analyzed";
 
 const STEP_LABELS: Record<string, string> = {
 	queued: "Queued...",
@@ -73,6 +84,7 @@ const GUIDE_SEEN_KEY = "gomi:guide-seen";
 
 function RouteComponent(): JSX.Element {
 	const [search, setSearch] = useState("");
+	const [filter, setFilter] = useState<RepoFilter>("all");
 	const [showOnboarding, setShowOnboarding] = useState(
 		() => localStorage.getItem(GUIDE_SEEN_KEY) !== "1",
 	);
@@ -137,7 +149,10 @@ function RouteComponent(): JSX.Element {
 		const { status } = jobQuery.data;
 		if (status === "done") {
 			queryClient.invalidateQueries({ queryKey: ["analyzedRepositories"] });
-			navigate({ to: "/repositories/$repository", params: { repository: pendingJob.fullName } });
+			navigate({
+				to: "/repositories/$repository",
+				params: { repository: pendingJob.fullName },
+			});
 			setPendingJob(null);
 		} else if (status === "failed") {
 			setPendingJob(null);
@@ -157,6 +172,11 @@ function RouteComponent(): JSX.Element {
 
 	const repos = (repositoriesQuery.data?.repositories ?? [])
 		.filter((r) => r.name.toLowerCase().includes(search.toLowerCase()))
+		.filter((r) => {
+			if (filter === "all") return true;
+			const cached = analyzedSet.has(String(r.id));
+			return filter === "analyzed" ? cached : !cached;
+		})
 		.sort((a, b) => {
 			const cachedA = analyzedSet.has(String(a.id)) ? 1 : 0;
 			const cachedB = analyzedSet.has(String(b.id)) ? 1 : 0;
@@ -175,166 +195,169 @@ function RouteComponent(): JSX.Element {
 
 	return (
 		<>
-		<AnalysisLoadingScreen
-			visible={pendingJob !== null}
-			repoFullName={pendingJob?.fullName ?? ""}
-			step={jobQuery.data?.step ?? "queued"}
-			progress={jobQuery.data?.progress ?? 0}
-			currentFile={jobQuery.data?.current_file}
-		/>
-		<div className="flex flex-1 flex-col items-center justify-center gap-4 px-4 py-12">
-			<div className="mb-2 flex w-full max-w-3xl flex-col items-center gap-1 text-center">
-				<h1 className="font-fira-mono-bold text-3xl font-bold text-white">
-					Welcome back,{" "}
-					<span className="text-primary">{userProfile?.githubUsername || "user"}</span>
-				</h1>
-				<p className="font-fira-mono-bold text-2xs text-gray-400">Ready to scan?</p>
-			</div>
-
-			{showOnboarding && (
-				<OnboardingTour notInstalled={notInstalled} onDone={dismissOnboarding} />
-			)}
-
-			{(analyzeMutation.isError || jobQuery.data?.status === "failed") && (
-				<p className="text-destructive w-full max-w-3xl text-left text-sm">
-					Analysis failed:{" "}
-					{jobQuery.data?.status === "failed"
-						? (jobQuery.data.error ?? "Unknown error")
-						: (analyzeMutation.error?.message ?? "Unknown error")}
-				</p>
-			)}
-
-			{notInstalled && (
-				<div
-					id="tour-install"
-					className="border-primary/20 bg-background-900 flex w-full max-w-3xl items-center justify-between gap-6 rounded-2xl border px-6 py-5 shadow-lg"
-				>
-					<div className="flex flex-col gap-1.5">
-						<p className="text-foreground font-fira-mono-bold text-base tracking-wide">
-							GitHub App Installation Required
-						</p>
-						<p className="text-muted-foreground max-w-xl text-xs leading-relaxed">
-							To analyze your repositories, Gomi must be installed on your GitHub
-							account or organization. Grant access to your preferred repositories to
-							get started.
-						</p>
-					</div>
-					<Button
-						size="sm"
-						nativeButton={false}
-						render={<a href={installUrl} target="_blank" rel="noopener noreferrer" />}
-					>
-						Install Gomi App
-					</Button>
-				</div>
-			)}
-
-			{!notInstalled && installationsCount !== null && (
-				<div className="border-border/20 bg-dark-600/30 flex w-full max-w-3xl items-center justify-between gap-4 rounded-xl border px-4 py-3">
-					<p className="text-muted-foreground text-xs leading-normal">
-						Want to add or remove repository access?
+			<AnalysisLoadingScreen
+				visible={pendingJob !== null}
+				repoFullName={pendingJob?.fullName ?? ""}
+				step={jobQuery.data?.step ?? "queued"}
+				progress={jobQuery.data?.progress ?? 0}
+				currentFile={jobQuery.data?.current_file}
+			/>
+			<div className="flex flex-1 flex-col items-center justify-center gap-4 px-4 py-12">
+				<div className="mb-2 flex w-full max-w-6xl flex-col items-center gap-1 text-center">
+					<h1 className="font-fira-mono-bold text-foreground text-3xl font-bold">
+						Welcome back,{" "}
+						<span className="text-primary">
+							{userProfile?.githubUsername || "user"}
+						</span>
+					</h1>
+					<p className="font-fira-mono-bold text-muted-foreground text-2xs">
+						Ready to scan?
 					</p>
-					<Button
-						variant="outline"
-						size="sm"
-						nativeButton={false}
-						render={<a href={installUrl} target="_blank" rel="noopener noreferrer" />}
+				</div>
+
+				{showOnboarding && (
+					<OnboardingTour notInstalled={notInstalled} onDone={dismissOnboarding} />
+				)}
+
+				{(analyzeMutation.isError || jobQuery.data?.status === "failed") && (
+					<p className="text-destructive w-full max-w-6xl text-left text-sm">
+						Analysis failed:{" "}
+						{jobQuery.data?.status === "failed"
+							? (jobQuery.data.error ?? "Unknown error")
+							: (analyzeMutation.error?.message ?? "Unknown error")}
+					</p>
+				)}
+
+				{notInstalled && (
+					<div
+						id="tour-install"
+						className="border-primary/20 bg-background-900 flex w-full max-w-6xl items-center justify-between gap-6 rounded-2xl border px-6 py-5 shadow-lg"
 					>
-						<SettingsIcon className="size-3.5" />
-						Configure Access
-					</Button>
-				</div>
-			)}
-
-			<div
-				id="tour-search"
-				className={`bg-background-900 w-full max-w-3xl overflow-hidden rounded-2xl border ${notInstalled ? "pointer-events-none opacity-40" : ""}`}
-			>
-				<div className="flex items-center px-4 py-4">
-					<input
-						className="text-muted-foreground placeholder:text-muted-foreground/50 flex-1 bg-transparent text-sm tracking-widest outline-none"
-						placeholder={
-							notInstalled
-								? "Install the GitHub App to search repositories"
-								: "Search"
-						}
-						value={search}
-						onChange={(e) => setSearch(e.target.value)}
-						disabled={notInstalled}
-					/>
-					<SearchIcon className="text-muted-foreground size-5" />
-				</div>
-			</div>
-
-			<div
-				id="tour-repos"
-				className={`bg-background-900 w-full max-w-3xl overflow-hidden rounded-2xl border ${notInstalled ? "pointer-events-none opacity-40" : ""}`}
-			>
-				<div className="h-120 overflow-y-auto">
-					{repos.map((repo) => (
-						<div
-							key={repo.id}
-							className="border-border flex items-center gap-4 border-b px-4 py-6"
+						<div className="flex flex-col gap-1.5">
+							<p className="text-foreground font-fira-mono-bold text-base tracking-wide">
+								GitHub App Installation Required
+							</p>
+							<p className="text-muted-foreground max-w-xl text-xs leading-relaxed">
+								To analyze your repositories, Gomi must be installed on your GitHub
+								account or organization. Grant access to your preferred repositories
+								to get started.
+							</p>
+						</div>
+						<Button
+							size="sm"
+							nativeButton={false}
+							render={
+								<a href={installUrl} target="_blank" rel="noopener noreferrer" />
+							}
 						>
-							<GithubIcon className="text-foreground size-8 shrink-0" />
-							<span className="text-foreground flex-1 text-lg font-medium">
-								{repo.name}
-							</span>
-							{(() => {
-								const cached = analyzedSet.has(String(repo.id));
-								const [owner, name] = repo.fullName.split("/");
-								const isBusy = analyzeMutation.isPending || pendingJob !== null;
-								const isPendingThisRepo =
-									(analyzeMutation.isPending &&
-										analyzeMutation.variables?.owner === owner &&
-										analyzeMutation.variables?.repository === name) ||
-									pendingJob?.fullName === repo.fullName;
-								const currentStep =
-									isPendingThisRepo && pendingJob?.fullName === repo.fullName
-										? jobQuery.data?.step
-										: undefined;
+							Install Gomi App
+						</Button>
+					</div>
+				)}
 
-								return (
-									<div className="flex items-center gap-2">
-										{cached ? (
-											<>
-												<Button
-													disabled={isBusy}
-													onClick={() => {
-														navigate({
-															to: "/repositories/$repository",
-															params: { repository: repo.fullName },
-														});
-													}}
-												>
-													Review
-												</Button>
-												<Button
-													variant="outline"
-													disabled={isBusy}
-													onClick={() => {
-														setConfirmAction({
-															type: "reanalyze",
-															repo: {
-																id: String(repo.id),
-																fullName: repo.fullName,
-																owner,
-																name,
-															},
-														});
-													}}
-												>
-													{isPendingThisRepo
-														? (currentStep ? stepLabel(currentStep) : "Analyzing...")
-														: "Reanalyze"}
-												</Button>
-											</>
-										) : (
+				{!notInstalled && installationsCount !== null && (
+					<div className="border-border/20 bg-dark-600/30 flex w-full max-w-6xl items-center justify-between gap-4 rounded-xl border px-4 py-3">
+						<p className="text-muted-foreground text-xs leading-normal">
+							Want to add or remove repository access?
+						</p>
+						<Button
+							variant="outline"
+							size="sm"
+							nativeButton={false}
+							render={
+								<a href={installUrl} target="_blank" rel="noopener noreferrer" />
+							}
+						>
+							<SettingsIcon className="size-3.5" />
+							Configure Access
+						</Button>
+					</div>
+				)}
+
+				<div
+					className={`flex w-full max-w-6xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between ${notInstalled ? "pointer-events-none opacity-40" : ""}`}
+				>
+					<div
+						id="tour-search"
+						className="bg-background-900 flex w-full items-center overflow-hidden rounded-2xl border px-4 py-3 sm:max-w-sm"
+					>
+						<input
+							className="text-muted-foreground placeholder:text-muted-foreground/50 flex-1 bg-transparent text-sm tracking-widest outline-none"
+							placeholder={
+								notInstalled
+									? "Install the GitHub App to search repositories"
+									: "Search Repository"
+							}
+							value={search}
+							onChange={(e) => setSearch(e.target.value)}
+							disabled={notInstalled}
+						/>
+						<SearchIcon className="text-muted-foreground size-5" />
+					</div>
+
+					<Tabs value={filter} onValueChange={(v) => setFilter(v as RepoFilter)}>
+						<TabsList>
+							<TabsTrigger value="all">All</TabsTrigger>
+							<TabsTrigger value="unanalyzed">Unanalyzed</TabsTrigger>
+							<TabsTrigger value="analyzed">Analyzed</TabsTrigger>
+						</TabsList>
+					</Tabs>
+				</div>
+
+				<div
+					id="tour-repos"
+					className={`grid w-full max-w-6xl grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 ${notInstalled ? "pointer-events-none opacity-40" : ""}`}
+				>
+					{repos.map((repo) => {
+						const cached = analyzedSet.has(String(repo.id));
+						const [owner, name] = repo.fullName.split("/");
+						const isBusy = analyzeMutation.isPending || pendingJob !== null;
+						const isPendingThisRepo =
+							(analyzeMutation.isPending &&
+								analyzeMutation.variables?.owner === owner &&
+								analyzeMutation.variables?.repository === name) ||
+							pendingJob?.fullName === repo.fullName;
+						const currentStep =
+							isPendingThisRepo && pendingJob?.fullName === repo.fullName
+								? jobQuery.data?.step
+								: undefined;
+
+						return (
+							<Card key={repo.id}>
+								<CardHeader className="flex-row items-center justify-between">
+									<GithubIcon className="text-foreground size-6 shrink-0" />
+									<Badge variant={repo.private ? "outline" : "default"}>
+										{repo.private ? "Private" : "Public"}
+									</Badge>
+								</CardHeader>
+								<CardContent className="space-y-1">
+									<CardTitle className="truncate text-base">
+										{repo.name}
+									</CardTitle>
+									<p className="text-muted-foreground text-xs">
+										{cached ? "Analyzed" : "No cached analysis found."}
+									</p>
+								</CardContent>
+								<CardFooter className="gap-2">
+									{cached ? (
+										<>
 											<Button
 												disabled={isBusy}
 												onClick={() => {
+													navigate({
+														to: "/repositories/$repository",
+														params: { repository: repo.fullName },
+													});
+												}}
+											>
+												Review
+											</Button>
+											<Button
+												variant="outline"
+												disabled={isBusy}
+												onClick={() => {
 													setConfirmAction({
-														type: "analyze",
+														type: "reanalyze",
 														repo: {
 															id: String(repo.id),
 															fullName: repo.fullName,
@@ -345,18 +368,41 @@ function RouteComponent(): JSX.Element {
 												}}
 											>
 												{isPendingThisRepo
-													? (currentStep ? stepLabel(currentStep) : "Analyzing...")
-													: "Analyze"}
+													? currentStep
+														? stepLabel(currentStep)
+														: "Analyzing..."
+													: "Reanalyze"}
 											</Button>
-										)}
-									</div>
-								);
-							})()}
-						</div>
-					))}
+										</>
+									) : (
+										<Button
+											disabled={isBusy}
+											onClick={() => {
+												setConfirmAction({
+													type: "analyze",
+													repo: {
+														id: String(repo.id),
+														fullName: repo.fullName,
+														owner,
+														name,
+													},
+												});
+											}}
+										>
+											{isPendingThisRepo
+												? currentStep
+													? stepLabel(currentStep)
+													: "Analyzing..."
+												: "Analyze"}
+										</Button>
+									)}
+								</CardFooter>
+							</Card>
+						);
+					})}
 
 					{repos.length === 0 && !notInstalled && (
-						<div className="flex flex-col items-center justify-center gap-3 px-4 py-12">
+						<div className="col-span-full flex flex-col items-center justify-center gap-3 px-4 py-12">
 							<p className="text-muted-foreground text-center text-sm">
 								No repositories found.
 							</p>
@@ -386,51 +432,49 @@ function RouteComponent(): JSX.Element {
 						</div>
 					)}
 				</div>
-			</div>
 
-			{confirmAction && (
-				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
-					<div className="bg-background-900 border-border/40 flex w-full max-w-md flex-col gap-4 rounded-2xl border p-6 shadow-2xl">
-						<h2 className="font-fira-mono-bold text-foreground text-xl">
-							{confirmAction.type === "reanalyze" ? "Reanalyze" : "Analyze"}{" "}
-							{confirmAction.repo.name}?
-						</h2>
-						<p className="font-fira-mono text-muted-foreground text-xs leading-relaxed">
-							{confirmAction.type === "reanalyze"
-								? `Are you sure you want to reanalyze ${confirmAction.repo.fullName}? This will re-run static code analysis and sentiment extraction.`
-								: `Are you sure you want to analyze ${confirmAction.repo.fullName}? This will fetch commit sentiment and run static analysis.`}
-						</p>
-						<div className="flex justify-end gap-3 pt-2">
-							<Button
-								variant="outline"
-								size="sm"
-								onClick={() => setConfirmAction(null)}
-							>
-								No
-							</Button>
-							<Button
-								size="sm"
-								disabled={analyzeMutation.isPending}
-								onClick={() => {
-									const { id, owner, name } = confirmAction.repo;
-									const isReanalyze = confirmAction.type === "reanalyze";
-									setConfirmAction(null);
-									analyzeMutation.mutate({
-										id,
-										owner,
-										repository: name,
-										...(isReanalyze ? { force: true } : {}),
-									});
-								}}
-							>
-								Yes
-							</Button>
+				{confirmAction && (
+					<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
+						<div className="bg-background-900 border-border/40 flex w-full max-w-md flex-col gap-4 rounded-2xl border p-6 shadow-2xl">
+							<h2 className="font-fira-mono-bold text-foreground text-xl">
+								{confirmAction.type === "reanalyze" ? "Reanalyze" : "Analyze"}{" "}
+								{confirmAction.repo.name}?
+							</h2>
+							<p className="font-fira-mono text-muted-foreground text-xs leading-relaxed">
+								{confirmAction.type === "reanalyze"
+									? `Are you sure you want to reanalyze ${confirmAction.repo.fullName}? This will re-run static code analysis and sentiment extraction.`
+									: `Are you sure you want to analyze ${confirmAction.repo.fullName}? This will fetch commit sentiment and run static analysis.`}
+							</p>
+							<div className="flex justify-end gap-3 pt-2">
+								<Button
+									variant="outline"
+									size="sm"
+									onClick={() => setConfirmAction(null)}
+								>
+									No
+								</Button>
+								<Button
+									size="sm"
+									disabled={analyzeMutation.isPending}
+									onClick={() => {
+										const { id, owner, name } = confirmAction.repo;
+										const isReanalyze = confirmAction.type === "reanalyze";
+										setConfirmAction(null);
+										analyzeMutation.mutate({
+											id,
+											owner,
+											repository: name,
+											...(isReanalyze ? { force: true } : {}),
+										});
+									}}
+								>
+									Yes
+								</Button>
+							</div>
 						</div>
 					</div>
-				</div>
-			)}
-		</div>
+				)}
+			</div>
 		</>
 	);
 }
-
