@@ -67,13 +67,22 @@ export function Navbar(): JSX.Element {
 	});
 
 	return (
-		<nav className="fixed top-0 right-0 left-0 z-999 flex h-[4.5rem] items-center justify-between border-b border-white/10 bg-[#0b0d10]/90 px-6 backdrop-blur-sm">
+		<nav className="border-border bg-background/90 fixed top-0 right-0 left-0 z-999 flex h-[4.5rem] items-center justify-between border-b px-6 backdrop-blur-sm">
 			<div className="flex items-center gap-6">
 				<Link
 					to={isAuthenticated ? "/repositories" : "/"}
-					className="hover:text-primary font-fira-mono-bold text-2xl tracking-tighter text-white no-underline transition-colors"
+					className="text-foreground font-fira-mono-bold flex items-center gap-2 text-2xl no-underline"
 				>
-					GO<span className="text-primary">MI</span>
+					<svg
+						viewBox="0 0 24 24"
+						className="text-primary size-6"
+						fill="currentColor"
+						aria-hidden="true"
+					>
+						<rect x="3" y="3" width="8" height="8" rx="2" />
+						<rect x="13" y="13" width="8" height="8" rx="2" />
+					</svg>
+					Gomi
 				</Link>
 				<Link
 					id="tour-guide"
@@ -88,7 +97,7 @@ export function Navbar(): JSX.Element {
 			<div className="flex items-center gap-2">
 				<button
 					onClick={toggleTheme}
-					className="flex cursor-pointer items-center justify-center rounded-md border border-transparent p-2 transition-all outline-none hover:border-white/10 hover:bg-white/5"
+					className="hover:border-border hover:bg-muted flex cursor-pointer items-center justify-center rounded-md border border-transparent p-2 transition-all outline-none"
 					aria-label="Toggle theme"
 				>
 					{theme === "dark" ? (
@@ -102,7 +111,7 @@ export function Navbar(): JSX.Element {
 					<div className="relative" ref={dropdownRef}>
 						<button
 							onClick={() => setDropdownOpen(!dropdownOpen)}
-							className="flex cursor-pointer items-center gap-2.5 rounded-md border border-transparent px-2 py-1 transition-all outline-none hover:border-white/10 hover:bg-white/5"
+							className="hover:border-border hover:bg-muted flex cursor-pointer items-center gap-2.5 rounded-md border border-transparent px-2 py-1 transition-all outline-none"
 							aria-label="User menu"
 						>
 							{userProfile?.avatarUrl ? (
@@ -122,7 +131,7 @@ export function Navbar(): JSX.Element {
 						</button>
 
 						{dropdownOpen && (
-							<div className="animate-in fade-in slide-in-from-top-1 absolute right-0 z-50 mt-2 w-32 rounded-lg border border-white/10 bg-[#0b0d10] p-1 shadow-2xl duration-100">
+							<div className="animate-in fade-in slide-in-from-top-1 border-border bg-popover absolute right-0 z-50 mt-2 w-32 rounded-lg border p-1 shadow-2xl duration-100">
 								<button
 									disabled={logoutMutation.isPending}
 									onClick={() => {
