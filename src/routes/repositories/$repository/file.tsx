@@ -3,7 +3,8 @@ import { ArrowLeftIcon, FileIcon } from "lucide-react";
 import { useState, type JSX } from "react";
 import * as v from "valibot";
 
-import { FileAnalysisTour } from "@/components/file-analysis-tour";
+import { FileAnalysisTour, startFileAnalysisDriverTour } from "@/components/file-analysis-tour";
+import { TourTriggerButton } from "@/components/tour-trigger-button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getAnalysisQueryOptions } from "@/lib/github/api";
@@ -109,14 +110,17 @@ function RouteComponent(): JSX.Element {
 		<div className="mx-auto w-full max-w-3xl space-y-3 p-4 pb-12">
 			{showFileTour && <FileAnalysisTour onDone={dismissFileTour} />}
 
-			<Link
-				to="/repositories/$repository"
-				params={{ repository }}
-				className="font-fira-mono text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 text-sm transition-colors"
-			>
-				<ArrowLeftIcon className="size-4" />
-				Back to {repository}
-			</Link>
+			<div className="flex items-center justify-between gap-3">
+				<Link
+					to="/repositories/$repository"
+					params={{ repository }}
+					className="font-fira-mono text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 text-sm transition-colors"
+				>
+					<ArrowLeftIcon className="size-4" />
+					Back to {repository}
+				</Link>
+				<TourTriggerButton onClick={() => startFileAnalysisDriverTour()} />
+			</div>
 
 			<Card id="tour-file-header">
 				<CardHeader>

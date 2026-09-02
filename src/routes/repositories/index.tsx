@@ -6,7 +6,8 @@ import * as v from "valibot";
 
 import { AnalysisLoadingScreen } from "@/components/analysis-loading-screen";
 import type { UserProfile } from "@/components/navbar";
-import { OnboardingTour } from "@/components/onboarding-tour";
+import { OnboardingTour, startOnboardingDriverTour } from "@/components/onboarding-tour";
+import { TourTriggerButton } from "@/components/tour-trigger-button";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -213,6 +214,11 @@ function RouteComponent(): JSX.Element {
 					<p className="font-fira-mono-bold text-muted-foreground text-2xs">
 						Ready to scan?
 					</p>
+					<div className="mt-1">
+						<TourTriggerButton
+							onClick={() => startOnboardingDriverTour(notInstalled)}
+						/>
+					</div>
 				</div>
 
 				{showOnboarding && (
