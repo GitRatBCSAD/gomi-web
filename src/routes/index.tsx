@@ -1,6 +1,7 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { GithubIcon } from "lucide-react";
 
+import { LandingScanBg } from "@/components/landing-scan-bg";
 import { BACKEND_URL, CLIENT_URL, GITHUB_CLIENT_ID } from "@/lib/env";
 
 export const Route = createFileRoute("/")({
@@ -17,6 +18,7 @@ function Home() {
 
 	return (
 		<div className="relative mx-auto flex min-h-[calc(100vh-4.5rem)] max-w-6xl flex-1 flex-col items-center justify-center gap-5 px-6 py-8 text-center">
+			<LandingScanBg />
 			<div className="pointer-events-none absolute bottom-0 left-1/2 -z-10 h-full w-screen -translate-x-1/2">
 				<div
 					className="gomi-glow-breathe h-full w-full"
