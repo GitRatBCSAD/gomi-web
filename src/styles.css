@@ -263,9 +263,14 @@ body {
 	--sidebar-accent-foreground: #27272a;
 	--sidebar-border: #e4e4e7;
 	--sidebar-ring: #a1a1aa;
+
+	--grid-size: 32px;
+	--grid-color: rgba(9, 11, 12, 0.05);
 }
 
 .dark {
+	--grid-color: rgba(255, 255, 255, 0.05);
+
 	--primary-900: #0f2e2a;
 	--success-900: #14322a;
 	--caution-900: #3a3018;
@@ -314,12 +319,20 @@ body {
 	--sidebar-ring: #71717a;
 }
 
+@utility bg-grid {
+	background-image:
+		linear-gradient(var(--grid-color) 1px, transparent 1px),
+		linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+	background-size: var(--grid-size) var(--grid-size);
+}
+
 @layer base {
 	* {
 		@apply border-border outline-ring/50;
 	}
 	body {
-		@apply text-foreground font-fira-mono bg-background min-h-screen;
+		@apply text-foreground font-fira-mono bg-background bg-grid min-h-screen;
+		background-attachment: fixed;
 	}
 }
 
