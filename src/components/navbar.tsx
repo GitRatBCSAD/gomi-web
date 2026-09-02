@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { MoonIcon, SunIcon } from "lucide-react";
+import { BookOpenIcon, MoonIcon, SunIcon } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import type { JSX } from "react/jsx-runtime";
 
@@ -84,14 +84,26 @@ export function Navbar(): JSX.Element {
 					</svg>
 					Gomi
 				</Link>
-				<Link
-					id="tour-guide"
-					to="/guide"
-					className="text-muted-foreground hover:text-primary font-fira-mono text-sm no-underline transition-colors"
-					activeProps={{ className: "text-primary" }}
-				>
-					Guide
-				</Link>
+				{isAuthenticated ? (
+					<Link
+						id="tour-guide"
+						to="/guide"
+						className="text-muted-foreground hover:text-primary font-fira-mono text-sm no-underline transition-colors"
+						activeProps={{ className: "text-primary" }}
+					>
+						Guide
+					</Link>
+				) : (
+					<Link
+						id="tour-guide"
+						to="/guide"
+						className="border-border text-foreground hover:border-primary/50 hover:text-primary font-fira-mono flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm no-underline transition-colors"
+						activeProps={{ className: "border-primary/50 text-primary" }}
+					>
+						<BookOpenIcon className="size-3.5" />
+						Read the Guide
+					</Link>
+				)}
 			</div>
 
 			<div className="flex items-center gap-2">
