@@ -5,10 +5,11 @@ import type { JSX } from "react";
 import { P } from "@/components/typography";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { useTheme } from "@/lib/theme";
 
 import {
 	HATCH,
-	LEGEND_GRADIENT,
+	legendGradient,
 	riskColor,
 	type FileInfo,
 	type RiskCategory,
@@ -131,6 +132,7 @@ export function Tile(props: {
 	threshold: number;
 	onNavigate: (path: string) => void;
 }): JSX.Element {
+	const { theme } = useTheme();
 	const w = props.node.x1 - props.node.x0;
 	const h = props.node.y1 - props.node.y0;
 	const risk = props.node.data.risk ?? 0;
@@ -155,7 +157,7 @@ export function Tile(props: {
 					top: props.node.y0,
 					width: w,
 					height: h,
-					backgroundColor: riskColor(risk),
+					backgroundColor: riskColor(risk, theme),
 				}}
 				onClick={() => props.onNavigate(`${dir}${name}`)}
 			>
@@ -214,7 +216,7 @@ export function Tile(props: {
 					<div
 						className="absolute inset-0"
 						style={{
-							background: LEGEND_GRADIENT,
+							background: legendGradient(theme),
 							clipPath: `inset(0 ${(1 - risk) * 100}% 0 0 round 999px)`,
 						}}
 					/>

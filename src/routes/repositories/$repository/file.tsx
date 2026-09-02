@@ -6,6 +6,7 @@ import * as v from "valibot";
 import { FileAnalysisTour } from "@/components/file-analysis-tour";
 import { Card, CardHeader } from "@/components/ui/card";
 import { getAnalysisQueryOptions } from "@/lib/github/api";
+import { useTheme } from "@/lib/theme";
 
 import { CommitSentimentCard } from "./-components/file-analysis/commit-sentiment-card";
 import { ComplexityMetricsCard } from "./-components/file-analysis/complexity-metrics-card";
@@ -83,6 +84,7 @@ const FILE_TOUR_SEEN_KEY = "gomi:file-tour-seen";
 function RouteComponent(): JSX.Element {
 	const { file, threshold, allFiles } = Route.useLoaderData();
 	const { repository } = Route.useParams();
+	const { theme } = useTheme();
 
 	const [showFileTour, setShowFileTour] = useState(
 		() => localStorage.getItem(FILE_TOUR_SEEN_KEY) !== "1",
@@ -178,7 +180,7 @@ function RouteComponent(): JSX.Element {
 											height: "0.75rem",
 											borderRadius: "999px",
 											width: `${file.riskScore * 100}%`,
-											backgroundColor: riskColor(file.riskScore),
+											backgroundColor: riskColor(file.riskScore, theme),
 										}}
 									/>
 								</div>

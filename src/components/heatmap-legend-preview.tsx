@@ -2,9 +2,13 @@ import type { JSX } from "react";
 
 import {
 	HATCH,
-	LEGEND_GRADIENT,
+	legendGradient,
 	riskColor,
 } from "@/routes/repositories/$repository/-components/repo-overview/heatmap/heatmap-utils";
+
+// This preview always renders inside the (fixed-dark) driver.js tour popover, so it
+// intentionally uses the dark risk palette regardless of the app's active theme.
+const PREVIEW_THEME = "dark" as const;
 
 // Sample tiles for the legend — width encodes complexity, color encodes risk,
 // the hatched one is low-confidence. Same riskColor + HATCH the live map uses.
@@ -27,7 +31,7 @@ export function HeatmapLegendPreview(): JSX.Element {
 						style={{
 							width: t.w,
 							height: t.w * 0.62,
-							backgroundColor: riskColor(t.risk),
+							backgroundColor: riskColor(t.risk, PREVIEW_THEME),
 						}}
 						title={`${t.name} — ${t.lowConf ? "low confidence" : t.risk.toFixed(2)}`}
 					>
@@ -42,7 +46,7 @@ export function HeatmapLegendPreview(): JSX.Element {
 			</div>
 			<div
 				className="mt-1 h-2 w-full rounded-full"
-				style={{ backgroundImage: LEGEND_GRADIENT }}
+				style={{ backgroundImage: legendGradient(PREVIEW_THEME) }}
 			/>
 			<div className="font-fira-mono flex w-full justify-between text-[10px] text-gray-500">
 				<span>low risk</span>
@@ -59,21 +63,21 @@ export function RiskLegendRows(): JSX.Element {
 			<li className="flex items-center gap-3">
 				<span
 					className="inline-block size-4 shrink-0 rounded-sm"
-					style={{ backgroundColor: riskColor(0.85) }}
+					style={{ backgroundColor: riskColor(0.85, PREVIEW_THEME) }}
 				/>
 				High risk — likely heading for a fix
 			</li>
 			<li className="flex items-center gap-3">
 				<span
 					className="inline-block size-4 shrink-0 rounded-sm"
-					style={{ backgroundColor: riskColor(0.5) }}
+					style={{ backgroundColor: riskColor(0.5, PREVIEW_THEME) }}
 				/>
 				Moderate — worth a glance
 			</li>
 			<li className="flex items-center gap-3">
 				<span
 					className="inline-block size-4 shrink-0 rounded-sm"
-					style={{ backgroundColor: riskColor(0.15) }}
+					style={{ backgroundColor: riskColor(0.15, PREVIEW_THEME) }}
 				/>
 				Low — quiet and stable
 			</li>
