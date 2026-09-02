@@ -311,10 +311,9 @@ function RouteComponent(): JSX.Element {
 				</div>
 
 				<div
-					id="tour-repos"
 					className={`grid w-full max-w-6xl grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 ${notInstalled ? "pointer-events-none opacity-40" : ""}`}
 				>
-					{repos.map((repo) => {
+					{repos.map((repo, idx) => {
 						const cached = analyzedSet.has(String(repo.id));
 						const [owner, name] = repo.fullName.split("/");
 						const isBusy = analyzeMutation.isPending || pendingJob !== null;
@@ -329,7 +328,7 @@ function RouteComponent(): JSX.Element {
 								: undefined;
 
 						return (
-							<Card key={repo.id}>
+							<Card key={repo.id} id={idx === 0 ? "tour-repos" : undefined}>
 								<CardHeader className="flex-row items-center justify-between">
 									<GithubIcon className="text-foreground size-6 shrink-0" />
 									<Badge variant={repo.private ? "outline" : "default"}>

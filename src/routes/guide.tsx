@@ -1,9 +1,12 @@
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeftIcon } from "lucide-react";
 import type { JSX } from "react";
 
 import { HeatmapLegendPreview, RiskLegendRows } from "@/components/heatmap-legend-preview";
+import type { UserProfile } from "@/components/navbar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { BACKEND_URL } from "@/lib/env";
 import { GLOSSARY } from "@/lib/glossary";
 
 export const Route = createFileRoute("/guide")({
@@ -59,14 +62,30 @@ const STEPS = [
 ];
 
 function Guide(): JSX.Element {
+	const { data: userProfile } = useQuery<UserProfile | null>({
+		queryKey: ["authMe"],
+		queryFn: async () => {
+			try {
+				const res = await fetch(`${BACKEND_URL}/auth/me`, { credentials: "include" });
+				if (!res.ok) return null;
+				const body = await res.json();
+				return body.data;
+			} catch {
+				return null;
+			}
+		},
+		staleTime: 60 * 1000,
+	});
+	const isAuthenticated = !!userProfile;
+
 	return (
 		<div className="mx-auto w-full max-w-4xl px-6 py-14">
 			<Link
-				to="/repositories"
+				to={isAuthenticated ? "/repositories" : "/"}
 				className="font-fira-mono text-muted-foreground hover:text-foreground mb-6 inline-flex items-center gap-1.5 text-sm transition-colors"
 			>
 				<ArrowLeftIcon className="size-4" />
-				Back to repositories
+				{isAuthenticated ? "Back to repositories" : "Back to home"}
 			</Link>
 
 			{/* Hero */}
@@ -191,10 +210,10 @@ function Guide(): JSX.Element {
 
 			<div className="border-border mt-12 border-t pt-10 text-center">
 				<Link
-					to="/repositories"
+					to={isAuthenticated ? "/repositories" : "/"}
 					className="bg-primary font-fira-mono-bold hover:bg-primary/90 text-primary-foreground inline-flex cursor-pointer items-center justify-center rounded-lg px-8 py-3 text-sm no-underline transition-all"
 				>
-					Go to your repositories
+					{isAuthenticated ? "Go to your repositories" : "Get started"}
 				</Link>
 			</div>
 		</div>
