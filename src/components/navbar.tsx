@@ -1,9 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
+import { MoonIcon, SunIcon } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import type { JSX } from "react/jsx-runtime";
 
 import { BACKEND_URL } from "@/lib/env";
+import { useTheme } from "@/lib/theme";
 
 export interface UserProfile {
 	userId: string;
@@ -15,6 +17,7 @@ export interface UserProfile {
 export function Navbar(): JSX.Element {
 	const queryClient = useQueryClient();
 	const navigate = useNavigate();
+	const { theme, toggleTheme } = useTheme();
 	const [dropdownOpen, setDropdownOpen] = useState(false);
 	const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -82,45 +85,59 @@ export function Navbar(): JSX.Element {
 				</Link>
 			</div>
 
-			{isAuthenticated && (
-				<div className="relative" ref={dropdownRef}>
-					<button
-						onClick={() => setDropdownOpen(!dropdownOpen)}
-						className="flex cursor-pointer items-center gap-2.5 rounded-md border border-transparent px-2 py-1 transition-all outline-none hover:border-white/10 hover:bg-white/5"
-						aria-label="User menu"
-					>
-						{userProfile?.avatarUrl ? (
-							<img
-								src={userProfile.avatarUrl}
-								alt={userProfile.githubUsername}
-								className="border-primary/20 size-12 rounded-full border"
-							/>
-						) : (
-							<div className="border-primary/20 bg-primary/10 text-primary font-fira-mono-bold flex size-8 items-center justify-center rounded-full border text-xs">
-								{userProfile?.githubUsername?.[0]?.toUpperCase() || "U"}
+			<div className="flex items-center gap-2">
+				<button
+					onClick={toggleTheme}
+					className="flex cursor-pointer items-center justify-center rounded-md border border-transparent p-2 transition-all outline-none hover:border-white/10 hover:bg-white/5"
+					aria-label="Toggle theme"
+				>
+					{theme === "dark" ? (
+						<SunIcon className="text-foreground size-4" />
+					) : (
+						<MoonIcon className="text-foreground size-4" />
+					)}
+				</button>
+
+				{isAuthenticated && (
+					<div className="relative" ref={dropdownRef}>
+						<button
+							onClick={() => setDropdownOpen(!dropdownOpen)}
+							className="flex cursor-pointer items-center gap-2.5 rounded-md border border-transparent px-2 py-1 transition-all outline-none hover:border-white/10 hover:bg-white/5"
+							aria-label="User menu"
+						>
+							{userProfile?.avatarUrl ? (
+								<img
+									src={userProfile.avatarUrl}
+									alt={userProfile.githubUsername}
+									className="border-primary/20 size-12 rounded-full border"
+								/>
+							) : (
+								<div className="border-primary/20 bg-primary/10 text-primary font-fira-mono-bold flex size-8 items-center justify-center rounded-full border text-xs">
+									{userProfile?.githubUsername?.[0]?.toUpperCase() || "U"}
+								</div>
+							)}
+							<span className="text-muted-foreground font-fira-mono hidden text-sm md:inline">
+								{userProfile?.githubUsername}
+							</span>
+						</button>
+
+						{dropdownOpen && (
+							<div className="animate-in fade-in slide-in-from-top-1 absolute right-0 z-50 mt-2 w-32 rounded-lg border border-white/10 bg-[#0b0d10] p-1 shadow-2xl duration-100">
+								<button
+									disabled={logoutMutation.isPending}
+									onClick={() => {
+										setDropdownOpen(false);
+										logoutMutation.mutate();
+									}}
+									className="font-fira-mono text-destructive hover:bg-destructive/10 flex w-full cursor-pointer items-center justify-center rounded-md border-none px-3 py-2 text-center text-xs transition-colors outline-none"
+								>
+									{logoutMutation.isPending ? "Logging out..." : "Logout"}
+								</button>
 							</div>
 						)}
-						<span className="text-muted-foreground font-fira-mono hidden text-sm md:inline">
-							{userProfile?.githubUsername}
-						</span>
-					</button>
-
-					{dropdownOpen && (
-						<div className="animate-in fade-in slide-in-from-top-1 absolute right-0 z-50 mt-2 w-32 rounded-lg border border-white/10 bg-[#0b0d10] p-1 shadow-2xl duration-100">
-							<button
-								disabled={logoutMutation.isPending}
-								onClick={() => {
-									setDropdownOpen(false);
-									logoutMutation.mutate();
-								}}
-								className="font-fira-mono text-destructive hover:bg-destructive/10 flex w-full cursor-pointer items-center justify-center rounded-md border-none px-3 py-2 text-center text-xs transition-colors outline-none"
-							>
-								{logoutMutation.isPending ? "Logging out..." : "Logout"}
-							</button>
-						</div>
-					)}
-				</div>
-			)}
+					</div>
+				)}
+			</div>
 		</nav>
 	);
 }
