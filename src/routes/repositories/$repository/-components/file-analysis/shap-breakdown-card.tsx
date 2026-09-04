@@ -2,8 +2,9 @@ import type { JSX } from "react";
 
 import { GlossaryHint } from "@/components/glossary-hint";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import type { GlossaryKey } from "@/lib/glossary";
 import type { FileRiskResult } from "@/lib/github/model";
+import type { GlossaryKey } from "@/lib/glossary";
+import { useTheme } from "@/lib/theme";
 
 import { riskColor } from "../repo-overview/heatmap";
 
@@ -14,6 +15,7 @@ export function ShapBreakdownCard({
 	file: FileRiskResult;
 	id?: string;
 }): JSX.Element | null {
+	const { theme } = useTheme();
 	const s = file.shapBreakdown;
 	if (!s) return null;
 
@@ -194,7 +196,7 @@ export function ShapBreakdownCard({
 					</span>
 					<span
 						className="font-fira-mono-bold text-2xl tabular-nums"
-						style={{ color: riskColor(file.riskScore ?? 0) }}
+						style={{ color: riskColor(file.riskScore ?? 0, theme) }}
 					>
 						{(file.riskScore ?? 0).toFixed(2)}
 					</span>

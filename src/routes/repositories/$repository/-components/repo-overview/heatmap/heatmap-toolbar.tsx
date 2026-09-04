@@ -3,11 +3,12 @@ import type { JSX } from "react";
 
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useTheme } from "@/lib/theme";
 
 import {
 	DOT_COLOR,
 	FILTERS,
-	LEGEND_GRADIENT,
+	legendGradient,
 	HATCH,
 	type FilterKey,
 	type RiskCategory,
@@ -24,6 +25,7 @@ export function HeatmapToolbar(props: {
 	counts: Record<FilterKey, number>;
 }): JSX.Element {
 	const { filter, onFilterChange, search, onSearchChange, sort, onSortChange, counts } = props;
+	const { theme } = useTheme();
 
 	return (
 		<>
@@ -42,7 +44,7 @@ export function HeatmapToolbar(props: {
 								)}
 								{label}
 								<span className="text-muted-foreground tabular-nums">
-									{counts[key]}
+									{counts[key].toLocaleString()}
 								</span>
 							</TabsTrigger>
 						))}
@@ -54,7 +56,7 @@ export function HeatmapToolbar(props: {
 				<select
 					value={sort}
 					onChange={(e) => onSortChange(e.target.value as SortOption)}
-					className="border-input bg-background font-fira-mono text-muted-foreground focus-visible:ring-ring h-8 rounded-md border px-2.5 text-xs font-medium transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-1"
+					className="border-input bg-background font-fira-mono text-muted-foreground focus-visible:ring-ring hover:text-foreground h-8 rounded-md border px-2.5 text-xs font-medium transition-colors focus-visible:ring-1 focus-visible:outline-none"
 				>
 					<option value="risk-desc">Sort: Highest Risk</option>
 					<option value="risk-asc">Sort: Lowest Risk</option>
@@ -79,13 +81,13 @@ export function HeatmapToolbar(props: {
 						placeholder="Filter files..."
 						value={search}
 						onChange={(e) => onSearchChange(e.target.value)}
-						className="h-8 w-44 text-xs pr-6"
+						className="h-8 w-44 pr-6 text-xs"
 					/>
 					{search && (
 						<button
 							type="button"
 							onClick={() => onSearchChange("")}
-							className="text-muted-foreground hover:text-foreground absolute right-2 top-1/2 -translate-y-1/2"
+							className="text-muted-foreground hover:text-foreground absolute top-1/2 right-2 -translate-y-1/2"
 						>
 							<XIcon className="size-3" />
 						</button>
@@ -98,13 +100,13 @@ export function HeatmapToolbar(props: {
 					<span className="text-muted-foreground text-xs">Low</span>
 					<div
 						className="h-2.5 w-20 rounded-sm"
-						style={{ background: LEGEND_GRADIENT }}
+						style={{ background: legendGradient(theme) }}
 					/>
 					<span className="text-muted-foreground text-xs">High</span>
 					<div className="ml-2 flex items-center gap-1.5">
 						<div
 							className="border-border/30 h-2.5 w-6 rounded-sm border"
-							style={{ backgroundImage: HATCH, backgroundColor: "#303338" }}
+							style={{ backgroundImage: HATCH, backgroundColor: "var(--muted)" }}
 						/>
 						<span className="text-muted-foreground text-xs">Low Conf</span>
 					</div>

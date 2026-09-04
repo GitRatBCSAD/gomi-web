@@ -1,11 +1,12 @@
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { ArrowLeftIcon } from "lucide-react";
 import type { JSX } from "react";
 
-import {
-	HeatmapLegendPreview,
-	RiskLegendRows,
-} from "@/components/heatmap-legend-preview";
+import { HeatmapLegendPreview, RiskLegendRows } from "@/components/heatmap-legend-preview";
+import type { UserProfile } from "@/components/navbar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { BACKEND_URL } from "@/lib/env";
 import { GLOSSARY } from "@/lib/glossary";
 
 export const Route = createFileRoute("/guide")({
@@ -61,24 +62,48 @@ const STEPS = [
 ];
 
 function Guide(): JSX.Element {
+	const { data: userProfile } = useQuery<UserProfile | null>({
+		queryKey: ["authMe"],
+		queryFn: async () => {
+			try {
+				const res = await fetch(`${BACKEND_URL}/auth/me`, { credentials: "include" });
+				if (!res.ok) return null;
+				const body = await res.json();
+				return body.data;
+			} catch {
+				return null;
+			}
+		},
+		staleTime: 60 * 1000,
+	});
+	const isAuthenticated = !!userProfile;
+
 	return (
 		<div className="mx-auto w-full max-w-4xl px-6 py-14">
+			<Link
+				to={isAuthenticated ? "/repositories" : "/"}
+				className="font-fira-mono text-muted-foreground hover:text-foreground mb-6 inline-flex items-center gap-1.5 text-sm transition-colors"
+			>
+				<ArrowLeftIcon className="size-4" />
+				{isAuthenticated ? "Back to repositories" : "Back to home"}
+			</Link>
+
 			{/* Hero */}
 			<header className="pb-8">
 				<span className="font-fira-mono text-primary text-[0.8125rem] tracking-wider">
 					GOMI &bull; Field Guide
 				</span>
-				<h1 className="font-fira-mono-bold mt-4 text-[clamp(2rem,5vw,3rem)] leading-tight text-white">
+				<h1 className="font-fira-mono-bold text-foreground mt-4 text-[clamp(2rem,5vw,3rem)] leading-tight">
 					Read your repo like a <span className="text-primary">heatmap</span>
 				</h1>
-				<p className="font-fira-mono mt-4 max-w-2xl text-[0.9375rem] leading-relaxed text-gray-400">
-					Gomi flags risky files before a bug is ever filed, by reading two things at once:
-					how your code is built, and how your developers write about it.
+				<p className="font-fira-mono text-muted-foreground mt-4 max-w-2xl text-[0.9375rem] leading-relaxed">
+					Gomi flags risky files before a bug is ever filed, by reading two things at
+					once: how your code is built, and how your developers write about it.
 				</p>
 			</header>
 
 			<Tabs defaultValue="overview" className="gap-6">
-				<TabsList variant="line" className="border-b border-white/10 pb-0">
+				<TabsList variant="line" className="border-border border-b pb-0">
 					<TabsTrigger value="overview">Overview</TabsTrigger>
 					<TabsTrigger value="map">Reading the map</TabsTrigger>
 					<TabsTrigger value="how">How it works</TabsTrigger>
@@ -87,7 +112,7 @@ function Guide(): JSX.Element {
 
 				{/* Overview — the workflow */}
 				<TabsContent value="overview" className="pt-2">
-					<h2 className="font-fira-mono-bold mb-6 text-xl text-white">
+					<h2 className="font-fira-mono-bold text-foreground mb-6 text-xl">
 						From install to insight
 					</h2>
 					<ol className="space-y-6">
@@ -97,10 +122,10 @@ function Guide(): JSX.Element {
 									{s.n}
 								</span>
 								<div className="pt-1">
-									<h3 className="font-fira-mono-bold text-base text-white">
+									<h3 className="font-fira-mono-bold text-foreground text-base">
 										{s.title}
 									</h3>
-									<p className="font-fira-mono mt-1 max-w-2xl text-sm leading-relaxed text-gray-400">
+									<p className="font-fira-mono text-muted-foreground mt-1 max-w-2xl text-sm leading-relaxed">
 										{s.body}
 									</p>
 								</div>
@@ -113,14 +138,15 @@ function Guide(): JSX.Element {
 				<TabsContent value="map" className="pt-2">
 					<div className="grid gap-8 md:grid-cols-[1fr_auto]">
 						<div>
-							<h2 className="font-fira-mono-bold mb-3 text-xl text-white">
+							<h2 className="font-fira-mono-bold text-foreground mb-3 text-xl">
 								Size is structure. Color is risk.
 							</h2>
-							<p className="font-fira-mono mb-6 max-w-md text-sm leading-relaxed text-gray-400">
+							<p className="font-fira-mono text-muted-foreground mb-6 max-w-md text-sm leading-relaxed">
 								On the repository heatmap, each file is a tile.{" "}
-								<span className="text-white">Bigger tiles</span> are structurally
-								heavier files. <span className="text-white">Redder tiles</span> carry
-								more risk. The file you want to look at first is the big red one.
+								<span className="text-foreground">Bigger tiles</span> are
+								structurally heavier files.{" "}
+								<span className="text-foreground">Redder tiles</span> carry more
+								risk. The file you want to look at first is the big red one.
 							</p>
 							<RiskLegendRows />
 						</div>
@@ -130,19 +156,19 @@ function Guide(): JSX.Element {
 
 				{/* How it works */}
 				<TabsContent value="how" className="pt-2">
-					<h2 className="font-fira-mono-bold mb-6 text-xl text-white">
+					<h2 className="font-fira-mono-bold text-foreground mb-6 text-xl">
 						How Gomi thinks
 					</h2>
-					<div className="grid gap-px overflow-hidden rounded-lg border border-white/10 bg-white/10 sm:grid-cols-2">
+					<div className="border-border bg-border grid gap-px overflow-hidden rounded-lg border sm:grid-cols-2">
 						{PIPELINE.map((p) => (
-							<div key={p.n} className="bg-[#0b0d10] p-6">
+							<div key={p.n} className="bg-card p-6">
 								<span className="font-fira-mono-bold text-primary/50 text-3xl tabular-nums">
 									{p.n}
 								</span>
-								<h3 className="font-fira-mono-bold mt-2 text-base text-white">
+								<h3 className="font-fira-mono-bold text-foreground mt-2 text-base">
 									{p.title}
 								</h3>
-								<p className="font-fira-mono mt-2 text-sm leading-relaxed text-gray-400">
+								<p className="font-fira-mono text-muted-foreground mt-2 text-sm leading-relaxed">
 									{p.body}
 								</p>
 							</div>
@@ -152,23 +178,20 @@ function Guide(): JSX.Element {
 
 				{/* Glossary */}
 				<TabsContent value="glossary" className="pt-2">
-					<h2 className="font-fira-mono-bold mb-2 text-xl text-white">
+					<h2 className="font-fira-mono-bold text-foreground mb-2 text-xl">
 						Every term, in plain language
 					</h2>
-					<p className="font-fira-mono mb-6 max-w-2xl text-sm leading-relaxed text-gray-400">
-						The same definitions behind the <span className="text-white">ⓘ</span> icons
-						throughout a file's analysis.
+					<p className="font-fira-mono text-muted-foreground mb-6 max-w-2xl text-sm leading-relaxed">
+						The same definitions behind the <span className="text-foreground">ⓘ</span>{" "}
+						icons throughout a file's analysis.
 					</p>
 					<div className="grid gap-3 sm:grid-cols-2">
 						{Object.entries(GLOSSARY).map(([key, entry]) => (
-							<div
-								key={key}
-								className="rounded-lg border border-white/10 bg-[#0b0d10] p-4"
-							>
+							<div key={key} className="border-border bg-card rounded-lg border p-4">
 								<p className="font-fira-mono-bold text-primary text-sm">
 									{entry.title}
 								</p>
-								<p className="font-fira-mono mt-1.5 text-xs leading-relaxed text-gray-400">
+								<p className="font-fira-mono text-muted-foreground mt-1.5 text-xs leading-relaxed">
 									{entry.definition}
 								</p>
 								<a
@@ -185,12 +208,12 @@ function Guide(): JSX.Element {
 				</TabsContent>
 			</Tabs>
 
-			<div className="mt-12 border-t border-white/10 pt-10 text-center">
+			<div className="border-border mt-12 border-t pt-10 text-center">
 				<Link
-					to="/repositories"
-					className="bg-primary font-fira-mono-bold hover:bg-primary/90 inline-flex cursor-pointer items-center justify-center rounded-lg px-8 py-3 text-sm text-black no-underline transition-all"
+					to={isAuthenticated ? "/repositories" : "/"}
+					className="bg-primary font-fira-mono-bold hover:bg-primary/90 text-primary-foreground inline-flex cursor-pointer items-center justify-center rounded-lg px-8 py-3 text-sm no-underline transition-all"
 				>
-					Go to your repositories
+					{isAuthenticated ? "Go to your repositories" : "Get started"}
 				</Link>
 			</div>
 		</div>

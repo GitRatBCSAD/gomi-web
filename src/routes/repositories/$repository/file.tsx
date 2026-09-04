@@ -3,17 +3,23 @@ import { ArrowLeftIcon, FileIcon } from "lucide-react";
 import { useState, type JSX } from "react";
 import * as v from "valibot";
 
-import { FileAnalysisTour } from "@/components/file-analysis-tour";
-import { Card, CardHeader } from "@/components/ui/card";
+import { FileAnalysisTour, startFileAnalysisDriverTour } from "@/components/file-analysis-tour";
+import { TourTriggerButton } from "@/components/tour-trigger-button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getAnalysisQueryOptions } from "@/lib/github/api";
+import { useTheme } from "@/lib/theme";
 
 import { CommitSentimentCard } from "./-components/file-analysis/commit-sentiment-card";
 import { ComplexityMetricsCard } from "./-components/file-analysis/complexity-metrics-card";
+import { DriftGuidanceBanner } from "./-components/file-analysis/drift-guidance-banner";
 import { RiskDriftCard } from "./-components/file-analysis/risk-drift-card";
 import { RootCauseCard } from "./-components/file-analysis/root-cause-card";
 import { SentimentTrajectoryCard } from "./-components/file-analysis/sentiment-trajectory-card";
 import { ShapBreakdownCard } from "./-components/file-analysis/shap-breakdown-card";
 import { riskColor } from "./-components/repo-overview/heatmap";
+
+type FileView = "simple" | "detailed";
 
 export const Route = createFileRoute("/repositories/$repository/file")({
 	validateSearch: v.object({ path: v.string() }),
@@ -83,6 +89,9 @@ const FILE_TOUR_SEEN_KEY = "gomi:file-tour-seen";
 function RouteComponent(): JSX.Element {
 	const { file, threshold, allFiles } = Route.useLoaderData();
 	const { repository } = Route.useParams();
+	const { theme } = useTheme();
+	// defaults to detailed so the driver.js tour's anchor ids are always present
+	const [view, setView] = useState<FileView>("detailed");
 
 	const [showFileTour, setShowFileTour] = useState(
 		() => localStorage.getItem(FILE_TOUR_SEEN_KEY) !== "1",
@@ -101,23 +110,36 @@ function RouteComponent(): JSX.Element {
 		<div className="mx-auto w-full max-w-3xl space-y-3 p-4 pb-12">
 			{showFileTour && <FileAnalysisTour onDone={dismissFileTour} />}
 
-			<Link
-				to="/repositories/$repository"
-				params={{ repository }}
-				className="font-fira-mono text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 text-sm transition-colors"
-			>
-				<ArrowLeftIcon className="size-4" />
-				Back to {repository}
-			</Link>
+			<div className="flex items-center justify-between gap-3">
+				<Link
+					to="/repositories/$repository"
+					params={{ repository }}
+					className="font-fira-mono text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 text-sm transition-colors"
+				>
+					<ArrowLeftIcon className="size-4" />
+					Back to {repository}
+				</Link>
+				<TourTriggerButton onClick={() => startFileAnalysisDriverTour()} />
+			</div>
 
 			<Card id="tour-file-header">
 				<CardHeader>
 					<div className="w-full">
-						{dir && (
-							<p className="font-fira-mono text-muted-foreground mb-1 text-xs">
-								{dir}
-							</p>
-						)}
+						<div className="mb-2 flex items-center justify-between gap-3">
+							{dir ? (
+								<p className="font-fira-mono text-muted-foreground text-xs">
+									{dir}
+								</p>
+							) : (
+								<span />
+							)}
+							<Tabs value={view} onValueChange={(v) => setView(v as FileView)}>
+								<TabsList>
+									<TabsTrigger value="simple">Simple</TabsTrigger>
+									<TabsTrigger value="detailed">Detailed</TabsTrigger>
+								</TabsList>
+							</Tabs>
+						</div>
 						<div
 							style={{
 								display: "flex",
@@ -178,7 +200,7 @@ function RouteComponent(): JSX.Element {
 											height: "0.75rem",
 											borderRadius: "999px",
 											width: `${file.riskScore * 100}%`,
-											backgroundColor: riskColor(file.riskScore),
+											backgroundColor: riskColor(file.riskScore, theme),
 										}}
 									/>
 								</div>
@@ -189,14 +211,31 @@ function RouteComponent(): JSX.Element {
 						)}
 					</div>
 				</CardHeader>
+				{view === "simple" && (
+					<CardContent>
+						<DriftGuidanceBanner file={file} />
+					</CardContent>
+				)}
 			</Card>
 
-			<SentimentTrajectoryCard file={file} threshold={threshold} id="tour-file-sentiment" />
-			<RootCauseCard file={file} threshold={threshold} id="tour-file-rootcause" />
-			<CommitSentimentCard file={file} id="tour-file-commits" />
-			<RiskDriftCard file={file} id="tour-file-drift" />
-			<ShapBreakdownCard file={file} id="tour-file-shap" />
-			<ComplexityMetricsCard file={file} allFiles={allFiles} id="tour-file-complexity" />
+			{view === "detailed" && (
+				<>
+					<SentimentTrajectoryCard
+						file={file}
+						threshold={threshold}
+						id="tour-file-sentiment"
+					/>
+					<RootCauseCard file={file} threshold={threshold} id="tour-file-rootcause" />
+					<CommitSentimentCard file={file} id="tour-file-commits" />
+					<RiskDriftCard file={file} id="tour-file-drift" />
+					<ShapBreakdownCard file={file} id="tour-file-shap" />
+					<ComplexityMetricsCard
+						file={file}
+						allFiles={allFiles}
+						id="tour-file-complexity"
+					/>
+				</>
+			)}
 		</div>
 	);
 }

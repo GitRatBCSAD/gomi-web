@@ -2,11 +2,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, redirect, Link, useRouter } from "@tanstack/react-router";
 import { useEffect, useState, type JSX } from "react";
 
-import {
-	RepoDriverTour,
-	startRepoDriverTour,
-	TourTriggerButton,
-} from "@/components/repo-driver-tour";
+import { RepoDriverTour, startRepoDriverTour } from "@/components/repo-driver-tour";
+import { TourTriggerButton } from "@/components/tour-trigger-button";
 import { H1 } from "@/components/typography";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -55,7 +52,9 @@ function RouteComponent(): JSX.Element {
 	const router = useRouter();
 	const queryClient = useQueryClient();
 	const [showConfirm, setShowConfirm] = useState(false);
-	const [selectedFilter, setSelectedFilter] = useState<"all" | "risky" | "acceptable" | "low-conf">("all");
+	const [selectedFilter, setSelectedFilter] = useState<
+		"all" | "risky" | "acceptable" | "low-conf"
+	>("all");
 	const [pendingJobId, setPendingJobId] = useState<string | null>(null);
 	const [showTour, setShowTour] = useState(() => !localStorage.getItem(REPO_TOUR_KEY));
 
@@ -113,9 +112,10 @@ function RouteComponent(): JSX.Element {
 	}, [jobQuery.data, pendingJobId, queryClient, router, repository]);
 
 	const isBusy = analyzeMutation.isPending || pendingJobId !== null;
-	const currentStep = pendingJobId && jobQuery.data?.step
-		? (STEP_LABELS[jobQuery.data.step] ?? "Analyzing...")
-		: null;
+	const currentStep =
+		pendingJobId && jobQuery.data?.step
+			? (STEP_LABELS[jobQuery.data.step] ?? "Analyzing...")
+			: null;
 
 	const handleDismissTour = () => {
 		localStorage.setItem(REPO_TOUR_KEY, "1");
@@ -195,7 +195,8 @@ function RouteComponent(): JSX.Element {
 							Reanalyze {repoName}?
 						</h2>
 						<p className="font-fira-mono text-muted-foreground text-xs leading-relaxed">
-							Are you sure you want to reanalyze {repoName}? This will re-run static code analysis and sentiment extraction.
+							Are you sure you want to reanalyze {repoName}? This will re-run static
+							code analysis and sentiment extraction.
 						</p>
 						<div className="flex justify-end gap-3 pt-2">
 							<Button

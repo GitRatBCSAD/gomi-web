@@ -1,4 +1,5 @@
 import { driver, type DriveStep } from "driver.js";
+
 import "driver.js/dist/driver.css";
 import { useEffect, type JSX } from "react";
 
@@ -63,7 +64,7 @@ export function startOnboardingDriverTour(notInstalled: boolean, onDone?: () => 
 						title: "Analyze a repository",
 						description:
 							"Pick a repo and hit Analyze. Gomi reads recent commit history (read-only) and caches the result for instant access.",
-						side: "top",
+						side: "bottom",
 						align: "start",
 					},
 				},
