@@ -56,6 +56,7 @@ function RouteComponent(): JSX.Element {
 		"all" | "risky" | "acceptable" | "low-conf"
 	>("all");
 	const [pendingJobId, setPendingJobId] = useState<string | null>(null);
+	const [jobError, setJobError] = useState<string | null>(null);
 	const [showTour, setShowTour] = useState(() => !localStorage.getItem(REPO_TOUR_KEY));
 
 	const reposQuery = useQuery(getRepositoriesQuery);
@@ -76,6 +77,9 @@ function RouteComponent(): JSX.Element {
 
 	const analyzeMutation = useMutation({
 		mutationFn: analyzeRepository,
+		onMutate: () => {
+			setJobError(null);
+		},
 		onSuccess: (data) => {
 			if (data.type === "cached") {
 				queryClient.invalidateQueries({ queryKey: ["analysis", repository] });
@@ -107,6 +111,7 @@ function RouteComponent(): JSX.Element {
 			queryClient.invalidateQueries({ queryKey: ["analysis", repository] });
 			router.invalidate();
 		} else if (status === "failed") {
+			setJobError(jobQuery.data.error ?? "Unknown error");
 			setPendingJobId(null);
 		}
 	}, [jobQuery.data, pendingJobId, queryClient, router, repository]);
@@ -156,12 +161,10 @@ function RouteComponent(): JSX.Element {
 
 				<CardContent className="flex items-center gap-4">
 					<Badge>Public</Badge>
-					{(analyzeMutation.isError || jobQuery.data?.status === "failed") && (
+					{(analyzeMutation.isError || jobError) && (
 						<p className="text-destructive font-fira-mono text-xs">
 							Reanalysis failed:{" "}
-							{jobQuery.data?.status === "failed"
-								? (jobQuery.data.error ?? "Unknown error")
-								: analyzeMutation.error?.message}
+							{jobError ?? analyzeMutation.error?.message ?? "Unknown error"}
 						</p>
 					)}
 				</CardContent>

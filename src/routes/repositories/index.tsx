@@ -97,6 +97,7 @@ function RouteComponent(): JSX.Element {
 
 	const [confirmAction, setConfirmAction] = useState<ConfirmAction | null>(null);
 	const [pendingJob, setPendingJob] = useState<PendingJob | null>(null);
+	const [jobError, setJobError] = useState<string | null>(null);
 	const navigate = useNavigate();
 	const routeSearch = Route.useSearch();
 	const queryClient = useQueryClient();
@@ -121,6 +122,9 @@ function RouteComponent(): JSX.Element {
 
 	const analyzeMutation = useMutation({
 		mutationFn: analyzeRepository,
+		onMutate: () => {
+			setJobError(null);
+		},
 		onSuccess: (data, variables) => {
 			const fullName = `${variables.owner}/${variables.repository}`;
 			if (data.type === "cached") {
@@ -156,6 +160,7 @@ function RouteComponent(): JSX.Element {
 			});
 			setPendingJob(null);
 		} else if (status === "failed") {
+			setJobError(jobQuery.data.error ?? "Unknown error");
 			setPendingJob(null);
 		}
 	}, [jobQuery.data, pendingJob, navigate, queryClient]);
@@ -225,12 +230,10 @@ function RouteComponent(): JSX.Element {
 					<OnboardingTour notInstalled={notInstalled} onDone={dismissOnboarding} />
 				)}
 
-				{(analyzeMutation.isError || jobQuery.data?.status === "failed") && (
+				{(analyzeMutation.isError || jobError) && (
 					<p className="text-destructive w-full max-w-6xl text-left text-sm">
 						Analysis failed:{" "}
-						{jobQuery.data?.status === "failed"
-							? (jobQuery.data.error ?? "Unknown error")
-							: (analyzeMutation.error?.message ?? "Unknown error")}
+						{jobError ?? analyzeMutation.error?.message ?? "Unknown error"}
 					</p>
 				)}
 
