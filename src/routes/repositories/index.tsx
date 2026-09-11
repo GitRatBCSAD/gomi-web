@@ -8,6 +8,7 @@ import { AnalysisLoadingScreen } from "@/components/analysis-loading-screen";
 import type { UserProfile } from "@/components/navbar";
 import { OnboardingTour, startOnboardingDriverTour } from "@/components/onboarding-tour";
 import { TourTriggerButton } from "@/components/tour-trigger-button";
+import { P } from "@/components/typography";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -266,9 +267,9 @@ function RouteComponent(): JSX.Element {
 
 				{!notInstalled && installationsCount !== null && (
 					<div className="border-border/20 bg-dark-600/30 flex w-full max-w-6xl items-center justify-between gap-4 rounded-xl border px-4 py-3">
-						<p className="text-muted-foreground text-xs leading-normal">
+						<P className="text-muted-foreground">
 							Want to add or remove repository access?
-						</p>
+						</P>
 						<Button
 							variant="outline"
 							size="sm"
@@ -291,7 +292,7 @@ function RouteComponent(): JSX.Element {
 						className="bg-background-900 flex w-full items-center overflow-hidden rounded-2xl border px-4 py-3 sm:max-w-sm"
 					>
 						<input
-							className="text-muted-foreground placeholder:text-muted-foreground/50 flex-1 bg-transparent text-sm tracking-widest outline-none"
+							className="text-muted-foreground placeholder:text-muted-foreground flex-1 bg-transparent text-sm tracking-widest outline-none"
 							placeholder={
 								notInstalled
 									? "Install the GitHub App to search repositories"
@@ -339,7 +340,7 @@ function RouteComponent(): JSX.Element {
 									</Badge>
 								</CardHeader>
 								<CardContent className="space-y-1">
-									<CardTitle className="truncate text-base">
+									<CardTitle className="truncate text-xl">
 										{repo.name}
 									</CardTitle>
 									<p className="text-muted-foreground text-xs">
