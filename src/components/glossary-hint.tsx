@@ -4,6 +4,8 @@ import type { JSX } from "react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { GLOSSARY, type GlossaryKey } from "@/lib/glossary";
 
+import { P } from "./typography";
+
 /**
  * Small info affordance placed next to a technical term. Hover or tap reveals a
  * plain-language definition and a "Learn more" link. Requires a TooltipProvider
@@ -29,15 +31,13 @@ export function GlossaryHint({
 				side={side}
 				className="bg-muted flex max-w-[16rem] flex-col items-start gap-1.5 border p-3 text-left"
 			>
-				<p className="font-fira-mono-bold text-foreground text-xs">{title}</p>
-				<p className="font-fira-mono text-muted-foreground text-xs leading-relaxed normal-case">
-					{definition}
-				</p>
+				<P className="font-fira-mono-bold">{title}</P>
+				<P className="text-muted-foreground"> {definition} </P>
 				<a
 					href={href}
 					target="_blank"
 					rel="noopener noreferrer"
-					className="text-primary hover:text-primary/80 font-fira-mono text-[11px] transition-colors"
+					className="text-primary hover:text-primary/80 font-fira-mono text-base transition-colors"
 				>
 					Learn more →
 				</a>
