@@ -1,6 +1,7 @@
 import type { JSX } from "react";
 
 import { GlossaryHint } from "@/components/glossary-hint";
+import { H1, P } from "@/components/typography";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import type { FileRiskResult } from "@/lib/github/model";
 import type { GlossaryKey } from "@/lib/glossary";
@@ -80,14 +81,14 @@ export function ShapBreakdownCard({
 	return (
 		<Card id={id}>
 			<CardHeader>
-				<p className="font-fira-mono-bold text-foreground text-xl">
+				<H1 variant="h4">
 					Why this score? — SHAP Breakdown
 					<GlossaryHint term="shap" />
-				</p>
-				<p className="font-fira-mono text-muted-foreground mt-1 text-xs">
+				</H1>
+				<P className="text-muted-foreground">
 					SHAP decomposition of the logistic regression output — right raises risk, left
 					lowers it
-				</p>
+				</P>
 			</CardHeader>
 			<CardContent>
 				<div
@@ -109,7 +110,7 @@ export function ShapBreakdownCard({
 						<GlossaryHint term="base-rate" />
 					</span>
 					<span
-						className="font-fira-mono text-muted-foreground/60 text-xs"
+						className="font-fira-mono text-muted-foreground text-sm"
 						style={{ flex: 1 }}
 					>
 						repo average
@@ -191,7 +192,7 @@ export function ShapBreakdownCard({
 						borderTop: "1px solid color-mix(in srgb, var(--border) 40%, transparent)",
 					}}
 				>
-					<span className="font-fira-mono text-muted-foreground text-xs tracking-widest uppercase">
+					<span className="font-fira-mono text-muted-foreground text-sm tracking-widest uppercase">
 						Final Risk Score
 					</span>
 					<span

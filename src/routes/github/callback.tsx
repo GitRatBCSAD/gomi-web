@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import type { JSX } from "react/jsx-runtime";
 import * as v from "valibot";
 
+import { P } from "@/components/typography";
 import { ApiResponseSchema } from "@/lib/api";
 import { BACKEND_URL } from "@/lib/env";
 
@@ -67,9 +68,9 @@ function RouteComponent(): JSX.Element {
 
 	return (
 		<div className="flex min-h-[60vh] flex-1 items-center justify-center">
-			<p className="text-muted-foreground font-fira-mono animate-pulse text-sm tracking-widest uppercase">
+			<P className="text-muted-foreground animate-pulse text-sm tracking-widest uppercase">
 				Authenticating...
-			</p>
+			</P>
 		</div>
 	);
 }

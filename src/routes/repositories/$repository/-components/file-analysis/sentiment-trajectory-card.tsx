@@ -10,6 +10,7 @@ import {
 } from "recharts";
 
 import { GlossaryHint } from "@/components/glossary-hint";
+import { H1, P } from "@/components/typography";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { ChartContainer } from "@/components/ui/chart";
 import type { FileRiskResult } from "@/lib/github/model";
@@ -46,13 +47,8 @@ function TooltipContent({
 			className="border-border/60 bg-background rounded-lg border p-2.5 shadow-xl"
 			style={{ maxWidth: "18rem" }}
 		>
-			<p
-				className="font-fira-mono truncate text-xs font-bold"
-				style={{ color: "var(--foreground)" }}
-			>
-				"{d.message}"
-			</p>
-			<div className="font-fira-mono text-muted-foreground mt-1 flex items-center justify-between gap-4 text-[10px]">
+			<P className="truncate text-sm font-bold">"{d.message}"</P>
+			<div className="font-fira-mono text-muted-foreground mt-1 flex items-center justify-between gap-4 text-xs">
 				<span>{d.hash}</span>
 				<span className="font-bold" style={{ color }}>
 					{d.sentimentCode}
@@ -123,14 +119,14 @@ export function SentimentTrajectoryCard({
 	return (
 		<Card id={id}>
 			<CardHeader>
-				<p className="font-fira-mono-bold text-foreground text-xl">
+				<H1 variant="h4">
 					Sentiment Trajectory
 					<GlossaryHint term="sentiment-trajectory" />
-				</p>
-				<p className="font-fira-mono text-muted-foreground mt-1 text-xs">
+				</H1>
+				<P className="text-muted-foreground">
 					Per-commit caution probability over the 6-month analysis window
 					<GlossaryHint term="caution-probability" />
-				</p>
+				</P>
 			</CardHeader>
 			<CardContent>
 				<ChartContainer

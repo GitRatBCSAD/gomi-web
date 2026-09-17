@@ -8,7 +8,7 @@ import { AnalysisLoadingScreen } from "@/components/analysis-loading-screen";
 import type { UserProfile } from "@/components/navbar";
 import { OnboardingTour, startOnboardingDriverTour } from "@/components/onboarding-tour";
 import { TourTriggerButton } from "@/components/tour-trigger-button";
-import { P } from "@/components/typography";
+import { H1, H2, P } from "@/components/typography";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -193,9 +193,9 @@ function RouteComponent(): JSX.Element {
 	if (repositoriesQuery.isLoading) {
 		return (
 			<div className="flex min-h-[60vh] flex-1 items-center justify-center">
-				<p className="text-muted-foreground font-fira-mono animate-pulse text-sm tracking-widest uppercase">
+				<P className="text-muted-foreground animate-pulse text-sm tracking-widest uppercase">
 					Loading repositories...
-				</p>
+				</P>
 			</div>
 		);
 	}
@@ -211,15 +211,15 @@ function RouteComponent(): JSX.Element {
 			/>
 			<div className="flex flex-1 flex-col items-center justify-center gap-4 px-4 py-12">
 				<div className="mb-2 flex w-full max-w-6xl flex-col items-center gap-1 text-center">
-					<h1 className="font-fira-mono-bold text-foreground text-3xl font-bold">
+					<H1 variant="h3">
 						Welcome back,{" "}
 						<span className="text-primary">
 							{userProfile?.githubUsername || "user"}
 						</span>
-					</h1>
-					<p className="font-fira-mono-bold text-muted-foreground text-2xs">
+					</H1>
+					<H2 variant="h4" className="text-muted-foreground text-2xs">
 						Ready to scan?
-					</p>
+					</H2>
 					<div className="mt-1">
 						<TourTriggerButton
 							onClick={() => startOnboardingDriverTour(notInstalled)}
@@ -232,10 +232,10 @@ function RouteComponent(): JSX.Element {
 				)}
 
 				{(analyzeMutation.isError || jobError) && (
-					<p className="text-destructive w-full max-w-6xl text-left text-sm">
+					<P className="text-destructive w-full max-w-6xl text-left text-sm">
 						Analysis failed:{" "}
 						{jobError ?? analyzeMutation.error?.message ?? "Unknown error"}
-					</p>
+					</P>
 				)}
 
 				{notInstalled && (
@@ -244,14 +244,14 @@ function RouteComponent(): JSX.Element {
 						className="border-primary/20 bg-background-900 flex w-full max-w-6xl items-center justify-between gap-6 rounded-2xl border px-6 py-5 shadow-lg"
 					>
 						<div className="flex flex-col gap-1.5">
-							<p className="text-foreground font-fira-mono-bold text-base tracking-wide">
+							<H2 variant="h4" className="text-base tracking-wide">
 								GitHub App Installation Required
-							</p>
-							<p className="text-muted-foreground max-w-xl text-xs leading-relaxed">
+							</H2>
+							<P className="text-muted-foreground max-w-xl text-sm leading-relaxed">
 								To analyze your repositories, Gomi must be installed on your GitHub
 								account or organization. Grant access to your preferred repositories
 								to get started.
-							</p>
+							</P>
 						</div>
 						<Button
 							size="sm"
@@ -343,9 +343,9 @@ function RouteComponent(): JSX.Element {
 									<CardTitle className="truncate text-xl">
 										{repo.name}
 									</CardTitle>
-									<p className="text-muted-foreground text-xs">
+									<P className="text-muted-foreground text-sm">
 										{cached ? "Analyzed" : "No cached analysis found."}
-									</p>
+									</P>
 								</CardContent>
 								<CardFooter className="gap-2">
 									{cached ? (
@@ -412,15 +412,15 @@ function RouteComponent(): JSX.Element {
 
 					{repos.length === 0 && !notInstalled && (
 						<div className="col-span-full flex flex-col items-center justify-center gap-3 px-4 py-12">
-							<p className="text-muted-foreground text-center text-sm">
+							<P className="text-muted-foreground text-center text-sm">
 								No repositories found.
-							</p>
+							</P>
 							{installationsCount !== null && installationsCount > 0 && (
 								<>
-									<p className="text-muted-foreground/60 text-center text-xs">
+									<P className="text-muted-foreground text-center text-sm">
 										Your GitHub App is installed but no repositories are
 										selected. Configure your access to add repositories.
-									</p>
+									</P>
 									<Button
 										variant="outline"
 										size="sm"
@@ -445,15 +445,15 @@ function RouteComponent(): JSX.Element {
 				{confirmAction && (
 					<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
 						<div className="bg-background-900 border-border/40 flex w-full max-w-md flex-col gap-4 rounded-2xl border p-6 shadow-2xl">
-							<h2 className="font-fira-mono-bold text-foreground text-xl">
+							<H2 variant="h4">
 								{confirmAction.type === "reanalyze" ? "Reanalyze" : "Analyze"}{" "}
 								{confirmAction.repo.name}?
-							</h2>
-							<p className="font-fira-mono text-muted-foreground text-xs leading-relaxed">
+							</H2>
+							<P className="text-muted-foreground text-sm leading-relaxed">
 								{confirmAction.type === "reanalyze"
 									? `Are you sure you want to reanalyze ${confirmAction.repo.fullName}? This will re-run static code analysis and sentiment extraction.`
 									: `Are you sure you want to analyze ${confirmAction.repo.fullName}? This will fetch commit sentiment and run static analysis.`}
-							</p>
+							</P>
 							<div className="flex justify-end gap-3 pt-2">
 								<Button
 									variant="outline"

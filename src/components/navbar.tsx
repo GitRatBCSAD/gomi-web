@@ -142,7 +142,7 @@ export function Navbar(): JSX.Element {
 										setDropdownOpen(false);
 										logoutMutation.mutate();
 									}}
-									className="font-fira-mono text-destructive hover:bg-destructive/10 flex w-full cursor-pointer items-center justify-center rounded-md border-none px-3 py-2 text-center text-xs transition-colors outline-none"
+									className="font-fira-mono text-destructive hover:bg-destructive/10 flex w-full cursor-pointer items-center justify-center rounded-md border-none px-3 py-2 text-center text-sm transition-colors outline-none"
 								>
 									{logoutMutation.isPending ? "Logging out..." : "Logout"}
 								</button>

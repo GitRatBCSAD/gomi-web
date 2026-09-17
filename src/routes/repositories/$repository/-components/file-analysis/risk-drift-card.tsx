@@ -1,6 +1,7 @@
 import type { JSX } from "react";
 
 import { GlossaryHint } from "@/components/glossary-hint";
+import { H1, P } from "@/components/typography";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import type { FileRiskResult } from "@/lib/github/model";
@@ -58,13 +59,13 @@ export function RiskDriftCard({
 		<Card id={id}>
 			<CardHeader>
 				<div>
-					<p className="font-fira-mono-bold text-foreground text-xl">
+					<H1 variant="h4">
 						Risk Drift
 						<GlossaryHint term="drift-category" />
-					</p>
-					<p className="font-fira-mono text-muted-foreground mt-1 text-xs">
+					</H1>
+					<P className="text-muted-foreground mt-1">
 						Trend analysis split across the first and second half of the analysis window
-					</p>
+					</P>
 					<div className="mt-2.5">
 						<Badge
 							style={{
@@ -89,15 +90,15 @@ export function RiskDriftCard({
 							backgroundColor: "var(--background-800)",
 						}}
 					>
-						<p className="font-fira-mono text-muted-foreground text-xs uppercase">
+						<P className="text-muted-foreground text-sm uppercase">
 							Earlier Period Average
-						</p>
-						<p className="font-fira-mono-bold text-foreground mt-1 text-3xl tabular-nums">
+						</P>
+						<H1 variant="h3" className="mt-1 tabular-nums">
 							{earlierAvg.toFixed(2)}
-						</p>
-						<p className="font-fira-mono text-muted-foreground/60 mt-1 text-[10px] uppercase">
+						</H1>
+						<P className="text-muted-foreground mt-1 text-sm uppercase">
 							First half of commit history
-						</p>
+						</P>
 					</div>
 
 					<div
@@ -108,15 +109,19 @@ export function RiskDriftCard({
 							backgroundColor: "var(--background-800)",
 						}}
 					>
-						<p className="font-fira-mono text-xs uppercase" style={{ color: "var(--destructive-500)" }}>
+						<P className="text-sm uppercase" style={{ color: "var(--destructive-500)" }}>
 							Later Period Average
-						</p>
-						<p className="font-fira-mono-bold mt-1 text-3xl tabular-nums" style={{ color: "var(--destructive-500)" }}>
+						</P>
+						<H1
+							variant="h3"
+							className="mt-1 tabular-nums"
+							style={{ color: "var(--destructive-500)" }}
+						>
 							{laterAvg.toFixed(2)}
-						</p>
-						<p className="font-fira-mono text-muted-foreground/60 mt-1 text-[10px] uppercase">
+						</H1>
+						<P className="text-muted-foreground mt-1 text-sm uppercase">
 							Second half of commit history
-						</p>
+						</P>
 					</div>
 
 					<div
@@ -127,16 +132,20 @@ export function RiskDriftCard({
 							backgroundColor: "var(--background-800)",
 						}}
 					>
-						<p className="font-fira-mono text-xs uppercase" style={{ color: "var(--destructive-500)" }}>
+						<P className="text-sm uppercase" style={{ color: "var(--destructive-500)" }}>
 							Change
-						</p>
-						<p className="font-fira-mono-bold mt-1 text-3xl tabular-nums" style={{ color: "var(--destructive-500)" }}>
+						</P>
+						<H1
+							variant="h3"
+							className="mt-1 tabular-nums"
+							style={{ color: "var(--destructive-500)" }}
+						>
 							{signStr}
 							{pctChange}% {isUpward ? "↑" : "↓"}
-						</p>
-						<p className="font-fira-mono text-muted-foreground/60 mt-1 text-[10px] uppercase">
+						</H1>
+						<P className="text-muted-foreground mt-1 text-sm uppercase">
 							Directional drift in avg caution probability
-						</p>
+						</P>
 					</div>
 				</div>
 			</CardContent>

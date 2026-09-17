@@ -4,7 +4,7 @@ import { useEffect, useState, type JSX } from "react";
 
 import { RepoDriverTour, startRepoDriverTour } from "@/components/repo-driver-tour";
 import { TourTriggerButton } from "@/components/tour-trigger-button";
-import { H1 } from "@/components/typography";
+import { H1, H2, P } from "@/components/typography";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardAction } from "@/components/ui/card";
@@ -162,10 +162,10 @@ function RouteComponent(): JSX.Element {
 				<CardContent className="flex items-center gap-4">
 					<Badge>Public</Badge>
 					{(analyzeMutation.isError || jobError) && (
-						<p className="text-destructive font-fira-mono text-xs">
+						<P className="text-destructive text-sm">
 							Reanalysis failed:{" "}
 							{jobError ?? analyzeMutation.error?.message ?? "Unknown error"}
-						</p>
+						</P>
 					)}
 				</CardContent>
 			</Card>
@@ -194,13 +194,11 @@ function RouteComponent(): JSX.Element {
 			{showConfirm && (
 				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
 					<div className="bg-background-900 border-border/40 flex w-full max-w-md flex-col gap-4 rounded-2xl border p-6 shadow-2xl">
-						<h2 className="font-fira-mono-bold text-foreground text-xl">
-							Reanalyze {repoName}?
-						</h2>
-						<p className="font-fira-mono text-muted-foreground text-xs leading-relaxed">
+						<H2 variant="h4">Reanalyze {repoName}?</H2>
+						<P className="text-muted-foreground text-sm leading-relaxed">
 							Are you sure you want to reanalyze {repoName}? This will re-run static
 							code analysis and sentiment extraction.
-						</p>
+						</P>
 						<div className="flex justify-end gap-3 pt-2">
 							<Button
 								variant="outline"

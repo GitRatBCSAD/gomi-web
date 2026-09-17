@@ -1,5 +1,6 @@
 import { useState, type JSX } from "react";
 
+import { H1, H2, P } from "@/components/typography";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -91,10 +92,10 @@ export function CommitSentimentCard({
 			<CardHeader>
 				<div className="flex items-center justify-between">
 					<div>
-						<p className="font-fira-mono-bold text-foreground text-xl">Commit sentiment</p>
-						<p className="font-fira-mono text-muted-foreground mt-1 text-xs">
+						<H1 variant="h4">Commit sentiment</H1>
+						<P className="text-muted-foreground mt-1 text-sm">
 							{total} COMMITS ANALYZED BY DISTILBERT · 6-MONTH WINDOW
-						</p>
+						</P>
 					</div>
 				</div>
 			</CardHeader>
@@ -108,16 +109,16 @@ export function CommitSentimentCard({
 							backgroundColor: "var(--background-800)",
 						}}
 					>
-						<p className="font-fira-mono-bold text-xs" style={{ color: "var(--destructive-500)" }}>
+						<H2 variant="h4" className="text-sm" style={{ color: "var(--destructive-500)" }}>
 							Caution
-						</p>
+						</H2>
 						<div className="mt-1 flex items-baseline justify-between">
-							<p className="font-fira-mono-bold text-2xl" style={{ color: "var(--destructive-500)" }}>
+							<H2 variant="h4" style={{ color: "var(--destructive-500)" }}>
 								{cautionPct}%
-							</p>
-							<p className="font-fira-mono text-muted-foreground/70 text-[10px] uppercase">
+							</H2>
+							<P className="text-muted-foreground text-sm uppercase">
 								{cautionCount} OF {total} COMMITS
-							</p>
+							</P>
 						</div>
 					</div>
 
@@ -129,16 +130,16 @@ export function CommitSentimentCard({
 							backgroundColor: "var(--background-800)",
 						}}
 					>
-						<p className="font-fira-mono-bold text-xs" style={{ color: "var(--text-subtle)" }}>
+						<H2 variant="h4" className="text-sm" style={{ color: "var(--text-subtle)" }}>
 							Neutral
-						</p>
+						</H2>
 						<div className="mt-1 flex items-baseline justify-between">
-							<p className="font-fira-mono-bold text-2xl" style={{ color: "var(--text-subtle)" }}>
+							<H2 variant="h4" style={{ color: "var(--text-subtle)" }}>
 								{neutralPct}%
-							</p>
-							<p className="font-fira-mono text-muted-foreground/70 text-[10px] uppercase">
+							</H2>
+							<P className="text-muted-foreground text-sm uppercase">
 								{neutralCount} OF {total} COMMITS
-							</p>
+							</P>
 						</div>
 					</div>
 
@@ -150,16 +151,16 @@ export function CommitSentimentCard({
 							backgroundColor: "var(--background-800)",
 						}}
 					>
-						<p className="font-fira-mono-bold text-xs" style={{ color: "var(--success-500)" }}>
+						<H2 variant="h4" className="text-sm" style={{ color: "var(--success-500)" }}>
 							Satisfaction
-						</p>
+						</H2>
 						<div className="mt-1 flex items-baseline justify-between">
-							<p className="font-fira-mono-bold text-2xl" style={{ color: "var(--success-500)" }}>
+							<H2 variant="h4" style={{ color: "var(--success-500)" }}>
 								{satisfactionPct}%
-							</p>
-							<p className="font-fira-mono text-muted-foreground/70 text-[10px] uppercase">
+							</H2>
+							<P className="text-muted-foreground text-sm uppercase">
 								{satisfactionCount} OF {total} COMMITS
-							</p>
+							</P>
 						</div>
 					</div>
 				</div>
@@ -193,15 +194,15 @@ export function CommitSentimentCard({
 											gap: "0.5rem",
 										}}
 									>
-										<span className="font-fira-mono text-muted-foreground text-xs font-bold">
+										<span className="font-fira-mono text-muted-foreground text-sm font-bold">
 											{c.hash.slice(0, 7)}
 										</span>
-										<span className="font-fira-mono text-muted-foreground/60 text-xs">
+										<span className="font-fira-mono text-muted-foreground text-sm">
 											{date}
 										</span>
 									</div>
-									<p
-										className="font-fira-mono text-foreground mt-1 text-xs leading-relaxed"
+									<P
+										className="text-foreground mt-1 text-sm leading-relaxed"
 										style={{
 											overflow: "hidden",
 											textOverflow: "ellipsis",
@@ -209,7 +210,7 @@ export function CommitSentimentCard({
 										}}
 									>
 										{c.message}
-									</p>
+									</P>
 								</div>
 								<div style={{ flexShrink: 0 }}>
 									{c.lowInfo ? (
@@ -234,7 +235,7 @@ export function CommitSentimentCard({
 
 				{totalPages > 1 && (
 					<div className="mt-4 flex items-center justify-between border-t border-border/40 pt-3">
-						<span className="font-fira-mono text-muted-foreground text-xs tabular-nums">
+						<span className="font-fira-mono text-muted-foreground text-sm tabular-nums">
 							Page {page} of {totalPages}
 						</span>
 						<div className="flex items-center gap-2">

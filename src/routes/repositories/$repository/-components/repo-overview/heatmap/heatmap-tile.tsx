@@ -169,17 +169,17 @@ export function Tile(props: {
 				)}
 				{!tooSmall && (
 					<div className="pointer-events-none absolute right-1.5 bottom-1.5 left-1.5">
-						<p className="font-fira-mono truncate text-xs leading-tight text-white/90">
+						<P className="truncate text-xs leading-tight text-white/90">
 							{name}
-						</p>
+						</P>
 						{lowConf ? (
-							<p className="font-fira-mono text-xs tracking-wider text-white/50 uppercase">
+							<P className="text-xs tracking-wider text-white/50 uppercase">
 								Low Conf
-							</p>
+							</P>
 						) : (
-							<p className="font-fira-mono text-xs text-white/60">
+							<P className="text-xs text-white/60">
 								{risk.toFixed(2)}
-							</p>
+							</P>
 						)}
 					</div>
 				)}
@@ -192,7 +192,7 @@ export function Tile(props: {
 			>
 				<div>
 					<P>{name}</P>
-					<p className="font-fira-mono text-muted-foreground text-xs">{dir}</p>
+					<P className="text-muted-foreground text-sm">{dir}</P>
 				</div>
 
 				<div className="flex w-full justify-between">
@@ -200,7 +200,7 @@ export function Tile(props: {
 					{!lowConf && <P>{risk.toFixed(2)}</P>}
 				</div>
 
-				<div className="font-fira-mono space-y-1 text-xs">
+				<div className="font-fira-mono space-y-1 text-sm">
 					<div className="flex justify-between gap-4">
 						<P>complexity</P>
 						<P>{complexity.toFixed(2)}</P>

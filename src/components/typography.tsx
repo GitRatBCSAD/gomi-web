@@ -9,6 +9,8 @@ const typography = cva("text-foreground", {
 		variant: {
 			h1: "font-fira-mono-bold text-5xl",
 			h2: "font-fira-mono-bold text-4xl",
+			h3: "font-fira-mono-bold text-3xl",
+			h4: "font-fira-mono-bold text-2xl",
 			p: "font-fira-mono text-base",
 		},
 	},
@@ -30,6 +32,14 @@ export function H2({
 	...props
 }: ComponentProps<"h2"> & TypographyProps): JSX.Element {
 	return <h2 className={cn(typography({ variant }), className)} {...props} />;
+}
+
+export function H3({
+	variant = "h3",
+	className,
+	...props
+}: ComponentProps<"h3"> & TypographyProps): JSX.Element {
+	return <h3 className={cn(typography({ variant }), className)} {...props} />;
 }
 
 export function P({

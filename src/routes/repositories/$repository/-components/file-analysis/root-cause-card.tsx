@@ -1,6 +1,7 @@
 import type { JSX } from "react";
 
 import { GlossaryHint } from "@/components/glossary-hint";
+import { H1, P } from "@/components/typography";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import type { FileRiskResult } from "@/lib/github/model";
@@ -59,10 +60,10 @@ export function RootCauseCard({
 	return (
 		<Card id={id}>
 			<CardHeader>
-				<p className="font-fira-mono-bold text-foreground text-xl">Root Cause Commit</p>
-				<p className="font-fira-mono text-muted-foreground mt-1 text-xs">
+				<H1 variant="h4">Root Cause Commit</H1>
+				<P className="text-muted-foreground">
 					Highest caution risk commit identified in the analysis window
-				</p>
+				</P>
 			</CardHeader>
 			<CardContent className="space-y-4">
 				<DriftGuidanceBanner file={file} />
@@ -70,16 +71,14 @@ export function RootCauseCard({
 				<div className="flex items-start justify-between gap-4">
 					<div>
 						<div className="flex items-center gap-2">
-							<span className="font-fira-mono text-muted-foreground text-xs font-bold">
+							<span className="font-fira-mono text-muted-foreground text-sm font-bold">
 								{rootCommit.hash.slice(0, 7)}
 							</span>
-							<span className="font-fira-mono text-muted-foreground/60 text-xs">
+							<span className="font-fira-mono text-muted-foreground/60 text-sm">
 								· {dateStr}
 							</span>
 						</div>
-						<p className="font-fira-mono text-foreground mt-1 text-base font-bold">
-							"{rootCommit.message}"
-						</p>
+						<P className="mt-1 font-bold">"{rootCommit.message}"</P>
 					</div>
 					<Badge
 						style={{
@@ -94,17 +93,17 @@ export function RootCauseCard({
 				</div>
 
 				<div className="border-border/30 space-y-2 border-t pt-3">
-					<p className="font-fira-mono text-muted-foreground text-xs font-bold">
+					<P className="text-muted-foreground text-sm font-bold">
 						Caution probability:{" "}
 						<span style={{ color: "var(--destructive-500)" }}>
 							{cautionProb.toFixed(2)}
 						</span>
 						<GlossaryHint term="caution-probability" />
-					</p>
+					</P>
 
 					<div className="space-y-2">
 						<div className="flex items-center gap-3">
-							<span className="font-fira-mono text-muted-foreground w-24 shrink-0 text-xs">
+							<span className="font-fira-mono text-muted-foreground w-24 shrink-0 text-sm">
 								Sentiment:
 							</span>
 							<div className="bg-background-700 h-2 flex-1 overflow-hidden rounded-full">
@@ -116,13 +115,13 @@ export function RootCauseCard({
 									}}
 								/>
 							</div>
-							<span className="font-fira-mono text-foreground w-10 text-right text-xs font-bold tabular-nums">
+							<span className="font-fira-mono text-foreground w-10 text-right text-sm font-bold tabular-nums">
 								{sentimentPct}%
 							</span>
 						</div>
 
 						<div className="flex items-center gap-3">
-							<span className="font-fira-mono text-muted-foreground w-24 shrink-0 text-xs">
+							<span className="font-fira-mono text-muted-foreground w-24 shrink-0 text-sm">
 								Complexity:
 							</span>
 							<div className="bg-background-700 h-2 flex-1 overflow-hidden rounded-full">
@@ -134,7 +133,7 @@ export function RootCauseCard({
 									}}
 								/>
 							</div>
-							<span className="font-fira-mono text-foreground w-10 text-right text-xs font-bold tabular-nums">
+							<span className="font-fira-mono text-foreground w-10 text-right text-sm font-bold tabular-nums">
 								{complexityPct}%
 							</span>
 						</div>
@@ -147,10 +146,10 @@ export function RootCauseCard({
 					rootCommit.linesDeleted != null ||
 					rootCommit.coChangedFiles != null) && (
 					<div className="border-border/30 space-y-1.5 border-t pt-3">
-						<p className="font-fira-mono text-muted-foreground text-xs font-bold tracking-wider uppercase">
+						<P className="text-muted-foreground text-sm font-bold tracking-wider uppercase">
 							Commit Context
-						</p>
-						<div className="font-fira-mono text-muted-foreground grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+						</P>
+						<div className="font-fira-mono text-muted-foreground grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
 							<span className="text-muted-foreground/60">Author</span>
 							<span className="text-foreground truncate">
 								{rootCommit.author || (

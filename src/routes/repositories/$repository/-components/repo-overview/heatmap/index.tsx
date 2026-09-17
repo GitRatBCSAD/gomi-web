@@ -3,6 +3,7 @@ import type { HierarchyRectangularNode } from "d3-hierarchy";
 import { useMemo, useRef, useState, type JSX } from "react";
 
 import { useNavigate } from "@tanstack/react-router";
+import { P } from "@/components/typography";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import type { FileRiskResult } from "@/lib/github/model";
@@ -160,7 +161,7 @@ export function Heatmap(props: {
 					) : (
 						<>
 							{isCapped && (
-								<div className="text-muted-foreground border-border border-b px-4 py-2 text-xs">
+								<div className="text-muted-foreground border-border border-b px-4 py-2 text-sm">
 									Showing top {TREEMAP_CAP} files by risk score ({visible.length} total). Switch to list view to browse all.
 								</div>
 							)}
@@ -180,9 +181,9 @@ export function Heatmap(props: {
 											height: DIR_LABEL_HEIGHT,
 										}}
 									>
-										<p className="font-fira-mono text-muted-foreground/70 truncate text-xs">
+										<P className="text-muted-foreground truncate text-sm">
 											{d.data.name}
-										</p>
+										</P>
 									</div>
 								))}
 								{leaves.map((l) => (

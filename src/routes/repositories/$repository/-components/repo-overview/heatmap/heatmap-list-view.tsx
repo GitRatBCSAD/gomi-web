@@ -2,6 +2,8 @@ import { useNavigate } from "@tanstack/react-router";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useRef, type JSX } from "react";
 
+import { P } from "@/components/typography";
+
 import { RiskBadge, SentimentBar } from "./heatmap-tile";
 import type { FileInfo } from "./heatmap-utils";
 
@@ -24,8 +26,8 @@ function ListRow(props: {
 			onClick={onClick}
 		>
 			<td className="px-4 py-3">
-				<p className="text-sm leading-tight font-bold text-white">{file.name}</p>
-				{file.dir && <p className="text-muted-foreground mt-0.5 text-xs">{file.dir}</p>}
+				<P className="text-sm leading-tight font-bold text-white">{file.name}</P>
+				{file.dir && <P className="text-muted-foreground mt-0.5 text-sm">{file.dir}</P>}
 			</td>
 			<td className="w-36 px-4 py-3">
 				<SentimentBar
@@ -82,16 +84,16 @@ export function HeatmapListView(props: {
 			<table className="font-fira-mono w-full min-w-[520px]">
 				<thead className="sticky top-0 z-10 bg-card">
 					<tr className="border-border border-b">
-						<th className="text-muted-foreground px-4 py-2.5 text-left text-xs font-medium">
+						<th className="text-muted-foreground px-4 py-2.5 text-left text-sm font-medium">
 							File
 						</th>
-						<th className="text-muted-foreground px-4 py-2.5 text-left text-xs font-medium">
+						<th className="text-muted-foreground px-4 py-2.5 text-left text-sm font-medium">
 							Sentiment
 						</th>
-						<th className="text-muted-foreground px-4 py-2.5 text-left text-xs font-medium">
+						<th className="text-muted-foreground px-4 py-2.5 text-left text-sm font-medium">
 							Risk
 						</th>
-						<th className="text-muted-foreground px-4 py-2.5 text-left text-xs font-medium">
+						<th className="text-muted-foreground px-4 py-2.5 text-left text-sm font-medium">
 							Commits
 						</th>
 					</tr>

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 
 import { Progress } from "@/components/ui/progress";
 import { Spinner } from "@/components/ui/spinner";
+import { H1, P } from "@/components/typography";
 import { cn } from "@/lib/utils";
 
 const STEP_MESSAGES: Record<string, string> = {
@@ -74,33 +75,31 @@ export function AnalysisLoadingScreen({
 
 				{/* Title */}
 				<div className="flex flex-col gap-1">
-					<p className="font-fira-mono-bold text-2xl font-bold text-foreground">
+					<H1 variant="h4">
 						Analyzing{" "}
 						<span className="text-primary">
 							{owner}/{name}
 						</span>
-					</p>
+					</H1>
 				</div>
 
 				{/* Step message */}
-				<p className="font-fira-mono text-xs tracking-widest text-muted-foreground uppercase">
-					{message}
-				</p>
+				<P className="text-muted-foreground text-sm tracking-widest uppercase">{message}</P>
 
 				{/* Progress bar */}
 				<Progress value={pct} className="w-full" />
-				<p className="font-fira-mono text-xs tabular-nums text-muted-foreground">{pct}%</p>
+				<P className="text-muted-foreground text-sm tabular-nums">{pct}%</P>
 
 				{/* Current file — only during scoring_files step */}
 				<div className="h-5 w-full overflow-hidden">
-					<p
+					<P
 						className={cn(
-							"font-fira-mono truncate text-center text-xs text-muted-foreground/60 transition-opacity duration-150",
+							"text-muted-foreground truncate text-center text-sm transition-opacity duration-150",
 							fileVisible ? "opacity-100" : "opacity-0",
 						)}
 					>
 						{displayedFile}
-					</p>
+					</P>
 				</div>
 			</div>
 		</div>

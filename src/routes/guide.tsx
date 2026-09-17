@@ -5,6 +5,7 @@ import type { JSX } from "react";
 
 import { HeatmapLegendPreview, RiskLegendRows } from "@/components/heatmap-legend-preview";
 import type { UserProfile } from "@/components/navbar";
+import { H1, H2, H3, P } from "@/components/typography";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BACKEND_URL } from "@/lib/env";
 import { GLOSSARY } from "@/lib/glossary";
@@ -93,13 +94,13 @@ function Guide(): JSX.Element {
 				<span className="font-fira-mono text-primary text-[0.8125rem] tracking-wider">
 					GOMI &bull; Field Guide
 				</span>
-				<h1 className="font-fira-mono-bold text-foreground mt-4 text-[clamp(2rem,5vw,3rem)] leading-tight">
+				<H1 className="mt-4 text-[clamp(2rem,5vw,3rem)] leading-tight">
 					Read your repo like a <span className="text-primary">heatmap</span>
-				</h1>
-				<p className="font-fira-mono text-muted-foreground mt-4 max-w-2xl text-[0.9375rem] leading-relaxed">
+				</H1>
+				<P className="text-muted-foreground mt-4 max-w-2xl text-[0.9375rem] leading-relaxed">
 					Gomi flags risky files before a bug is ever filed, by reading two things at
 					once: how your code is built, and how your developers write about it.
-				</p>
+				</P>
 			</header>
 
 			<Tabs defaultValue="overview" className="gap-6">
@@ -112,9 +113,9 @@ function Guide(): JSX.Element {
 
 				{/* Overview — the workflow */}
 				<TabsContent value="overview" className="pt-2">
-					<h2 className="font-fira-mono-bold text-foreground mb-6 text-xl">
+					<H2 variant="h4" className="mb-6">
 						From install to insight
-					</h2>
+					</H2>
 					<ol className="space-y-6">
 						{STEPS.map((s) => (
 							<li key={s.n} className="flex gap-4">
@@ -122,12 +123,10 @@ function Guide(): JSX.Element {
 									{s.n}
 								</span>
 								<div className="pt-1">
-									<h3 className="font-fira-mono-bold text-foreground text-base">
-										{s.title}
-									</h3>
-									<p className="font-fira-mono text-muted-foreground mt-1 max-w-2xl text-sm leading-relaxed">
+									<H3 variant="h4">{s.title}</H3>
+									<P className="text-muted-foreground mt-1 max-w-2xl text-sm leading-relaxed">
 										{s.body}
-									</p>
+									</P>
 								</div>
 							</li>
 						))}
@@ -138,16 +137,16 @@ function Guide(): JSX.Element {
 				<TabsContent value="map" className="pt-2">
 					<div className="grid gap-8 md:grid-cols-[1fr_auto]">
 						<div>
-							<h2 className="font-fira-mono-bold text-foreground mb-3 text-xl">
+							<H2 variant="h4" className="mb-3">
 								Size is structure. Color is risk.
-							</h2>
-							<p className="font-fira-mono text-muted-foreground mb-6 max-w-md text-sm leading-relaxed">
+							</H2>
+							<P className="text-muted-foreground mb-6 max-w-md text-sm leading-relaxed">
 								On the repository heatmap, each file is a tile.{" "}
 								<span className="text-foreground">Bigger tiles</span> are
 								structurally heavier files.{" "}
 								<span className="text-foreground">Redder tiles</span> carry more
 								risk. The file you want to look at first is the big red one.
-							</p>
+							</P>
 							<RiskLegendRows />
 						</div>
 						<HeatmapLegendPreview />
@@ -156,21 +155,21 @@ function Guide(): JSX.Element {
 
 				{/* How it works */}
 				<TabsContent value="how" className="pt-2">
-					<h2 className="font-fira-mono-bold text-foreground mb-6 text-xl">
+					<H2 variant="h4" className="mb-6">
 						How Gomi thinks
-					</h2>
+					</H2>
 					<div className="border-border bg-border grid gap-px overflow-hidden rounded-lg border sm:grid-cols-2">
 						{PIPELINE.map((p) => (
 							<div key={p.n} className="bg-card p-6">
 								<span className="font-fira-mono-bold text-primary/50 text-3xl tabular-nums">
 									{p.n}
 								</span>
-								<h3 className="font-fira-mono-bold text-foreground mt-2 text-base">
+								<H3 variant="h4" className="mt-2">
 									{p.title}
-								</h3>
-								<p className="font-fira-mono text-muted-foreground mt-2 text-sm leading-relaxed">
+								</H3>
+								<P className="text-muted-foreground mt-2 text-sm leading-relaxed">
 									{p.body}
-								</p>
+								</P>
 							</div>
 						))}
 					</div>
@@ -178,27 +177,27 @@ function Guide(): JSX.Element {
 
 				{/* Glossary */}
 				<TabsContent value="glossary" className="pt-2">
-					<h2 className="font-fira-mono-bold text-foreground mb-2 text-xl">
+					<H2 variant="h4" className="mb-2">
 						Every term, in plain language
-					</h2>
-					<p className="font-fira-mono text-muted-foreground mb-6 max-w-2xl text-sm leading-relaxed">
+					</H2>
+					<P className="text-muted-foreground mb-6 max-w-2xl text-sm leading-relaxed">
 						The same definitions behind the <span className="text-foreground">ⓘ</span>{" "}
 						icons throughout a file's analysis.
-					</p>
+					</P>
 					<div className="grid gap-3 sm:grid-cols-2">
 						{Object.entries(GLOSSARY).map(([key, entry]) => (
 							<div key={key} className="border-border bg-card rounded-lg border p-4">
-								<p className="font-fira-mono-bold text-primary text-sm">
+								<H1 variant="h4" className="text-primary">
 									{entry.title}
-								</p>
-								<p className="font-fira-mono text-muted-foreground mt-1.5 text-xs leading-relaxed">
+								</H1>
+								<P className="text-muted-foreground mt-1.5 text-base leading-relaxed">
 									{entry.definition}
-								</p>
+								</P>
 								<a
 									href={entry.href}
 									target="_blank"
 									rel="noopener noreferrer"
-									className="text-primary hover:text-primary/80 font-fira-mono mt-2.5 inline-block text-[11px] transition-colors"
+									className="text-primary hover:text-primary/80 font-fira-mono mt-2.5 inline-block text-base transition-colors"
 								>
 									Learn more →
 								</a>

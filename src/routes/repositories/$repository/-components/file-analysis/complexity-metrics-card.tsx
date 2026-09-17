@@ -1,9 +1,10 @@
 import type { JSX } from "react";
 
 import { GlossaryHint } from "@/components/glossary-hint";
+import { H1, P } from "@/components/typography";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import type { GlossaryKey } from "@/lib/glossary";
 import type { FileRiskResult } from "@/lib/github/model";
+import type { GlossaryKey } from "@/lib/glossary";
 
 export function ComplexityMetricsCard({
 	file,
@@ -118,10 +119,10 @@ export function ComplexityMetricsCard({
 	return (
 		<Card id={id}>
 			<CardHeader>
-				<p className="font-fira-mono-bold text-foreground text-xl">Complexity metrics</p>
-				<p className="font-fira-mono text-muted-foreground mt-1 text-xs">
+				<H1 variant="h4">Complexity metrics</H1>
+				<P className="text-muted-foreground">
 					Lizard static analysis + repository process metrics
-				</p>
+				</P>
 			</CardHeader>
 			<CardContent>
 				<div
@@ -149,20 +150,18 @@ export function ComplexityMetricsCard({
 									gap: "0.5rem",
 								}}
 							>
-								<p className="font-fira-mono-bold text-foreground text-sm">
+								<P className="font-fira-mono-bold text-sm">
 									{label}
 									<GlossaryHint term={term} />
-								</p>
-								<p
+								</P>
+								<P
 									className="font-fira-mono-bold shrink-0 text-lg tabular-nums"
 									style={{ color: "var(--caution-500)" }}
 								>
 									{value}
-								</p>
+								</P>
 							</div>
-							<p className="font-fira-mono text-muted-foreground mt-1 text-xs">
-								{desc}
-							</p>
+							<P className="text-muted-foreground mt-1 text-sm">{desc}</P>
 							{tag && (
 								<div className="mt-2.5">
 									<span

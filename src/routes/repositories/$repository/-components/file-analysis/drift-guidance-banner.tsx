@@ -1,6 +1,7 @@
 import { InfoIcon, TriangleAlertIcon } from "lucide-react";
 import type { JSX } from "react";
 
+import { P } from "@/components/typography";
 import type { FileRiskResult } from "@/lib/github/model";
 
 import { computeDrift, type DriftCategory } from "./drift-utils";
@@ -42,9 +43,9 @@ export function DriftGuidanceBanner({ file }: { file: FileRiskResult }): JSX.Ele
 			style={{ backgroundColor: bg, color: fg }}
 		>
 			<Icon className="mt-0.5 size-4 shrink-0" />
-			<p className="font-fira-mono text-xs leading-relaxed">
+			<P className="text-sm leading-relaxed">
 				<span className="font-fira-mono-bold">{drift.category}</span> — {drift.guidanceText}
-			</p>
+			</P>
 		</div>
 	);
 }

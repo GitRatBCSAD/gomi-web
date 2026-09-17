@@ -5,6 +5,7 @@ import * as v from "valibot";
 
 import { FileAnalysisTour, startFileAnalysisDriverTour } from "@/components/file-analysis-tour";
 import { TourTriggerButton } from "@/components/tour-trigger-button";
+import { H1, P } from "@/components/typography";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getAnalysisQueryOptions } from "@/lib/github/api";
@@ -107,7 +108,7 @@ function RouteComponent(): JSX.Element {
 	const dir = parts.length > 0 ? parts.join("/") + "/" : "";
 
 	return (
-		<div className="mx-auto w-full max-w-3xl space-y-3 p-4 pb-12">
+		<div className="mx-auto w-full max-w-5xl space-y-3 p-4 pb-12">
 			{showFileTour && <FileAnalysisTour onDone={dismissFileTour} />}
 
 			<div className="flex items-center justify-between gap-3">
@@ -127,9 +128,7 @@ function RouteComponent(): JSX.Element {
 					<div className="w-full">
 						<div className="mb-2 flex items-center justify-between gap-3">
 							{dir ? (
-								<p className="font-fira-mono text-muted-foreground text-xs">
-									{dir}
-								</p>
+								<P className="text-muted-foreground text-sm">{dir}</P>
 							) : (
 								<span />
 							)}
@@ -160,8 +159,8 @@ function RouteComponent(): JSX.Element {
 									className="size-5 shrink-0"
 									style={{ color: "var(--destructive-500)" }}
 								/>
-								<h1
-									className="font-fira-mono-bold text-foreground text-3xl"
+								<H1
+									variant="h3"
 									style={{
 										overflow: "hidden",
 										textOverflow: "ellipsis",
@@ -169,7 +168,7 @@ function RouteComponent(): JSX.Element {
 									}}
 								>
 									{name}
-								</h1>
+								</H1>
 							</div>
 							<RiskBadge
 								score={file.riskScore}
