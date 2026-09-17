@@ -193,7 +193,9 @@ export function Tile(props: {
 				</div>
 
 				<div className="flex w-full justify-between">
-					<Badge>{cat === "low-conf" ? "Low Conf" : cat}</Badge>
+					<Badge variant={cat === "risky" ? "destructive" : cat === "low-conf" ? "secondary" : "default"}>
+						{cat === "low-conf" ? "Low Conf" : cat}
+					</Badge>
 					{!lowConf && <P>{risk.toFixed(2)}</P>}
 				</div>
 
