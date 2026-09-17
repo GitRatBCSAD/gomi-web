@@ -271,6 +271,7 @@ body {
 .dark {
 	--grid-color: rgba(255, 255, 255, 0.05);
 
+	--primary-500: #14b8a6;
 	--primary-900: #0f2e2a;
 	--success-900: #14322a;
 	--caution-900: #3a3018;
