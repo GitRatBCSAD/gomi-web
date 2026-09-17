@@ -1,19 +1,16 @@
-import { Grid2X2Icon, ListIcon, XIcon } from "lucide-react";
+import { SearchIcon, XIcon } from "lucide-react";
 import type { JSX } from "react";
 
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useTheme } from "@/lib/theme";
 
-import {
-	DOT_COLOR,
-	FILTERS,
-	legendGradient,
-	HATCH,
-	type FilterKey,
-	type RiskCategory,
-	type SortOption,
-} from "./heatmap-utils";
+import { DOT_COLOR, FILTERS, type FilterKey, type RiskCategory, type SortOption } from "./heatmap-utils";
+
+const LEGEND_ITEMS: { key: RiskCategory; label: string }[] = [
+	{ key: "acceptable", label: "Acceptable (< threshold)" },
+	{ key: "risky", label: "Risky (≥ threshold)" },
+	{ key: "low-conf", label: "Low Confidence (< 10 commits)" },
+];
 
 export function HeatmapToolbar(props: {
 	filter: FilterKey;
@@ -24,8 +21,7 @@ export function HeatmapToolbar(props: {
 	onSortChange: (s: SortOption) => void;
 	counts: Record<FilterKey, number>;
 }): JSX.Element {
-	const { filter, onFilterChange, search, onSearchChange, sort, onSortChange, counts } = props;
-	const { theme } = useTheme();
+	const { filter, onFilterChange, search, onSearchChange, sort, onSortChange } = props;
 
 	return (
 		<>
@@ -33,19 +29,8 @@ export function HeatmapToolbar(props: {
 				<Tabs value={filter} onValueChange={(v) => onFilterChange(v as FilterKey)}>
 					<TabsList>
 						{FILTERS.map(({ key, label }) => (
-							<TabsTrigger key={key} value={key} className="gap-1.5">
-								{key !== "all" && (
-									<span
-										className="size-1.5 shrink-0 rounded-full"
-										style={{
-											backgroundColor: DOT_COLOR[key as RiskCategory],
-										}}
-									/>
-								)}
+							<TabsTrigger key={key} value={key}>
 								{label}
-								<span className="text-muted-foreground tabular-nums">
-									{counts[key].toLocaleString()}
-								</span>
 							</TabsTrigger>
 						))}
 					</TabsList>
@@ -66,22 +51,19 @@ export function HeatmapToolbar(props: {
 				</select>
 
 				<TabsList>
-					<TabsTrigger value="heatmap">
-						<Grid2X2Icon data-icon="inline-start" />
-						Heatmap
-					</TabsTrigger>
-					<TabsTrigger value="list">
-						<ListIcon data-icon="inline-start" />
-						List
-					</TabsTrigger>
+					<TabsTrigger value="heatmap">Heatmap</TabsTrigger>
+					<TabsTrigger value="list">List</TabsTrigger>
 				</TabsList>
+			</div>
 
-				<div className="relative">
+			<div className="border-border flex flex-wrap items-center gap-4 border-b px-4 py-2.5 justify-between">
+				<div className="relative max-w-md flex-1">
+					<SearchIcon className="text-muted-foreground absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2" />
 					<Input
-						placeholder="Filter files..."
+						placeholder="Search Files"
 						value={search}
 						onChange={(e) => onSearchChange(e.target.value)}
-						className="h-8 w-44 pr-6 text-xs"
+						className="h-8 pr-6 pl-8 text-xs"
 					/>
 					{search && (
 						<button
@@ -93,23 +75,24 @@ export function HeatmapToolbar(props: {
 						</button>
 					)}
 				</div>
-			</div>
 
-			<div className="border-border flex flex-wrap items-center gap-4 border-b px-4 py-2.5">
-				<div className="flex shrink-0 items-center gap-2">
-					<span className="text-muted-foreground text-xs">Low</span>
-					<div
-						className="h-2.5 w-20 rounded-sm"
-						style={{ background: legendGradient(theme) }}
-					/>
-					<span className="text-muted-foreground text-xs">High</span>
-					<div className="ml-2 flex items-center gap-1.5">
-						<div
-							className="border-border/30 h-2.5 w-6 rounded-sm border"
-							style={{ backgroundImage: HATCH, backgroundColor: "var(--muted)" }}
-						/>
-						<span className="text-muted-foreground text-xs">Low Conf</span>
-					</div>
+				<div className="flex shrink-0 flex-wrap items-center gap-4">
+					{LEGEND_ITEMS.map(({ key, label }) => (
+						<div key={key} className="flex items-center gap-1.5">
+							{key === "low-conf" ? (
+								<span
+									className="size-2.5 shrink-0 rounded-full border"
+									style={{ borderColor: DOT_COLOR[key] }}
+								/>
+							) : (
+								<span
+									className="size-2.5 shrink-0 rounded-full"
+									style={{ backgroundColor: DOT_COLOR[key] }}
+								/>
+							)}
+							<span className="text-foreground text-xs">{label}</span>
+						</div>
+					))}
 				</div>
 			</div>
 		</>

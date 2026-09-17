@@ -6,9 +6,9 @@ import { P } from "@/components/typography";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useTheme } from "@/lib/theme";
+import { cn } from "@/lib/utils";
 
 import {
-	HATCH,
 	legendGradient,
 	riskColor,
 	type FileInfo,
@@ -157,19 +157,18 @@ export function Tile(props: {
 					top: props.node.y0,
 					width: w,
 					height: h,
-					backgroundColor: riskColor(risk, theme),
+					backgroundColor: lowConf ? "var(--background-700)" : riskColor(risk, theme),
 				}}
 				onClick={() => props.onNavigate(`${dir}${name}`)}
 			>
-				{lowConf && (
-					<div
-						className="pointer-events-none absolute inset-0"
-						style={{ backgroundImage: HATCH }}
-					/>
-				)}
 				{!tooSmall && (
 					<div className="pointer-events-none absolute right-1.5 bottom-1.5 left-1.5">
-						<P className="truncate text-xs leading-tight text-white/90">
+						<P
+							className={cn(
+								"truncate text-xs leading-tight",
+								lowConf ? "text-white/90" : "text-black",
+							)}
+						>
 							{name}
 						</P>
 						{lowConf ? (
@@ -177,9 +176,7 @@ export function Tile(props: {
 								Low Conf
 							</P>
 						) : (
-							<P className="text-xs text-white/60">
-								{risk.toFixed(2)}
-							</P>
+							<P className="text-black/70 text-xs">{risk.toFixed(2)}</P>
 						)}
 					</div>
 				)}

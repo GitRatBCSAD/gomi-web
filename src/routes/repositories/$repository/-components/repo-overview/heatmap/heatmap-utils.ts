@@ -62,9 +62,11 @@ export function toFileInfo(r: FileRiskResult): FileInfo {
 export const HATCH =
 	"repeating-linear-gradient(-45deg, transparent, transparent 3px, rgba(0,0,0,0.3) 3px, rgba(0,0,0,0.3) 6px)";
 
+const LEGEND_GRADIENT = "linear-gradient(to right, #34D399 0%, #F2954B 50%, #F87171 100%)";
+
 const LEGEND_GRADIENT_BY_THEME: Record<Theme, string> = {
-	light: "linear-gradient(to right, #16a34a 0%, #8bb90c 30%, #d9a80a 55%, #e8730a 75%, #dc2626 100%)",
-	dark: "linear-gradient(to right, #204426 0%, #3a5f2d 30%, #8a7435 55%, #af5a3f 75%, #c04838 100%)",
+	light: LEGEND_GRADIENT,
+	dark: LEGEND_GRADIENT,
 };
 
 export function legendGradient(theme: Theme): string {
@@ -81,33 +83,25 @@ export const FILTERS: { key: FilterKey; label: string }[] = [
 	{ key: "all", label: "All" },
 	{ key: "risky", label: "Risky" },
 	{ key: "acceptable", label: "Acceptable" },
-	{ key: "low-conf", label: "Low conf" },
+	{ key: "low-conf", label: "Low Confidence" },
 ];
 
-export const DIR_LABEL_HEIGHT = 20;
+export const DIR_LABEL_HEIGHT = 30;
 
 export function getCategory(f: FileInfo, threshold: number): RiskCategory {
 	if (f.lowConf) return "low-conf";
 	return f.risk >= threshold ? "risky" : "acceptable";
 }
 
+const VIVID_STOPS: [number, [number, number, number]][] = [
+	[0.0, [52, 211, 153]], // success #34D399
+	[0.5, [242, 149, 75]], // warning #F2954B
+	[1.0, [248, 113, 113]], // destructive #F87171
+];
+
 const RISK_STOPS_BY_THEME: Record<Theme, [number, [number, number, number]][]> = {
-	light: [
-		[0.0, [22, 163, 74]],
-		[0.3, [139, 185, 12]],
-		[0.5, [217, 168, 10]],
-		[0.65, [232, 115, 10]],
-		[0.8, [224, 60, 30]],
-		[1.0, [220, 38, 38]],
-	],
-	dark: [
-		[0.0, [32, 68, 38]],
-		[0.3, [58, 82, 42]],
-		[0.5, [92, 95, 45]],
-		[0.65, [120, 100, 50]],
-		[0.8, [175, 90, 72]],
-		[1.0, [195, 80, 62]],
-	],
+	light: VIVID_STOPS,
+	dark: VIVID_STOPS,
 };
 
 export function riskColor(risk: number, theme: Theme): string {

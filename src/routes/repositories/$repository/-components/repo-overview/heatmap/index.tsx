@@ -128,7 +128,7 @@ export function Heatmap(props: {
 			.size([containerWidth, contentHeight])
 			.paddingOuter(4)
 			.paddingTop(DIR_LABEL_HEIGHT)
-			.paddingInner(1)
+			.paddingInner(4)
 			.tile(treemapSquarify)(root);
 
 		return {
@@ -173,7 +173,7 @@ export function Heatmap(props: {
 								{dirNodes.map((d) => (
 									<div
 										key={d.data.name}
-										className="pointer-events-none absolute flex items-center px-1.5"
+										className="bg-background pointer-events-none absolute flex items-center px-3"
 										style={{
 											left: d.x0,
 											top: d.y0,
@@ -181,7 +181,7 @@ export function Heatmap(props: {
 											height: DIR_LABEL_HEIGHT,
 										}}
 									>
-										<P className="text-muted-foreground truncate text-sm">
+										<P className="text-foreground truncate text-sm">
 											{d.data.name}
 										</P>
 									</div>
