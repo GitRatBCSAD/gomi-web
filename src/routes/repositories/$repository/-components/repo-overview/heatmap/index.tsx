@@ -1,4 +1,4 @@
-import { hierarchy, treemap, treemapSquarify } from "d3-hierarchy";
+import { hierarchy, treemap, treemapBinary, treemapSquarify } from "d3-hierarchy";
 import type { HierarchyRectangularNode } from "d3-hierarchy";
 import { useMemo, useRef, useState, type JSX } from "react";
 
@@ -98,7 +98,7 @@ export function Heatmap(props: {
 
 	const contentHeight = useMemo(() => {
 		if (!containerWidth || !treemapFiles.length) return 400;
-		return Math.max(400, Math.ceil((treemapFiles.length * 15000) / containerWidth));
+		return Math.max(400, Math.ceil((treemapFiles.length * 20000) / containerWidth));
 	}, [containerWidth, treemapFiles.length]);
 
 	const { leaves, dirNodes } = useMemo(() => {
@@ -114,7 +114,8 @@ export function Heatmap(props: {
 				children: treemapFiles.filter((f) => f.dir === dir).map((f) => ({ ...f })),
 			})),
 		})
-			.sum((d) => Math.max(d.complexity ?? 0, 0.1))
+			// ponytail: flat count — size encodes file count, color encodes risk; complexity weighting caused 6:1 area ratios that crushed small dirs
+		.sum((d) => (d.children ? 0 : 1))
 			.sort((a, b) => {
 				if (sort === "risk-desc") return (b.data.risk ?? 0) - (a.data.risk ?? 0);
 				if (sort === "risk-asc") return (a.data.risk ?? 0) - (b.data.risk ?? 0);
@@ -129,7 +130,11 @@ export function Heatmap(props: {
 			.paddingOuter(4)
 			.paddingTop(DIR_LABEL_HEIGHT)
 			.paddingInner(4)
-			.tile(treemapSquarify)(root);
+			// ponytail: binary at depth 0 gives dirs a 2D grid placement; squarify within each dir keeps files squarish
+			.tile((node, x0, y0, x1, y1) => {
+				if (node.depth === 0) treemapBinary(node, x0, y0, x1, y1);
+				else treemapSquarify(node, x0, y0, x1, y1);
+			})(root);
 
 		return {
 			leaves: root.leaves() as HierarchyRectangularNode<TreeNode>[],
