@@ -1,8 +1,10 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect, useRef } from "react";
 import type { JSX } from "react/jsx-runtime";
 import * as v from "valibot";
 
+import { P } from "@/components/typography";
 import { ApiResponseSchema } from "@/lib/api";
 import { BACKEND_URL } from "@/lib/env";
 
@@ -17,33 +19,58 @@ export const Route = createFileRoute("/github/callback")({
 
 function RouteComponent(): JSX.Element {
 	const navigate = useNavigate();
-	const { code } = Route.useSearch();
+	const search = Route.useSearch();
+	const queryClient = useQueryClient();
+	const hasFired = useRef(false);
 
-	useQuery({
-		queryKey: ["auth", code],
-		queryFn: async () => {
-			const res = await fetch(`${BACKEND_URL}/auth/callback`, {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ code }),
-			});
-			const data = await res.json();
-			const parsed = v.parse(ApiResponseSchema(v.string()), data);
-			if (!parsed.data) {
-				return null;
+	useEffect(() => {
+		if (hasFired.current || !search.code) return;
+		hasFired.current = true;
+
+		async function exchangeCode() {
+			try {
+				const res = await fetch(`${BACKEND_URL}/auth/callback`, {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					credentials: "include",
+					body: JSON.stringify({ code: search.code }),
+				});
+				if (!res.ok) {
+					console.error("Auth callback failed:", res.statusText);
+					await navigate({ to: "/" });
+					return;
+				}
+				const data = await res.json();
+
+				v.parse(ApiResponseSchema(v.object({ isNewUser: v.boolean() })), data);
+
+				await queryClient.fetchQuery({
+					queryKey: ["authMe"],
+					queryFn: async () => {
+						const res = await fetch(`${BACKEND_URL}/auth/me`, {
+							credentials: "include",
+						});
+						if (!res.ok) return null;
+						const body = await res.json();
+						return body.data;
+					},
+				});
+
+				await navigate({ to: "/repositories" });
+			} catch (err) {
+				console.error("Auth callback error:", err);
+				await navigate({ to: "/" });
 			}
+		}
 
-			localStorage.setItem("github_token", parsed.data);
-			await navigate({ to: "/repos" });
-			return data;
-		},
-		enabled: !!code,
-		staleTime: 5 * 60 * 1000,
-	});
+		exchangeCode();
+	}, [search.code, queryClient, navigate]);
 
 	return (
-		<div className="flex min-h-screen items-center justify-center">
-			<p>Authenticating...</p>
+		<div className="flex min-h-[60vh] flex-1 items-center justify-center">
+			<P className="text-muted-foreground animate-pulse text-sm tracking-widest uppercase">
+				Authenticating...
+			</P>
 		</div>
 	);
 }
