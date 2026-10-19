@@ -3,6 +3,7 @@ import {
 	CartesianGrid,
 	Line,
 	LineChart,
+	ReferenceArea,
 	ReferenceDot,
 	ReferenceLine,
 	Tooltip,
@@ -202,9 +203,9 @@ export function SentimentTrajectoryCard({
 							domain={[0, data.length - 1]}
 							tickFormatter={(idx: number) => data[idx]?.date ?? ""}
 							tick={{
-								fontSize: 9,
+								fontSize: 11,
 								fill: "var(--muted-foreground)",
-								fontFamily: "var(--font-mono)",
+								fontFamily: "var(--font-sans)",
 							}}
 							interval="preserveStartEnd"
 							tickLine={false}
@@ -217,9 +218,9 @@ export function SentimentTrajectoryCard({
 								v === 0 ? "Calm" : v === 1 ? "Worried" : "Mixed"
 							}
 							tick={{
-								fontSize: 9,
+								fontSize: 11,
 								fill: "var(--muted-foreground)",
-								fontFamily: "var(--font-mono)",
+								fontFamily: "var(--font-sans)",
 							}}
 							tickLine={false}
 							axisLine={false}
@@ -236,18 +237,25 @@ export function SentimentTrajectoryCard({
 							)}
 							cursor={{ stroke: "var(--border)", strokeWidth: 1 }}
 						/>
+						<ReferenceArea
+							y1={CAUTION_THRESHOLD}
+							y2={1}
+							fill="var(--risk-very-high-fill)"
+							fillOpacity={0.08}
+							stroke="none"
+						/>
 						<ReferenceLine
 							y={CAUTION_THRESHOLD}
-							stroke="#eab308"
+							stroke="var(--risk-high-ink)"
 							strokeDasharray="4 4"
 							strokeWidth={1.5}
 							label={{
-								value: "WORRIED LINE",
+								value: "Worried line",
 								position: "insideTopRight",
-								fontSize: 9,
-								fill: "#eab308",
-								fontFamily: "var(--font-mono)",
-								fontWeight: "bold",
+								fontSize: 11,
+								fill: "var(--risk-high-ink)",
+								fontFamily: "var(--font-sans)",
+								fontWeight: 600,
 							}}
 						/>
 						{jumpIdx >= 0 && (
@@ -261,18 +269,18 @@ export function SentimentTrajectoryCard({
 								label={{
 									value: jumpLabel,
 									position: "top",
-									fontSize: 9,
+									fontSize: 11,
 									fill: "var(--foreground)",
-									fontFamily: "var(--font-mono)",
+									fontFamily: "var(--font-sans)",
 								}}
 							/>
 						)}
 						<Line
-							type="monotone"
+							type="linear"
 							dataKey="prob"
 							stroke="var(--muted-foreground)"
-							strokeOpacity={0.5}
-							strokeWidth={2}
+							strokeOpacity={0.6}
+							strokeWidth={1.5}
 							dot={dotRenderer}
 							activeDot={false}
 							isAnimationActive={false}
