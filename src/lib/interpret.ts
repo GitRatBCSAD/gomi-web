@@ -20,6 +20,8 @@ export type RiskBandInfo = {
 	action: string;
 	fg: string;
 	bg: string;
+	fill: string;
+	onFill: string;
 };
 
 export const RISK_BANDS: Record<RiskBand, RiskBandInfo> = {
@@ -28,40 +30,50 @@ export const RISK_BANDS: Record<RiskBand, RiskBandInfo> = {
 		label: "Very High",
 		meaning: "Above the model's warning line and among the riskiest 20% of files in this repository.",
 		action: "Review this file before the next change and add tests or refactor.",
-		fg: "var(--destructive-500)",
-		bg: "var(--destructive-900)",
+		fg: "var(--risk-very-high-ink)",
+		bg: "var(--risk-very-high-tint)",
+		fill: "var(--risk-very-high-fill)",
+		onFill: "var(--risk-very-high-text)",
 	},
 	high: {
 		band: "high",
 		label: "High",
 		meaning: "Above the model's warning line.",
 		action: "Give changes here an extra review and consider adding tests.",
-		fg: "var(--warning-500)",
-		bg: "var(--warning-900)",
+		fg: "var(--risk-high-ink)",
+		bg: "var(--risk-high-tint)",
+		fill: "var(--risk-high-fill)",
+		onFill: "var(--risk-high-text)",
 	},
 	moderate: {
 		band: "moderate",
 		label: "Moderate",
 		meaning: "Below the model's warning line, but in the riskier half of this repository.",
 		action: "Keep an eye on it; no action needed yet.",
-		fg: "var(--caution-500)",
-		bg: "var(--caution-900)",
+		fg: "var(--risk-moderate-ink)",
+		bg: "var(--risk-moderate-tint)",
+		fill: "var(--risk-moderate-fill)",
+		onFill: "var(--risk-moderate-text)",
 	},
 	low: {
 		band: "low",
 		label: "Low",
 		meaning: "Below the model's warning line and in the safer half of this repository.",
 		action: "No action needed.",
-		fg: "var(--success-500)",
-		bg: "var(--success-900)",
+		fg: "var(--risk-low-ink)",
+		bg: "var(--risk-low-tint)",
+		fill: "var(--risk-low-fill)",
+		onFill: "var(--risk-low-text)",
 	},
 	insufficient: {
 		band: "insufficient",
 		label: "Not enough history",
 		meaning: "Too few changes in the analysis window to judge.",
 		action: "No score given. Re-check once the file has more history.",
-		fg: "var(--text-subtle)",
-		bg: "var(--dark-500)",
+		fg: "var(--risk-none-text)",
+		bg: "var(--risk-none-fill)",
+		fill: "var(--risk-none-fill)",
+		onFill: "var(--risk-none-text)",
 	},
 };
 

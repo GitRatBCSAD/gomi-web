@@ -45,7 +45,7 @@ export function DriftGuidanceBanner({ file }: { file: FileRiskResult }): JSX.Ele
 		>
 			<Icon className="mt-0.5 size-4 shrink-0" />
 			<P className="text-sm leading-relaxed">
-				<span className="font-fira-mono-bold">{drift.category}</span> — {drift.guidanceText}
+				<span className="font-semibold">{drift.category}</span> — {drift.guidanceText}
 			</P>
 		</div>
 	);

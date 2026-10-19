@@ -1,8 +1,55 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@import "@fontsource-variable/inter";
-@import "@fontsource/roboto/700.css";
+
+@font-face {
+	font-family: "Fira Sans";
+	font-weight: 400;
+	font-display: swap;
+	src: url("/fonts/Fira_Sans/fira-sans-latin-400-normal.woff2") format("woff2");
+}
+
+@font-face {
+	font-family: "Fira Sans";
+	font-weight: 500;
+	font-display: swap;
+	src: url("/fonts/Fira_Sans/fira-sans-latin-500-normal.woff2") format("woff2");
+}
+
+@font-face {
+	font-family: "Fira Sans";
+	font-weight: 600;
+	font-display: swap;
+	src: url("/fonts/Fira_Sans/fira-sans-latin-600-normal.woff2") format("woff2");
+}
+
+@font-face {
+	font-family: "Fira Sans";
+	font-weight: 700;
+	font-display: swap;
+	src: url("/fonts/Fira_Sans/fira-sans-latin-700-normal.woff2") format("woff2");
+}
+
+@font-face {
+	font-family: "Fira Mono";
+	font-weight: 400;
+	font-display: swap;
+	src: url("/fonts/Fira_Mono/FiraMono-Regular.ttf") format("truetype");
+}
+
+@font-face {
+	font-family: "Fira Mono";
+	font-weight: 500;
+	font-display: swap;
+	src: url("/fonts/Fira_Mono/FiraMono-Medium.ttf") format("truetype");
+}
+
+@font-face {
+	font-family: "Fira Mono";
+	font-weight: 700;
+	font-display: swap;
+	src: url("/fonts/Fira_Mono/FiraMono-Bold.ttf") format("truetype");
+}
 
 @custom-variant dark (&:is(.dark *));
 
@@ -22,9 +69,8 @@ body {
 
 @theme inline {
 	--font-heading: var(--font-sans);
-	--font-sans: "Inter Variable", sans-serif;
-	--font-fira-mono: "Inter Variable", sans-serif;
-	--font-fira-mono-bold: "Roboto", sans-serif;
+	--font-sans: "Fira Sans", ui-sans-serif, system-ui, sans-serif;
+	--font-mono: "Fira Mono", ui-monospace, monospace;
 
 	--color-primary-50: var(--primary-50);
 	--color-primary-100: var(--primary-100);
@@ -254,7 +300,7 @@ body {
 	--chart-3: oklch(0.439 0 0);
 	--chart-4: oklch(0.371 0 0);
 	--chart-5: oklch(0.269 0 0);
-	--radius: 0.625rem;
+	--radius: 0.375rem;
 	--sidebar: #fafafa;
 	--sidebar-foreground: #090b0c;
 	--sidebar-primary: #00786f;
@@ -266,6 +312,26 @@ body {
 
 	--grid-size: 32px;
 	--grid-color: rgba(9, 11, 12, 0.05);
+
+	--risk-low-fill: #dde3e8;
+	--risk-low-text: #33434f;
+	--risk-low-ink: #475a68;
+	--risk-low-tint: #eaeef1;
+	--risk-moderate-fill: #f2d27e;
+	--risk-moderate-text: #4a3500;
+	--risk-moderate-ink: #855c00;
+	--risk-moderate-tint: #fbf1d3;
+	--risk-high-fill: #ef8a3e;
+	--risk-high-text: #3d1600;
+	--risk-high-ink: #a84300;
+	--risk-high-tint: #fde6d3;
+	--risk-very-high-fill: #cf2a30;
+	--risk-very-high-text: #ffffff;
+	--risk-very-high-ink: #b71c22;
+	--risk-very-high-tint: #fbe0e0;
+	--risk-none-fill: #f1f3f5;
+	--risk-none-stripe: #dfe3e7;
+	--risk-none-text: #5f6b75;
 }
 
 .dark {
@@ -318,6 +384,26 @@ body {
 	--sidebar-accent-foreground: #fbfbfb;
 	--sidebar-border: #ffffff1a;
 	--sidebar-ring: #71717a;
+
+	--risk-low-fill: #232d33;
+	--risk-low-text: #b7c5cc;
+	--risk-low-ink: #93a6b0;
+	--risk-low-tint: #1f292e;
+	--risk-moderate-fill: #5a4816;
+	--risk-moderate-text: #fbe6a6;
+	--risk-moderate-ink: #f0c95a;
+	--risk-moderate-tint: #352c14;
+	--risk-high-fill: #b4561d;
+	--risk-high-text: #fff4ec;
+	--risk-high-ink: #ffa064;
+	--risk-high-tint: #3c2414;
+	--risk-very-high-fill: #d8343a;
+	--risk-very-high-text: #ffffff;
+	--risk-very-high-ink: #ff7a7a;
+	--risk-very-high-tint: #45201f;
+	--risk-none-fill: #13181a;
+	--risk-none-stripe: #1d2427;
+	--risk-none-text: #7d8a90;
 }
 
 @utility bg-grid {
@@ -332,9 +418,17 @@ body {
 		@apply border-border outline-ring/50;
 	}
 	body {
-		@apply text-foreground font-fira-mono bg-background bg-grid min-h-screen;
-		background-attachment: fixed;
+		@apply text-foreground bg-background min-h-screen font-sans;
 	}
+}
+
+@utility bg-hatch {
+	background-color: var(--risk-none-fill);
+	background-image: repeating-linear-gradient(
+		135deg,
+		var(--risk-none-stripe) 0 2px,
+		transparent 2px 7px
+	);
 }
 
 /* Landing hero — a slow "vital sign" pulse: the risk glow breathes like a monitor. */
@@ -383,13 +477,14 @@ body {
 	color: var(--foreground) !important;
 	border: 1px solid var(--border) !important;
 	border-radius: 1rem !important;
-	font-family: var(--font-fira-mono) !important;
+	font-family: var(--font-sans) !important;
 	box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4) !important;
 	padding: 1.25rem !important;
 }
 
 .driver-popover-title {
-	font-family: var(--font-fira-mono-bold) !important;
+	font-family: var(--font-sans) !important;
+	font-weight: 600 !important;
 	color: var(--primary) !important;
 	font-size: 1.125rem !important;
 	margin-bottom: 0.5rem !important;
@@ -417,7 +512,7 @@ body {
 .driver-popover-done-btn {
 	background-color: var(--primary) !important;
 	color: var(--primary-foreground) !important;
-	font-family: var(--font-fira-mono-bold) !important;
+	font-family: var(--font-sans) !important;
 	font-weight: 700 !important;
 	font-size: 0.75rem !important;
 	border-radius: 0.375rem !important;

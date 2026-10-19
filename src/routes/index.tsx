@@ -41,7 +41,7 @@ function Home() {
 			</P>
 			<a
 				href={authUrl}
-				className="gomi-rise-in bg-primary font-fira-mono-bold hover:bg-primary/90 text-primary-foreground mt-2 inline-flex w-full max-w-[52rem] cursor-pointer items-center justify-center gap-2.5 rounded-lg px-8 py-3.5 text-base font-bold no-underline transition-all duration-200"
+				className="gomi-rise-in bg-primary font-semibold hover:bg-primary/90 text-primary-foreground mt-2 inline-flex w-full max-w-[52rem] cursor-pointer items-center justify-center gap-2.5 rounded-lg px-8 py-3.5 text-base font-bold no-underline transition-all duration-200"
 				style={{ animationDelay: "180ms" }}
 			>
 				<GithubIcon className="size-5 shrink-0" />

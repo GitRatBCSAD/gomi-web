@@ -79,7 +79,7 @@ export function HeatmapListView(props: { files: FileInfo[]; repository: string }
 			style={{ height: LIST_VIEWPORT_HEIGHT, overflowY: "auto" }}
 			className="w-full overflow-x-auto"
 		>
-			<table className="font-fira-mono w-full min-w-[520px]">
+			<table className="w-full min-w-[520px]">
 				<thead className="bg-card sticky top-0 z-10">
 					<tr className="border-border border-b">
 						<th className="text-muted-foreground px-4 py-2.5 text-left text-sm font-medium">

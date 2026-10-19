@@ -131,9 +131,9 @@ export function Heatmap(props: {
 
 		treemap<TreeNode>()
 			.size([containerWidth, contentHeight])
-			.paddingOuter(4)
-			.paddingTop(DIR_LABEL_HEIGHT)
-			.paddingInner(4)
+			.paddingOuter(6)
+			.paddingTop((n) => (n.depth === 0 ? 6 : DIR_LABEL_HEIGHT))
+			.paddingInner(3)
 			// ponytail: binary at depth 0 gives dirs a 2D grid placement; squarify within each dir keeps files squarish
 			.tile((node, x0, y0, x1, y1) => {
 				if (node.depth === 0) treemapBinary(node, x0, y0, x1, y1);
@@ -150,7 +150,7 @@ export function Heatmap(props: {
 		<TooltipProvider>
 			<Tabs
 				defaultValue="heatmap"
-				className="border-border font-fira-mono bg-card overflow-hidden rounded-xl border"
+				className="border-border bg-card overflow-hidden rounded-xl border"
 			>
 				<HeatmapToolbar
 					filter={activeFilter}
@@ -160,7 +160,6 @@ export function Heatmap(props: {
 					sort={sort}
 					onSortChange={setSort}
 					counts={counts}
-					threshold={props.scale.threshold}
 				/>
 
 				<TabsContent value="heatmap" className="m-0">
@@ -184,16 +183,19 @@ export function Heatmap(props: {
 								{dirNodes.map((d) => (
 									<div
 										key={d.data.name}
-										className="bg-background pointer-events-none absolute flex items-center px-3"
+										className="bg-muted/50 pointer-events-none absolute rounded-[5px] px-2"
 										style={{
 											left: d.x0,
 											top: d.y0,
 											width: d.x1 - d.x0,
-											height: DIR_LABEL_HEIGHT,
+											height: d.y1 - d.y0,
 										}}
 									>
-										<P className="text-foreground truncate text-sm">
-											{d.data.name}
+										<P
+											className="text-muted-foreground flex items-center truncate font-mono text-xs"
+											style={{ height: DIR_LABEL_HEIGHT }}
+										>
+											{d.data.name || "./"}
 										</P>
 									</div>
 								))}

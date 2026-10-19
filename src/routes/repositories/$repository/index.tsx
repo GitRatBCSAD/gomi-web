@@ -151,7 +151,7 @@ function RouteComponent(): JSX.Element {
 					<Badge>Public</Badge>
 					<P className="text-muted-foreground text-sm">
 						Based on the last 6 months of changes on{" "}
-						<span className="font-fira-mono">{analysis.defaultBranch}</span>.
+						<span className="">{analysis.defaultBranch}</span>.
 					</P>
 					{(analyzeMutation.isError || jobError) && (
 						<P className="text-destructive text-sm">

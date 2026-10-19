@@ -94,7 +94,7 @@ export function ShapBreakdownCard({
 								key={f.key}
 								className="grid grid-cols-1 gap-x-4 gap-y-1 border-b py-2.5 sm:grid-cols-[13rem_1fr_11rem] sm:items-center"
 							>
-								<span className="font-fira-mono text-foreground text-sm">
+								<span className="text-foreground text-sm">
 									{f.name}
 									<GlossaryHint term={TERM[f.key]} />
 									<span className="text-muted-foreground block text-xs">
@@ -114,7 +114,7 @@ export function ShapBreakdownCard({
 									/>
 								</div>
 								<span
-									className="font-fira-mono text-sm sm:text-right"
+									className="text-sm sm:text-right"
 									style={{ color }}
 								>
 									{f.weight} · {f.raises ? "raises" : "lowers"} risk
@@ -125,7 +125,7 @@ export function ShapBreakdownCard({
 				</ul>
 
 				<div className="flex items-center justify-between gap-3 pt-4">
-					<span className="font-fira-mono text-muted-foreground text-sm">Result</span>
+					<span className="text-muted-foreground text-sm">Result</span>
 					<RiskLabel band={band} score={file.riskScore} />
 				</div>
 
@@ -136,7 +136,7 @@ export function ShapBreakdownCard({
 						contributions below equals logit(score). Shares above are |contribution| ÷
 						total |contribution|.
 					</P>
-					<table className="font-fira-mono mt-2 w-full tabular-nums">
+					<table className="mt-2 w-full tabular-nums">
 						<tbody>
 							{factors.map((f) => (
 								<tr key={f.key}>

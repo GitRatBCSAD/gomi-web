@@ -77,7 +77,7 @@ function RouteComponent(): JSX.Element {
 				<Link
 					to="/repositories/$repository"
 					params={{ repository }}
-					className="font-fira-mono text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 text-sm transition-colors"
+					className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 text-sm transition-colors"
 				>
 					<ArrowLeftIcon className="size-4" />
 					Back to {repository}
@@ -145,7 +145,7 @@ function RouteComponent(): JSX.Element {
 								{summarizeFile(file, scale)}
 							</P>
 							<P className="text-muted-foreground text-sm">
-								<span className="font-fira-mono-bold text-foreground">
+								<span className="font-semibold text-foreground">
 									What to do:{" "}
 								</span>
 								{info.action}

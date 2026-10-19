@@ -96,7 +96,7 @@ export function CommitSentimentCard({
 			</CardHeader>
 			<CardContent className="space-y-4">
 				<P className="text-foreground text-base">
-					<span className="font-fira-mono-bold">{cautionShareLabel(cautionShare)}.</span>{" "}
+					<span className="font-semibold">{cautionShareLabel(cautionShare)}.</span>{" "}
 					{groups[0].n} of {labelled} readable messages sound worried or urgent.
 					{tooShort > 0 && ` ${tooShort} were too short to read.`}
 				</P>
@@ -147,12 +147,12 @@ export function CommitSentimentCard({
 											gap: "0.5rem",
 										}}
 									>
-										<span className="font-fira-mono text-muted-foreground text-sm">
+										<span className="text-muted-foreground text-sm">
 											{date}
 											{c.author ? ` · ${c.author}` : ""}
 										</span>
 										<span
-											className="font-fira-mono text-xs"
+											className="text-xs"
 											style={{ color: "var(--text-subtle)" }}
 											title="Commit ID"
 										>
@@ -193,7 +193,7 @@ export function CommitSentimentCard({
 
 				{totalPages > 1 && (
 					<div className="border-border/40 mt-4 flex items-center justify-between border-t pt-3">
-						<span className="font-fira-mono text-muted-foreground text-sm tabular-nums">
+						<span className="text-muted-foreground text-sm tabular-nums">
 							Page {page} of {totalPages}
 						</span>
 						<div className="flex items-center gap-2">

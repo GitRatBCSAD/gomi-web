@@ -84,7 +84,7 @@ function Guide(): JSX.Element {
 		<div className="mx-auto w-full max-w-4xl px-6 py-14">
 			<Link
 				to={isAuthenticated ? "/repositories" : "/"}
-				className="font-fira-mono text-muted-foreground hover:text-foreground mb-6 inline-flex items-center gap-1.5 text-sm transition-colors"
+				className="text-muted-foreground hover:text-foreground mb-6 inline-flex items-center gap-1.5 text-sm transition-colors"
 			>
 				<ArrowLeftIcon className="size-4" />
 				{isAuthenticated ? "Back to repositories" : "Back to home"}
@@ -92,7 +92,7 @@ function Guide(): JSX.Element {
 
 			{/* Hero */}
 			<header className="pb-8">
-				<span className="font-fira-mono text-primary text-[0.8125rem] tracking-wider">
+				<span className="text-primary text-[0.8125rem] tracking-wider">
 					GOMI &bull; Field Guide
 				</span>
 				<H1 className="mt-4 text-[clamp(2rem,5vw,3rem)] leading-tight">
@@ -120,7 +120,7 @@ function Guide(): JSX.Element {
 					<ol className="space-y-6">
 						{STEPS.map((s) => (
 							<li key={s.n} className="flex gap-4">
-								<span className="border-primary/30 text-primary font-fira-mono-bold flex size-9 shrink-0 items-center justify-center rounded-full border text-sm">
+								<span className="border-primary/30 text-primary font-semibold flex size-9 shrink-0 items-center justify-center rounded-full border text-sm">
 									{s.n}
 								</span>
 								<div className="pt-1">
@@ -188,7 +188,7 @@ function Guide(): JSX.Element {
 					<div className="border-border bg-border grid gap-px overflow-hidden rounded-lg border sm:grid-cols-2">
 						{PIPELINE.map((p) => (
 							<div key={p.n} className="bg-card p-6">
-								<span className="font-fira-mono-bold text-primary/50 text-3xl tabular-nums">
+								<span className="font-semibold text-primary/50 text-3xl tabular-nums">
 									{p.n}
 								</span>
 								<H3 variant="h4" className="mt-2">
@@ -221,14 +221,14 @@ function Guide(): JSX.Element {
 									{entry.definition}
 								</P>
 								<P className="mt-2 text-sm leading-relaxed">
-									<span className="font-fira-mono-bold">How to read it: </span>
+									<span className="font-semibold">How to read it: </span>
 									{entry.reading}
 								</P>
 								<a
 									href={entry.href}
 									target="_blank"
 									rel="noopener noreferrer"
-									className="text-primary hover:text-primary/80 font-fira-mono mt-2.5 inline-block text-base transition-colors"
+									className="text-primary hover:text-primary/80 mt-2.5 inline-block text-base transition-colors"
 								>
 									Learn more →
 								</a>
@@ -241,7 +241,7 @@ function Guide(): JSX.Element {
 			<div className="border-border mt-12 border-t pt-10 text-center">
 				<Link
 					to={isAuthenticated ? "/repositories" : "/"}
-					className="bg-primary font-fira-mono-bold hover:bg-primary/90 text-primary-foreground inline-flex cursor-pointer items-center justify-center rounded-lg px-8 py-3 text-sm no-underline transition-all"
+					className="bg-primary font-semibold hover:bg-primary/90 text-primary-foreground inline-flex cursor-pointer items-center justify-center rounded-lg px-8 py-3 text-sm no-underline transition-all"
 				>
 					{isAuthenticated ? "Go to your repositories" : "Get started"}
 				</Link>

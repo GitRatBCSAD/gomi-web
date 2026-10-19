@@ -73,7 +73,7 @@ function TooltipContent({
 			style={{ maxWidth: "18rem" }}
 		>
 			<P className="truncate text-sm font-bold">"{d.message}"</P>
-			<div className="font-fira-mono text-muted-foreground mt-1 flex items-center justify-between gap-4 text-xs">
+			<div className="text-muted-foreground mt-1 flex items-center justify-between gap-4 text-xs">
 				<span>{d.date}</span>
 				<span className="font-bold" style={{ color }}>
 					{toneLabel(d.sentimentCode)} tone
@@ -204,7 +204,7 @@ export function SentimentTrajectoryCard({
 							tick={{
 								fontSize: 9,
 								fill: "var(--muted-foreground)",
-								fontFamily: "var(--font-fira-mono)",
+								fontFamily: "var(--font-mono)",
 							}}
 							interval="preserveStartEnd"
 							tickLine={false}
@@ -219,7 +219,7 @@ export function SentimentTrajectoryCard({
 							tick={{
 								fontSize: 9,
 								fill: "var(--muted-foreground)",
-								fontFamily: "var(--font-fira-mono)",
+								fontFamily: "var(--font-mono)",
 							}}
 							tickLine={false}
 							axisLine={false}
@@ -246,7 +246,7 @@ export function SentimentTrajectoryCard({
 								position: "insideTopRight",
 								fontSize: 9,
 								fill: "#eab308",
-								fontFamily: "var(--font-fira-mono)",
+								fontFamily: "var(--font-mono)",
 								fontWeight: "bold",
 							}}
 						/>
@@ -263,7 +263,7 @@ export function SentimentTrajectoryCard({
 									position: "top",
 									fontSize: 9,
 									fill: "var(--foreground)",
-									fontFamily: "var(--font-fira-mono)",
+									fontFamily: "var(--font-mono)",
 								}}
 							/>
 						)}
@@ -280,10 +280,10 @@ export function SentimentTrajectoryCard({
 					</LineChart>
 				</ChartContainer>
 				<details className="mt-3">
-					<summary className="font-fira-mono text-muted-foreground cursor-pointer text-xs">
+					<summary className="text-muted-foreground cursor-pointer text-xs">
 						Show model numbers
 					</summary>
-					<P className="font-fira-mono mt-2 text-xs" style={{ color: "var(--text-subtle)" }}>
+					<P className="mt-2 text-xs" style={{ color: "var(--text-subtle)" }}>
 						Average worry level (p(caution)) {trend.earlierAvg.toFixed(2)} →{" "}
 						{trend.laterAvg.toFixed(2)} ({trend.pctChange > 0 ? "+" : ""}
 						{trend.pctChange}%) · ±10% counts as a trend · worried line at{" "}

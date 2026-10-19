@@ -28,7 +28,7 @@ export function HeatmapLegendPreview(): JSX.Element {
 					title={`${t.name}: ${RISK_BANDS[t.band].label}`}
 				>
 					<span
-						className={`font-fira-mono absolute right-1 bottom-1 left-1 truncate text-[10px] ${t.band === "insufficient" ? "text-white/80" : "text-black"}`}
+						className={`absolute right-1 bottom-1 left-1 truncate text-[10px] ${t.band === "insufficient" ? "text-white/80" : "text-black"}`}
 					>
 						{t.name}
 					</span>
@@ -43,7 +43,7 @@ const LEGEND_ORDER: RiskBand[] = ["very-high", "high", "moderate", "low", "insuf
 /** The colored risk-band key. Shared by the guide and the onboarding modal. */
 export function RiskLegendRows(): JSX.Element {
 	return (
-		<ul className="font-fira-mono text-muted-foreground space-y-2.5 text-sm">
+		<ul className="text-muted-foreground space-y-2.5 text-sm">
 			{LEGEND_ORDER.map((b) => (
 				<li key={b} className="flex items-start gap-3">
 					<span

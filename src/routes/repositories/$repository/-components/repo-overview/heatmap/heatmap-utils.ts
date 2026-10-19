@@ -75,7 +75,7 @@ export const FILTERS: { key: FilterKey; label: string }[] = [
 	{ key: "low-conf", label: "Not enough history" },
 ];
 
-export const DIR_LABEL_HEIGHT = 30;
+export const DIR_LABEL_HEIGHT = 26;
 
 // risky = High or Very High band (score >= threshold), acceptable = Low or Moderate.
 export function categoryOf(band: RiskBand): RiskCategory {

@@ -31,17 +31,17 @@ export function GlossaryHint({
 				side={side}
 				className="bg-muted flex max-w-[16rem] flex-col items-start gap-1.5 border p-3 text-left"
 			>
-				<P className="font-fira-mono-bold">{title}</P>
+				<P className="font-semibold">{title}</P>
 				<P className="text-muted-foreground"> {definition} </P>
 				<P className="text-sm">
-					<span className="font-fira-mono-bold">How to read it: </span>
+					<span className="font-semibold">How to read it: </span>
 					{reading}
 				</P>
 				<a
 					href={href}
 					target="_blank"
 					rel="noopener noreferrer"
-					className="text-primary hover:text-primary/80 font-fira-mono text-base transition-colors"
+					className="text-primary hover:text-primary/80 text-base transition-colors"
 				>
 					Learn more →
 				</a>

@@ -27,7 +27,7 @@ export function RiskLabel({
 		<Tooltip>
 			<TooltipTrigger
 				className={cn(
-					"font-fira-mono inline-flex shrink-0 cursor-help items-center rounded font-bold whitespace-nowrap",
+					"inline-flex shrink-0 cursor-help items-center rounded font-bold whitespace-nowrap",
 					size === "xs" ? "px-1.5 py-0.5 text-[10px]" : "px-2.5 py-1 text-xs",
 					className,
 				)}
@@ -36,7 +36,7 @@ export function RiskLabel({
 				{text}
 			</TooltipTrigger>
 			<TooltipContent className="bg-muted flex max-w-[16rem] flex-col items-start gap-1 border p-3 text-left">
-				<P className="font-fira-mono-bold">{text}</P>
+				<P className="font-semibold">{text}</P>
 				<P className="text-muted-foreground">{info.meaning}</P>
 				{score != null && band !== "insufficient" && (
 					<P className="text-muted-foreground text-xs">

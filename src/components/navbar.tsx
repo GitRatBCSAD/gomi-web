@@ -71,7 +71,7 @@ export function Navbar(): JSX.Element {
 			<div className="flex items-center gap-6">
 				<Link
 					to={isAuthenticated ? "/repositories" : "/"}
-					className="text-foreground font-fira-mono-bold flex items-center gap-2 text-2xl no-underline"
+					className="text-foreground font-semibold flex items-center gap-2 text-2xl no-underline"
 				>
 					<img src="/gomi-logo.svg" alt="" className="size-6" aria-hidden="true" />
 					Gomi
@@ -80,7 +80,7 @@ export function Navbar(): JSX.Element {
 					<Link
 						id="tour-guide"
 						to="/guide"
-						className="text-muted-foreground hover:text-primary font-fira-mono text-sm no-underline transition-colors"
+						className="text-muted-foreground hover:text-primary text-sm no-underline transition-colors"
 						activeProps={{ className: "text-primary" }}
 					>
 						Guide
@@ -89,7 +89,7 @@ export function Navbar(): JSX.Element {
 					<Link
 						id="tour-guide"
 						to="/guide"
-						className="border-border text-foreground hover:border-primary/50 hover:text-primary font-fira-mono flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm no-underline transition-colors"
+						className="border-border text-foreground hover:border-primary/50 hover:text-primary flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm no-underline transition-colors"
 						activeProps={{ className: "border-primary/50 text-primary" }}
 					>
 						<BookOpenIcon className="size-3.5" />
@@ -125,11 +125,11 @@ export function Navbar(): JSX.Element {
 									className="border-primary/20 size-12 rounded-full border"
 								/>
 							) : (
-								<div className="border-primary/20 bg-primary/10 text-primary font-fira-mono-bold flex size-8 items-center justify-center rounded-full border text-xs">
+								<div className="border-primary/20 bg-primary/10 text-primary font-semibold flex size-8 items-center justify-center rounded-full border text-xs">
 									{userProfile?.githubUsername?.[0]?.toUpperCase() || "U"}
 								</div>
 							)}
-							<span className="text-muted-foreground font-fira-mono hidden text-sm md:inline">
+							<span className="text-muted-foreground hidden text-sm md:inline">
 								{userProfile?.githubUsername}
 							</span>
 						</button>
@@ -142,7 +142,7 @@ export function Navbar(): JSX.Element {
 										setDropdownOpen(false);
 										logoutMutation.mutate();
 									}}
-									className="font-fira-mono text-destructive hover:bg-destructive/10 flex w-full cursor-pointer items-center justify-center rounded-md border-none px-3 py-2 text-center text-sm transition-colors outline-none"
+									className="text-destructive hover:bg-destructive/10 flex w-full cursor-pointer items-center justify-center rounded-md border-none px-3 py-2 text-center text-sm transition-colors outline-none"
 								>
 									{logoutMutation.isPending ? "Logging out..." : "Logout"}
 								</button>

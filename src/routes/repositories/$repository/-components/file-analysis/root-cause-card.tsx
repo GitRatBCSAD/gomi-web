@@ -66,7 +66,7 @@ export function RootCauseCard({
 						This file's risk is driven {driver}.
 						<GlossaryHint term="caution-probability" />
 					</P>
-					<P className="font-fira-mono text-xs" style={{ color: "var(--text-subtle)" }}>
+					<P className="text-xs" style={{ color: "var(--text-subtle)" }}>
 						Commit tone {sentimentPct}% · code structure and history {complexityPct}% of
 						the score's influence
 					</P>
@@ -77,10 +77,10 @@ export function RootCauseCard({
 				<div className="flex items-start justify-between gap-4">
 					<div>
 						<div className="flex items-center gap-2">
-							<span className="font-fira-mono text-muted-foreground text-sm font-bold">
+							<span className="text-muted-foreground text-sm font-bold">
 								{rootCommit.hash.slice(0, 7)}
 							</span>
-							<span className="font-fira-mono text-muted-foreground/60 text-sm">
+							<span className="text-muted-foreground/60 text-sm">
 								· {dateStr}
 							</span>
 						</div>
@@ -107,7 +107,7 @@ export function RootCauseCard({
 						<P className="text-muted-foreground text-sm font-bold tracking-wider uppercase">
 							Commit Context
 						</P>
-						<div className="font-fira-mono text-muted-foreground grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+						<div className="text-muted-foreground grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
 							<span className="text-muted-foreground/60">Author</span>
 							<span className="text-foreground truncate">
 								{rootCommit.author || (

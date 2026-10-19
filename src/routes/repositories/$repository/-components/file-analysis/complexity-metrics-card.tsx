@@ -140,19 +140,19 @@ export function ComplexityMetricsCard({
 							className="rounded-lg border p-4"
 							style={{ backgroundColor: "var(--background-800)" }}
 						>
-							<P className="font-fira-mono text-muted-foreground text-sm">
+							<P className="text-muted-foreground text-sm">
 								{label}
 								<GlossaryHint term={term} />
 							</P>
 							<P
-								className="font-fira-mono-bold mt-1 text-lg"
+								className="font-semibold mt-1 text-lg"
 								style={{ color: TONE_COLOR[tone] }}
 							>
 								{verdict}
 							</P>
 							<P className="text-muted-foreground mt-1 text-sm">{desc}</P>
 							<P
-								className="font-fira-mono mt-2 text-xs"
+								className="mt-2 text-xs"
 								style={{ color: "var(--text-subtle)" }}
 							>
 								{detail}
