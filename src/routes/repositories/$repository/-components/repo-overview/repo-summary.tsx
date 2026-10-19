@@ -18,7 +18,8 @@ function headline(total: number, risky: number, veryHigh: number, lowConf: numbe
 		return `Good news: none of the ${scored.toLocaleString()} scored files are above the warning line.`;
 	const share = Math.round((risky / scored) * 100);
 	const vh = veryHigh > 0 ? `, ${veryHigh.toLocaleString()} of them Very High` : "";
-	return `${risky.toLocaleString()} of ${scored.toLocaleString()} scored files (${share}%) need attention${vh}. Start with the red tiles.`;
+	const next = veryHigh > 0 ? "Start with the Very High files." : "Start with the High files.";
+	return `${risky.toLocaleString()} of ${scored.toLocaleString()} scored files (${share}%) need attention${vh}. ${next}`;
 }
 
 export function RepoSummary(props: {

@@ -331,7 +331,7 @@ body {
 	--risk-very-high-tint: #fbe0e0;
 	--risk-none-fill: #f1f3f5;
 	--risk-none-stripe: #dfe3e7;
-	--risk-none-text: #5f6b75;
+	--risk-none-text: #4f5a63;
 }
 
 .dark {
@@ -393,8 +393,8 @@ body {
 	--risk-moderate-text: #fbe6a6;
 	--risk-moderate-ink: #f0c95a;
 	--risk-moderate-tint: #352c14;
-	--risk-high-fill: #b4561d;
-	--risk-high-text: #fff4ec;
+	--risk-high-fill: #d9822f;
+	--risk-high-text: #2a1300;
 	--risk-high-ink: #ffa064;
 	--risk-high-tint: #3c2414;
 	--risk-very-high-fill: #d8343a;
@@ -403,7 +403,7 @@ body {
 	--risk-very-high-tint: #45201f;
 	--risk-none-fill: #13181a;
 	--risk-none-stripe: #1d2427;
-	--risk-none-text: #7d8a90;
+	--risk-none-text: #8e9aa0;
 }
 
 @utility bg-grid {
