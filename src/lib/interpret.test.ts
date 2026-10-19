@@ -136,6 +136,7 @@ describe("worryTrend", () => {
 		expect(worryTrend(commits([0.2, 0.2, 0.8, 0.8]))?.trend).toBe("up");
 		expect(worryTrend(commits([0.8, 0.8, 0.2, 0.2]))?.trend).toBe("down");
 		expect(worryTrend(commits([0.5, 0.5, 0.52, 0.52]))?.trend).toBe("steady");
+		expect(worryTrend(commits([0.48, 0.48, 0.51, 0.51]))?.trend).toBe("up");
 	});
 
 	it("puts the averages into words", () => {

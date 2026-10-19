@@ -239,7 +239,13 @@ export function worryTrend(commits: CommitSentiment[]): WorryTrend | null {
 	const laterAvg = avg(ps.slice(mid));
 	const pctChange = earlierAvg > 0 ? Math.round(((laterAvg - earlierAvg) / earlierAvg) * 100) : 0;
 	// ponytail: ±10% "steady" band is a display convention, documented in Ch. 3
-	const trend: Trend = pctChange >= 10 ? "up" : pctChange <= -10 ? "down" : "steady";
+	const levelShift = worryLevel(laterAvg) !== worryLevel(earlierAvg);
+	const trend: Trend =
+		pctChange >= 10 || (levelShift && laterAvg > earlierAvg)
+			? "up"
+			: pctChange <= -10 || (levelShift && laterAvg < earlierAvg)
+				? "down"
+				: "steady";
 	return {
 		earlierAvg,
 		laterAvg,

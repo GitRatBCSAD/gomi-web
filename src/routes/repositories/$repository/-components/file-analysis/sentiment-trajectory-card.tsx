@@ -39,7 +39,7 @@ const SENTIMENT_COLOR: Record<SentimentCode, string> = {
 const TREND_COLOR: Record<Trend, string> = {
 	up: "var(--destructive-500)",
 	down: "var(--success-500)",
-	steady: "var(--text-subtle)",
+	steady: "var(--foreground)",
 };
 
 // Dot colour follows the chart, not the argmax label: red only above the worried line,
