@@ -24,7 +24,11 @@ export function HeatmapToolbar(props: {
 	return (
 		<div className="border-border space-y-3 border-b px-4 py-3">
 			<div className="flex flex-wrap items-center gap-2">
-				<Tabs value={filter} onValueChange={(v) => onFilterChange(v as FilterKey)}>
+				<Tabs
+					value={filter}
+					onValueChange={(v) => onFilterChange(v as FilterKey)}
+					className="max-w-full overflow-x-auto"
+				>
 					<TabsList>
 						{FILTERS.map(({ key, label }) => (
 							<TabsTrigger key={key} value={key}>
