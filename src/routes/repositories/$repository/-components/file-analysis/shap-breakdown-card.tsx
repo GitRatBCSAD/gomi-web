@@ -92,7 +92,7 @@ export function ShapBreakdownCard({
 						return (
 							<li
 								key={f.key}
-								className="grid grid-cols-1 gap-x-4 gap-y-1 border-b py-2.5 sm:grid-cols-[13rem_1fr_11rem] sm:items-center"
+								className="grid grid-cols-1 gap-x-4 gap-y-1 border-b py-2.5 sm:grid-cols-[14rem_1fr_9.5rem] sm:items-center"
 							>
 								<span className="text-foreground text-sm">
 									{f.name}
@@ -117,7 +117,7 @@ export function ShapBreakdownCard({
 									className="text-sm sm:text-right"
 									style={{ color }}
 								>
-									{f.weight} · {f.raises ? "raises" : "lowers"} risk
+									{f.raises ? "↑" : "↓"} {f.weight}
 								</span>
 							</li>
 						);

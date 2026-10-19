@@ -15,8 +15,8 @@ import {
 } from "@/lib/interpret";
 
 const TONE_COLOR: Record<Tone, string> = {
-	bad: "var(--destructive-500)",
-	warn: "var(--caution-500)",
+	bad: "var(--risk-very-high-ink)",
+	warn: "var(--risk-moderate-ink)",
 	neutral: "var(--foreground)",
 	good: "var(--success-500)",
 };
@@ -133,33 +133,28 @@ export function ComplexityMetricsCard({
 				<P className="text-foreground mt-2">{takeaway}</P>
 			</CardHeader>
 			<CardContent>
-				<div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+				<ul className="divide-border divide-y border-y">
 					{metrics.map(({ label, term, verdict, tone, desc, detail }) => (
-						<div
+						<li
 							key={label}
-							className="rounded-lg border p-4"
-							style={{ backgroundColor: "var(--background-800)" }}
+							className="grid grid-cols-1 gap-x-6 gap-y-1 py-3 sm:grid-cols-[1fr_15rem] sm:items-baseline"
 						>
-							<P className="text-muted-foreground text-sm">
-								{label}
-								<GlossaryHint term={term} />
-							</P>
-							<P
-								className="font-semibold mt-1 text-lg"
-								style={{ color: TONE_COLOR[tone] }}
-							>
-								{verdict}
-							</P>
-							<P className="text-muted-foreground mt-1 text-sm">{desc}</P>
-							<P
-								className="mt-2 text-xs"
-								style={{ color: "var(--text-subtle)" }}
-							>
-								{detail}
-							</P>
-						</div>
+							<div className="min-w-0">
+								<P className="text-foreground text-sm font-medium">
+									{label}
+									<GlossaryHint term={term} />
+								</P>
+								<P className="text-muted-foreground text-sm">{desc}</P>
+							</div>
+							<div className="sm:text-right">
+								<P className="text-base font-semibold" style={{ color: TONE_COLOR[tone] }}>
+									{verdict}
+								</P>
+								<P className="text-muted-foreground text-xs">{detail}</P>
+							</div>
+						</li>
 					))}
-				</div>
+				</ul>
 			</CardContent>
 		</Card>
 	);
