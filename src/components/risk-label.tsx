@@ -18,7 +18,7 @@ export function RiskLabel({
 }: {
 	band: RiskBand;
 	score?: number | null;
-	size?: "xs" | "sm";
+	size?: "xs" | "sm" | "md";
 	className?: string;
 }): JSX.Element {
 	const info = RISK_BANDS[band];
@@ -27,8 +27,8 @@ export function RiskLabel({
 		<Tooltip>
 			<TooltipTrigger
 				className={cn(
-					"inline-flex shrink-0 cursor-help items-center rounded font-bold whitespace-nowrap",
-					size === "xs" ? "px-1.5 py-0.5 text-[10px]" : "px-2.5 py-1 text-xs",
+					"inline-flex shrink-0 cursor-help items-center rounded font-semibold whitespace-nowrap",
+					size === "xs" ? "px-1.5 py-0.5 text-[11px]" : size === "md" ? "px-3 py-1.5 text-sm" : "px-2.5 py-1 text-xs",
 					className,
 				)}
 				style={{ backgroundColor: info.bg, color: info.fg }}

@@ -18,13 +18,13 @@ function ListRow(props: { file: FileInfo; even: boolean; onClick: () => void }):
 		<tr
 			className="border-border/40 group hover:bg-muted/30 cursor-pointer border-b transition-colors last:border-0"
 			style={{
-				backgroundColor: even ? "var(--background-900)" : "transparent",
+				backgroundColor: even ? "color-mix(in srgb, var(--muted) 35%, transparent)" : "transparent",
 			}}
 			onClick={onClick}
 		>
 			<td className="px-4 py-3">
-				<P className="text-sm leading-tight font-bold text-white">{file.name}</P>
-				{file.dir && <P className="text-muted-foreground mt-0.5 text-sm">{file.dir}</P>}
+				<P className="text-foreground text-sm leading-tight font-medium">{file.name}</P>
+				{file.dir && <P className="text-muted-foreground mt-0.5 font-mono text-xs">{file.dir}</P>}
 			</td>
 			<td className="w-36 px-4 py-3">
 				<SentimentBar
@@ -42,7 +42,7 @@ function ListRow(props: { file: FileInfo; even: boolean; onClick: () => void }):
 			<td className="px-4 py-3">
 				<RiskLabel band={file.band} score={file.lowConf ? null : file.risk} size="xs" />
 			</td>
-			<td className="px-4 py-3 text-sm text-white">{file.commits}</td>
+			<td className="text-foreground px-4 py-3 text-right font-mono text-sm tabular-nums">{file.commits}</td>
 		</tr>
 	);
 }
@@ -91,7 +91,7 @@ export function HeatmapListView(props: { files: FileInfo[]; repository: string }
 						<th className="text-muted-foreground px-4 py-2.5 text-left text-sm font-medium">
 							Risk
 						</th>
-						<th className="text-muted-foreground px-4 py-2.5 text-left text-sm font-medium">
+						<th className="text-muted-foreground px-4 py-2.5 text-right text-sm font-medium">
 							Changes
 						</th>
 					</tr>

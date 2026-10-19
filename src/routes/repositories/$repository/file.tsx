@@ -1,5 +1,5 @@
 import { createFileRoute, redirect, Link } from "@tanstack/react-router";
-import { ArrowLeftIcon, FileIcon } from "lucide-react";
+import { ArrowDownIcon, ArrowLeftIcon, ArrowRightIcon, ArrowUpIcon } from "lucide-react";
 import { useMemo, useState, type JSX } from "react";
 import * as v from "valibot";
 
@@ -7,14 +7,15 @@ import { FileAnalysisTour, startFileAnalysisDriverTour } from "@/components/file
 import { RiskLabel } from "@/components/risk-label";
 import { TourTriggerButton } from "@/components/tour-trigger-button";
 import { H1, P } from "@/components/typography";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getAnalysisQueryOptions } from "@/lib/github/api";
-import { RISK_BANDS, riskBand, riskScale, summarizeFile } from "@/lib/interpret";
+import { RISK_BANDS, riskBand, riskScale, shapFactors, summarizeFile } from "@/lib/interpret";
 
 import { CommitSentimentCard } from "./-components/file-analysis/commit-sentiment-card";
 import { ComplexityMetricsCard } from "./-components/file-analysis/complexity-metrics-card";
 import { DriftGuidanceBanner } from "./-components/file-analysis/drift-guidance-banner";
+import { RiskMeter } from "./-components/file-analysis/risk-meter";
 import { RootCauseCard } from "./-components/file-analysis/root-cause-card";
 import { SentimentTrajectoryCard } from "./-components/file-analysis/sentiment-trajectory-card";
 import { ShapBreakdownCard } from "./-components/file-analysis/shap-breakdown-card";
@@ -65,6 +66,12 @@ function RouteComponent(): JSX.Element {
 		setShowFileTour(false);
 	}
 
+	const reasons = file.shapBreakdown
+		? shapFactors(file.shapBreakdown)
+				.filter((f) => f.weight !== "Minor factor")
+				.slice(0, 3)
+		: [];
+
 	const parts = file.filename.split("/");
 	const name = parts.pop() ?? file.filename;
 	const dir = parts.length > 0 ? parts.join("/") + "/" : "";
@@ -91,15 +98,18 @@ function RouteComponent(): JSX.Element {
 				/>
 			</div>
 
-			<Card id="tour-file-header">
-				<CardHeader>
-					<div className="w-full">
-						<div className="mb-2 flex items-center justify-between gap-3">
-							{dir ? (
-								<P className="text-muted-foreground text-sm">{dir}</P>
-							) : (
-								<span />
-							)}
+			<Card id="tour-file-header" className="gap-0 py-0">
+				<div className="h-1" style={{ backgroundColor: info.fill }} />
+				<div className="space-y-5 p-6">
+					<div className="flex flex-wrap items-start justify-between gap-3">
+						<div className="min-w-0">
+							{dir && <P className="text-muted-foreground font-mono text-sm">{dir}</P>}
+							<H1 variant="h2" className="truncate">
+								{name}
+							</H1>
+						</div>
+						<div className="flex items-center gap-3">
+							<RiskLabel band={band} score={file.riskScore} size="md" />
 							<Tabs value={view} onValueChange={(v) => setView(v as FileView)}>
 								<TabsList>
 									<TabsTrigger value="simple">Simple</TabsTrigger>
@@ -107,57 +117,49 @@ function RouteComponent(): JSX.Element {
 								</TabsList>
 							</Tabs>
 						</div>
-						<div
-							style={{
-								display: "flex",
-								alignItems: "center",
-								justifyContent: "space-between",
-								gap: "0.75rem",
-							}}
-						>
-							<div
-								style={{
-									display: "flex",
-									alignItems: "center",
-									gap: "0.5rem",
-									minWidth: 0,
-								}}
-							>
-								<FileIcon className="size-5 shrink-0" style={{ color: info.fg }} />
-								<H1
-									variant="h3"
-									style={{
-										overflow: "hidden",
-										textOverflow: "ellipsis",
-										whiteSpace: "nowrap",
-									}}
-								>
-									{name}
-								</H1>
-							</div>
-							<RiskLabel band={band} score={file.riskScore} />
-						</div>
-						<div
-							className="mt-4 space-y-2 rounded-lg border p-3"
-							style={{ borderColor: info.fg }}
-						>
-							<P className="text-foreground text-base">
-								{summarizeFile(file, scale)}
-							</P>
-							<P className="text-muted-foreground text-sm">
-								<span className="font-semibold text-foreground">
-									What to do:{" "}
-								</span>
-								{info.action}
-							</P>
-						</div>
 					</div>
-				</CardHeader>
-				{view === "simple" && (
-					<CardContent className="space-y-3">
-						<DriftGuidanceBanner file={file} />
-					</CardContent>
-				)}
+
+					<div className="max-w-3xl space-y-2">
+						<P className="text-foreground text-lg leading-snug">{summarizeFile(file, scale)}</P>
+						<P className="text-muted-foreground flex items-start gap-2 text-sm">
+							<ArrowRightIcon className="text-foreground mt-0.5 size-4 shrink-0" />
+							<span>
+								<span className="text-foreground font-semibold">What to do: </span>
+								{info.action}
+							</span>
+						</P>
+					</div>
+
+					<RiskMeter file={file} allFiles={allFiles} scale={scale} band={band} />
+
+					{reasons.length > 0 && (
+						<div className="flex flex-wrap items-center gap-2">
+							<span className="text-muted-foreground text-sm">Why:</span>
+							{reasons.map((r) => {
+								const Icon = r.raises ? ArrowUpIcon : ArrowDownIcon;
+								return (
+									<span
+										key={r.key}
+										className="bg-muted text-foreground inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm"
+									>
+										<Icon
+											className="size-3.5"
+											style={{
+												color: r.raises ? RISK_BANDS["very-high"].fg : "var(--primary)",
+											}}
+										/>
+										{r.name}
+										<span className="text-muted-foreground text-xs">
+											{r.raises ? "raises risk" : "lowers risk"}
+										</span>
+									</span>
+								);
+							})}
+						</div>
+					)}
+
+					{view === "simple" && <DriftGuidanceBanner file={file} />}
+				</div>
 			</Card>
 
 			{/* Always shown: the trend is the core early-detection signal (see Ch. 3). */}
