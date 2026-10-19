@@ -1,207 +1,161 @@
 import type { JSX } from "react";
 
 import { GlossaryHint } from "@/components/glossary-hint";
+import { RiskLabel } from "@/components/risk-label";
 import { H1, P } from "@/components/typography";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import type { FileRiskResult } from "@/lib/github/model";
 import type { GlossaryKey } from "@/lib/glossary";
-import { useTheme } from "@/lib/theme";
+import {
+	baselineFromShap,
+	cautionShareLabel,
+	fmtPct,
+	lowInfoLabel,
+	percentileLabel,
+	riskBand,
+	shapFactors,
+	type FactorKey,
+	type RiskScale,
+} from "@/lib/interpret";
 
-import { riskColor } from "../repo-overview/heatmap";
+const TERM: Record<FactorKey, GlossaryKey> = {
+	sentimentContrib: "sentiment-score",
+	complexityContrib: "complexity-score",
+	entropyContrib: "change-entropy",
+	ndevContrib: "ndev",
+	lowInfoContrib: "low-info-ratio",
+	ageContrib: "age-score",
+	commitsContrib: "n-commits",
+};
+
+/** What this file looks like on each factor, in words. */
+function fileValue(key: FactorKey, file: FileRiskResult): string {
+	switch (key) {
+		case "sentimentContrib": {
+			const labelled = file.commitSentiments.filter((c) => c.sentiment);
+			const caution = labelled.filter((c) => c.sentiment?.code === "caution").length;
+			return cautionShareLabel(labelled.length ? caution / labelled.length : 0);
+		}
+		case "complexityContrib":
+			return `${percentileLabel(file.complexityScore)} in repo`;
+		case "entropyContrib":
+			return `${percentileLabel(file.changeEntropy)} in repo`;
+		case "ndevContrib":
+			return `${percentileLabel(file.ndevScore)} in repo`;
+		case "ageContrib":
+			return `${percentileLabel(file.ageScore)} in repo`;
+		case "lowInfoContrib":
+			return lowInfoLabel(file.lowInfoRatio);
+		case "commitsContrib":
+			return `${file.commitCount} changes`;
+	}
+}
 
 export function ShapBreakdownCard({
 	file,
+	scale,
 	id,
 }: {
 	file: FileRiskResult;
+	scale: RiskScale;
 	id?: string;
 }): JSX.Element | null {
-	const { theme } = useTheme();
 	const s = file.shapBreakdown;
 	if (!s) return null;
 
-	const rows: {
-		label: string;
-		term: GlossaryKey;
-		barWidth: number;
-		value: string;
-		contrib: number;
-	}[] = [
-		{
-			label: "Sentiment score",
-			term: "sentiment-score",
-			barWidth: file.sentimentScore,
-			value: file.sentimentScore.toFixed(2),
-			contrib: s.sentimentContrib,
-		},
-		{
-			label: "Complexity score",
-			term: "complexity-score",
-			barWidth: file.complexityScore,
-			value: file.complexityScore.toFixed(2),
-			contrib: s.complexityContrib,
-		},
-		{
-			label: "Change entropy",
-			term: "change-entropy",
-			barWidth: file.changeEntropy,
-			value: file.changeEntropy.toFixed(2),
-			contrib: s.entropyContrib,
-		},
-		{
-			label: "NDev score",
-			term: "ndev",
-			barWidth: file.ndevScore,
-			value: file.ndevScore.toFixed(2),
-			contrib: s.ndevContrib,
-		},
-		{
-			label: "Low info ratio",
-			term: "low-info-ratio",
-			barWidth: file.lowInfoRatio,
-			value: file.lowInfoRatio.toFixed(2),
-			contrib: s.lowInfoContrib,
-		},
-		{
-			label: "Age score",
-			term: "age-score",
-			barWidth: file.ageScore,
-			value: file.ageScore.toFixed(2),
-			contrib: s.ageContrib,
-		},
-		{
-			label: "Number of commits",
-			term: "n-commits",
-			barWidth: Math.min(file.commitCount / 50, 1),
-			value: String(file.commitCount),
-			contrib: s.commitsContrib,
-		},
-	];
+	const factors = shapFactors(s);
+	const baseline = baselineFromShap(s) as number;
+	const band = riskBand(file.riskScore, file.lowConfidence, scale);
 
 	return (
 		<Card id={id}>
 			<CardHeader>
 				<H1 variant="h4">
-					Why this score? — SHAP Breakdown
+					What drives this score
 					<GlossaryHint term="shap" />
 				</H1>
 				<P className="text-muted-foreground">
-					SHAP decomposition of the logistic regression output — right raises risk, left
-					lowers it
+					Each factor either pushes this file's risk up (red) or down (blue). Longer bars
+					matter more.
 				</P>
 			</CardHeader>
 			<CardContent>
-				<div
-					style={{
-						display: "flex",
-						alignItems: "center",
-						gap: "0.75rem",
-						paddingTop: "0.625rem",
-						paddingBottom: "0.625rem",
-						borderBottom:
-							"1px solid color-mix(in srgb, var(--border) 30%, transparent)",
-					}}
-				>
-					<span
-						className="font-fira-mono text-muted-foreground text-sm"
-						style={{ width: "11rem", flexShrink: 0 }}
-					>
-						Base rate
-						<GlossaryHint term="base-rate" />
-					</span>
-					<span
-						className="font-fira-mono text-muted-foreground text-sm"
-						style={{ flex: 1 }}
-					>
-						repo average
-					</span>
-					<span
-						className="font-fira-mono text-foreground text-sm font-bold tabular-nums"
-						style={{ width: "2.5rem", textAlign: "right" }}
-					>
-						{s.baseRate.toFixed(2)}
-					</span>
-					<span style={{ width: "3.5rem" }} />
-				</div>
+				<P className="text-muted-foreground border-b pb-3 text-sm">
+					A typical file starts at about {fmtPct(baseline)}. The factors below move this
+					file from there to its final level.
+					<GlossaryHint term="base-rate" />
+				</P>
 
-				{rows.map(({ label, term, barWidth, value, contrib }) => {
-					const positive = contrib >= 0;
-					const fillColor = positive ? "var(--destructive-500)" : "var(--primary-500)";
-					return (
-						<div
-							key={label}
-							style={{
-								display: "flex",
-								alignItems: "center",
-								gap: "0.75rem",
-								paddingTop: "0.625rem",
-								paddingBottom: "0.625rem",
-								borderBottom:
-									"1px solid color-mix(in srgb, var(--border) 20%, transparent)",
-							}}
-						>
-							<span
-								className="font-fira-mono text-foreground text-sm"
-								style={{ width: "11rem", flexShrink: 0 }}
+				<ul>
+					{factors.map((f) => {
+						const color = f.raises ? "var(--destructive-500)" : "var(--primary-500)";
+						return (
+							<li
+								key={f.key}
+								className="grid grid-cols-1 gap-x-4 gap-y-1 border-b py-2.5 sm:grid-cols-[13rem_1fr_11rem] sm:items-center"
 							>
-								{label}
-								<GlossaryHint term={term} />
-							</span>
-							<div
-								style={{
-									flex: 1,
-									height: "0.5rem",
-									borderRadius: "999px",
-									overflow: "hidden",
-									backgroundColor: "var(--background-700)",
-								}}
-							>
+								<span className="font-fira-mono text-foreground text-sm">
+									{f.name}
+									<GlossaryHint term={TERM[f.key]} />
+									<span className="text-muted-foreground block text-xs">
+										This file: {fileValue(f.key, file)}
+									</span>
+								</span>
 								<div
-									style={{
-										height: "0.5rem",
-										borderRadius: "999px",
-										width: `${Math.min(Math.max(barWidth, 0) * 100, 100)}%`,
-										backgroundColor: fillColor,
-									}}
-								/>
-							</div>
-							<span
-								className="font-fira-mono text-foreground text-sm tabular-nums"
-								style={{ width: "2.5rem", textAlign: "right" }}
-							>
-								{value}
-							</span>
-							<span
-								className="font-fira-mono text-sm tabular-nums"
-								style={{ width: "3.5rem", textAlign: "right", color: fillColor }}
-							>
-								{positive ? "+" : ""}
-								{contrib.toFixed(2)}
-							</span>
-						</div>
-					);
-				})}
+									className="h-2 overflow-hidden rounded-full"
+									style={{ backgroundColor: "var(--background-700)" }}
+								>
+									<div
+										className="h-2 rounded-full"
+										style={{
+											width: `${Math.max(f.share * 100, 2)}%`,
+											backgroundColor: color,
+										}}
+									/>
+								</div>
+								<span
+									className="font-fira-mono text-sm sm:text-right"
+									style={{ color }}
+								>
+									{f.weight} · {f.raises ? "raises" : "lowers"} risk
+								</span>
+							</li>
+						);
+					})}
+				</ul>
 
-				<div
-					style={{
-						display: "flex",
-						alignItems: "center",
-						justifyContent: "space-between",
-						paddingTop: "1rem",
-						marginTop: "0.5rem",
-						borderTop: "1px solid color-mix(in srgb, var(--border) 40%, transparent)",
-					}}
-				>
-					<span className="font-fira-mono text-muted-foreground text-sm tracking-widest uppercase">
-						Final Risk Score
-					</span>
-					<span
-						className="font-fira-mono-bold text-2xl tabular-nums"
-						style={{ color: riskColor(file.riskScore ?? 0, theme) }}
-					>
-						{(file.riskScore ?? 0).toFixed(2)}
-					</span>
+				<div className="flex items-center justify-between gap-3 pt-4">
+					<span className="font-fira-mono text-muted-foreground text-sm">Result</span>
+					<RiskLabel band={band} score={file.riskScore} />
 				</div>
+
+				<details className="text-muted-foreground mt-4 text-xs">
+					<summary className="cursor-pointer">Show model numbers</summary>
+					<P className="mt-2 text-xs">
+						SHAP values are in log-odds: baseline {s.baseRate.toFixed(2)} plus the
+						contributions below equals logit(score). Shares above are |contribution| ÷
+						total |contribution|.
+					</P>
+					<table className="font-fira-mono mt-2 w-full tabular-nums">
+						<tbody>
+							{factors.map((f) => (
+								<tr key={f.key}>
+									<td className="py-0.5">{f.name}</td>
+									<td className="text-right">
+										{f.contrib >= 0 ? "+" : ""}
+										{f.contrib.toFixed(3)}
+									</td>
+									<td className="text-right">{fmtPct(f.share)}</td>
+								</tr>
+							))}
+							<tr>
+								<td className="py-0.5">Final score</td>
+								<td className="text-right">{(file.riskScore ?? 0).toFixed(3)}</td>
+								<td />
+							</tr>
+						</tbody>
+					</table>
+				</details>
 			</CardContent>
 		</Card>
 	);

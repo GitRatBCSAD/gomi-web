@@ -1,5 +1,5 @@
 import type { FileRiskResult } from "@/lib/github/model";
-import type { Theme } from "@/lib/theme";
+import { riskBand, type RiskBand, type RiskScale } from "@/lib/interpret";
 
 export type RiskCategory = "risky" | "acceptable" | "low-conf";
 export type FilterKey = "all" | RiskCategory;
@@ -12,6 +12,7 @@ export type FileInfo = {
 	complexity: number;
 	commits: number;
 	lowConf: boolean;
+	band: RiskBand;
 	sentimentRisky: number;
 	sentimentCaution: number;
 	sentimentOk: number;
@@ -23,11 +24,12 @@ export type TreeNode = {
 	complexity?: number;
 	commits?: number;
 	lowConf?: boolean;
+	band?: RiskBand;
 	dir?: string;
 	children?: TreeNode[];
 };
 
-export function toFileInfo(r: FileRiskResult): FileInfo {
+export function toFileInfo(r: FileRiskResult, scale: RiskScale): FileInfo {
 	const parts = r.filename.split("/");
 	const name = parts.pop() ?? r.filename;
 	const dir = parts.length > 0 ? parts.join("/") + "/" : "";
@@ -53,24 +55,11 @@ export function toFileInfo(r: FileRiskResult): FileInfo {
 		complexity: r.complexityScore,
 		commits: total,
 		lowConf: r.lowConfidence,
+		band: riskBand(r.riskScore, r.lowConfidence, scale),
 		sentimentRisky: total > 0 ? risky / total : 0,
 		sentimentCaution: total > 0 ? caution / total : 0,
 		sentimentOk: total > 0 ? ok / total : 0,
 	};
-}
-
-export const HATCH =
-	"repeating-linear-gradient(-45deg, transparent, transparent 3px, rgba(0,0,0,0.3) 3px, rgba(0,0,0,0.3) 6px)";
-
-const LEGEND_GRADIENT = "linear-gradient(to right, #34D399 0%, #F2954B 50%, #F87171 100%)";
-
-const LEGEND_GRADIENT_BY_THEME: Record<Theme, string> = {
-	light: LEGEND_GRADIENT,
-	dark: LEGEND_GRADIENT,
-};
-
-export function legendGradient(theme: Theme): string {
-	return LEGEND_GRADIENT_BY_THEME[theme];
 }
 
 export const DOT_COLOR: Record<RiskCategory, string> = {
@@ -81,41 +70,17 @@ export const DOT_COLOR: Record<RiskCategory, string> = {
 
 export const FILTERS: { key: FilterKey; label: string }[] = [
 	{ key: "all", label: "All" },
-	{ key: "risky", label: "Risky" },
-	{ key: "acceptable", label: "Acceptable" },
-	{ key: "low-conf", label: "Low Confidence" },
+	{ key: "risky", label: "Needs attention" },
+	{ key: "acceptable", label: "OK for now" },
+	{ key: "low-conf", label: "Not enough history" },
 ];
 
 export const DIR_LABEL_HEIGHT = 30;
 
-export function getCategory(f: FileInfo, threshold: number): RiskCategory {
-	if (f.lowConf) return "low-conf";
-	return f.risk >= threshold ? "risky" : "acceptable";
+// risky = High or Very High band (score >= threshold), acceptable = Low or Moderate.
+export function categoryOf(band: RiskBand): RiskCategory {
+	if (band === "insufficient") return "low-conf";
+	return band === "high" || band === "very-high" ? "risky" : "acceptable";
 }
 
-const VIVID_STOPS: [number, [number, number, number]][] = [
-	[0.0, [52, 211, 153]], // success #34D399
-	[0.5, [242, 149, 75]], // warning #F2954B
-	[1.0, [248, 113, 113]], // destructive #F87171
-];
-
-const RISK_STOPS_BY_THEME: Record<Theme, [number, [number, number, number]][]> = {
-	light: VIVID_STOPS,
-	dark: VIVID_STOPS,
-};
-
-export function riskColor(risk: number, theme: Theme): string {
-	const stops = RISK_STOPS_BY_THEME[theme];
-	let lo = stops[0],
-		hi = stops[stops.length - 1];
-	for (let i = 0; i < stops.length - 1; i++) {
-		if (risk >= stops[i][0] && risk <= stops[i + 1][0]) {
-			lo = stops[i];
-			hi = stops[i + 1];
-			break;
-		}
-	}
-	const t = lo[0] === hi[0] ? 0 : (risk - lo[0]) / (hi[0] - lo[0]);
-	const [r, g, b] = lo[1].map((c, i) => Math.round(c + (hi[1][i] - c) * t));
-	return `rgb(${r},${g},${b})`;
-}
+export const getCategory = (f: FileInfo): RiskCategory => categoryOf(f.band);

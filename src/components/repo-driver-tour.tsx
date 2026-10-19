@@ -9,7 +9,7 @@ export function startRepoDriverTour(onDone?: () => void) {
 			popover: {
 				title: "Repository Risk Overview",
 				description:
-					"Welcome to the repository analysis view. Gomi combines static code complexity with commit message sentiment to calculate file risk.",
+					"This page shows which files in this repository most likely had bugs introduced by their recent changes, based on how the code is built and how developers describe their changes.",
 			},
 		},
 		{
@@ -25,9 +25,9 @@ export function startRepoDriverTour(onDone?: () => void) {
 		{
 			element: "#tour-repo-summary",
 			popover: {
-				title: "Risk Distribution Cards",
+				title: "Summary",
 				description:
-					"Filter files instantly by clicking Risky, Acceptable, or Low Confidence count cards.",
+					"The sentence on top tells you how many files need attention. Click a card (Needs attention, OK for now, Not enough history) to filter the map.",
 				side: "bottom",
 				align: "start",
 			},
@@ -37,7 +37,7 @@ export function startRepoDriverTour(onDone?: () => void) {
 			popover: {
 				title: "Interactive File Heatmap",
 				description:
-					"Tile size represents code complexity; color represents risk score. Use search or sort controls to find specific files.",
+					"Each tile is a file. Color shows its risk level: red Very High, orange High, yellow Moderate, green Low, gray not enough history. Hover a tile for a summary.",
 				side: "top",
 				align: "start",
 			},
@@ -46,7 +46,7 @@ export function startRepoDriverTour(onDone?: () => void) {
 			popover: {
 				title: "File Deep-Dive",
 				description:
-					"Click any tile on the heatmap to open the file's deep-dive view—featuring Risk Drift, SHAP breakdowns, and Root Cause metrics.",
+					"Click any tile to see why the file got its level, what to do about it, and how it is trending.",
 			},
 		},
 	];

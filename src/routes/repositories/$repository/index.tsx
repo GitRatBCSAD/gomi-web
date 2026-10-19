@@ -1,7 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, redirect, Link, useRouter } from "@tanstack/react-router";
-import { useEffect, useState, type JSX } from "react";
+import { useEffect, useMemo, useState, type JSX } from "react";
 
+import { stepLabel } from "@/components/analysis-loading-screen";
 import { RepoDriverTour, startRepoDriverTour } from "@/components/repo-driver-tour";
 import { TourTriggerButton } from "@/components/tour-trigger-button";
 import { H1, H2, P } from "@/components/typography";
@@ -14,19 +15,12 @@ import {
 	getJobStatus,
 	getRepositoriesQuery,
 } from "@/lib/github/api";
+import { riskScale } from "@/lib/interpret";
 
 import { Heatmap } from "./-components/repo-overview/heatmap";
 import { RepoSummaryCards } from "./-components/repo-overview/repo-summary-cards";
 
 const REPO_TOUR_KEY = "gomi:repo_detail_tour_seen";
-
-const STEP_LABELS: Record<string, string> = {
-	queued: "Queued...",
-	cloning: "Cloning...",
-	extracting_git: "Reading history...",
-	scanning_complexity: "Scanning...",
-	scoring_files: "Scoring...",
-};
 
 export const Route = createFileRoute("/repositories/$repository/")({
 	component: RouteComponent,
@@ -67,13 +61,10 @@ function RouteComponent(): JSX.Element {
 		.slice(-2)
 		.join("/");
 
-	const risky = analysis.fileResults.filter(
-		(f) => !f.lowConfidence && f.riskScore != null && f.riskScore >= analysis.threshold,
-	).length;
-	const acceptable = analysis.fileResults.filter(
-		(f) => !f.lowConfidence && f.riskScore != null && f.riskScore < analysis.threshold,
-	).length;
-	const lowConf = analysis.fileResults.filter((f) => f.lowConfidence).length;
+	const scale = useMemo(
+		() => riskScale(analysis.fileResults, analysis.threshold),
+		[analysis.fileResults, analysis.threshold],
+	);
 
 	const analyzeMutation = useMutation({
 		mutationFn: analyzeRepository,
@@ -117,10 +108,7 @@ function RouteComponent(): JSX.Element {
 	}, [jobQuery.data, pendingJobId, queryClient, router, repository]);
 
 	const isBusy = analyzeMutation.isPending || pendingJobId !== null;
-	const currentStep =
-		pendingJobId && jobQuery.data?.step
-			? (STEP_LABELS[jobQuery.data.step] ?? "Analyzing...")
-			: null;
+	const currentStep = pendingJobId && jobQuery.data?.step ? stepLabel(jobQuery.data.step) : null;
 
 	const handleDismissTour = () => {
 		localStorage.setItem(REPO_TOUR_KEY, "1");
@@ -161,9 +149,13 @@ function RouteComponent(): JSX.Element {
 
 				<CardContent className="flex items-center gap-4">
 					<Badge>Public</Badge>
+					<P className="text-muted-foreground text-sm">
+						Based on the last 6 months of changes on{" "}
+						<span className="font-fira-mono">{analysis.defaultBranch}</span>.
+					</P>
 					{(analyzeMutation.isError || jobError) && (
 						<P className="text-destructive text-sm">
-							Reanalysis failed:{" "}
+							Could not re-analyze this repository:{" "}
 							{jobError ?? analyzeMutation.error?.message ?? "Unknown error"}
 						</P>
 					)}
@@ -172,10 +164,8 @@ function RouteComponent(): JSX.Element {
 
 			<div id="tour-repo-summary">
 				<RepoSummaryCards
-					totalFiles={analysis.fileResults.length}
-					risky={risky}
-					acceptable={acceptable}
-					lowConf={lowConf}
+					fileResults={analysis.fileResults}
+					scale={scale}
 					selectedFilter={selectedFilter}
 					onSelectFilter={setSelectedFilter}
 				/>
@@ -184,7 +174,7 @@ function RouteComponent(): JSX.Element {
 			<div id="tour-repo-heatmap">
 				<Heatmap
 					fileResults={analysis.fileResults}
-					threshold={analysis.threshold}
+					scale={scale}
 					repository={repoName}
 					filter={selectedFilter}
 					onFilterChange={setSelectedFilter}
@@ -196,8 +186,8 @@ function RouteComponent(): JSX.Element {
 					<div className="bg-background-900 border-border/40 flex w-full max-w-md flex-col gap-4 rounded-2xl border p-6 shadow-2xl">
 						<H2 variant="h4">Reanalyze {repoName}?</H2>
 						<P className="text-muted-foreground text-sm leading-relaxed">
-							Are you sure you want to reanalyze {repoName}? This will re-run static
-							code analysis and sentiment extraction.
+							Are you sure you want to reanalyze {repoName}? Gomi will re-read the
+							change history, re-measure code complexity and re-score every file.
 						</P>
 						<div className="flex justify-end gap-3 pt-2">
 							<Button

@@ -18,7 +18,7 @@ export function GlossaryHint({
 	term: GlossaryKey;
 	side?: "top" | "bottom" | "left" | "right";
 }): JSX.Element {
-	const { title, definition, href } = GLOSSARY[term];
+	const { title, definition, reading, href } = GLOSSARY[term];
 	return (
 		<Tooltip>
 			<TooltipTrigger
@@ -33,6 +33,10 @@ export function GlossaryHint({
 			>
 				<P className="font-fira-mono-bold">{title}</P>
 				<P className="text-muted-foreground"> {definition} </P>
+				<P className="text-sm">
+					<span className="font-fira-mono-bold">How to read it: </span>
+					{reading}
+				</P>
 				<a
 					href={href}
 					target="_blank"

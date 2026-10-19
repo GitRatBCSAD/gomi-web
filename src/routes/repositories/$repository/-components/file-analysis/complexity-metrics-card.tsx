@@ -5,6 +5,28 @@ import { H1, P } from "@/components/typography";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import type { FileRiskResult } from "@/lib/github/model";
 import type { GlossaryKey } from "@/lib/glossary";
+import {
+	ccnLabel,
+	ccnTone,
+	lowInfoLabel,
+	percentileLabel,
+	percentileTone,
+	type Tone,
+} from "@/lib/interpret";
+
+const TONE_COLOR: Record<Tone, string> = {
+	bad: "var(--destructive-500)",
+	warn: "var(--caution-500)",
+	neutral: "var(--foreground)",
+	good: "var(--success-500)",
+};
+
+/** Share of files in the repo with a strictly lower value (0-1). */
+function rankIn(all: FileRiskResult[], get: (f: FileRiskResult) => number, v: number): number {
+	return all.length ? all.filter((f) => get(f) < v).length / all.length : 0;
+}
+
+const higherThan = (pct: number) => `Higher than ${Math.round(pct * 100)}% of files in this repo`;
 
 export function ComplexityMetricsCard({
 	file,
@@ -15,173 +37,126 @@ export function ComplexityMetricsCard({
 	allFiles?: FileRiskResult[];
 	id?: string;
 }): JSX.Element {
-	const calculateMetricTag = (
-		getValue: (f: FileRiskResult) => number,
-		currentValue: number,
-		decimals = 2,
-	) => {
-		const avg =
-			allFiles.length > 0
-				? allFiles.reduce((acc, f) => acc + getValue(f), 0) / allFiles.length
-				: 0;
-		const diff = currentValue - avg;
-		const pctOver = avg > 0 ? Math.round((diff / avg) * 100) : 0;
-		const isOver = diff > 0;
-		const tag = isOver
-			? `REPO AVG: ${avg.toFixed(decimals)} · ${pctOver}% OVER`
-			: `REPO AVG: ${avg.toFixed(decimals)} · WITHIN AVG`;
-		return { tag, isOver };
-	};
-
-	const metricComplexity = calculateMetricTag((f) => f.complexityScore, file.complexityScore);
-	const metricEntropy = calculateMetricTag((f) => f.changeEntropy, file.changeEntropy);
-	const metricNdev = calculateMetricTag((f) => f.ndevScore, file.ndevScore);
-	const metricAge = calculateMetricTag((f) => f.ageScore, file.ageScore);
-	const metricLowInfo = calculateMetricTag((f) => f.lowInfoRatio, file.lowInfoRatio);
-	const metricCommits = calculateMetricTag((f) => f.commitCount, file.commitCount, 0);
-	const metricCcn = calculateMetricTag((f) => f.avgCcn, file.avgCcn, 1);
-	const metricNloc = calculateMetricTag((f) => f.avgNloc, file.avgNloc, 1);
+	const commitsPct = rankIn(allFiles, (f) => f.commitCount, file.commitCount);
+	const nlocPct = rankIn(allFiles, (f) => f.avgNloc, file.avgNloc);
 
 	const metrics: {
 		label: string;
 		term: GlossaryKey;
-		value: string;
+		verdict: string;
+		tone: Tone;
 		desc: string;
-		tag: string;
-		isOver: boolean;
+		detail: string;
 	}[] = [
 		{
-			label: "Complexity score",
+			label: "Overall complexity",
 			term: "complexity-score",
-			value: file.complexityScore.toFixed(2),
-			desc: "normalized Lizard complexity",
-			tag: metricComplexity.tag,
-			isOver: metricComplexity.isOver,
+			verdict: percentileLabel(file.complexityScore),
+			tone: percentileTone(file.complexityScore),
+			desc: "Branching logic and function length combined.",
+			detail: higherThan(file.complexityScore),
 		},
 		{
-			label: "Change entropy",
-			term: "change-entropy",
-			value: file.changeEntropy.toFixed(2),
-			desc: "how dispersed edits are across the file",
-			tag: metricEntropy.tag,
-			isOver: metricEntropy.isOver,
-		},
-		{
-			label: "NDev score",
-			term: "ndev",
-			value: file.ndevScore.toFixed(2),
-			desc: "distinct developers who touched it",
-			tag: metricNdev.tag,
-			isOver: metricNdev.isOver,
-		},
-		{
-			label: "Age score",
-			term: "age-score",
-			value: file.ageScore.toFixed(2),
-			desc: "normalized churn recency",
-			tag: metricAge.tag,
-			isOver: metricAge.isOver,
-		},
-		{
-			label: "Low info ratio",
-			term: "low-info-ratio",
-			value: file.lowInfoRatio.toFixed(2),
-			desc: "share of low-information commits",
-			tag: metricLowInfo.tag,
-			isOver: metricLowInfo.isOver,
-		},
-		{
-			label: "Number of commits",
-			term: "n-commits",
-			value: String(file.commitCount),
-			desc: "commits in analysis window",
-			tag: metricCommits.tag,
-			isOver: metricCommits.isOver,
-		},
-		{
-			label: "Avg CCN",
+			label: "Decision paths per function",
 			term: "cyclomatic-complexity",
-			value: file.avgCcn.toFixed(1),
-			desc: "average cyclomatic complexity",
-			tag: metricCcn.tag,
-			isOver: metricCcn.isOver,
+			verdict: ccnLabel(file.avgCcn),
+			tone: ccnTone(file.avgCcn),
+			desc: "Cyclomatic complexity (McCabe): 1–10 simple, 11–20 moderate, 21–50 complex, over 50 untestable.",
+			detail: `Average ${file.avgCcn.toFixed(1)} paths per function`,
 		},
 		{
-			label: "Avg NLOC",
+			label: "Function length",
 			term: "nloc",
-			value: file.avgNloc.toFixed(1),
-			desc: "average lines per function",
-			tag: metricNloc.tag,
-			isOver: metricNloc.isOver,
+			verdict: percentileLabel(nlocPct),
+			tone: percentileTone(nlocPct),
+			desc: "Average lines of code per function.",
+			detail: `About ${Math.round(file.avgNloc)} lines · ${higherThan(nlocPct).toLowerCase()}`,
+		},
+		{
+			label: "How scattered changes are",
+			term: "change-entropy",
+			verdict: percentileLabel(file.changeEntropy),
+			tone: percentileTone(file.changeEntropy),
+			desc: "Whether edits to this file usually come with edits to many other files.",
+			detail: higherThan(file.changeEntropy),
+		},
+		{
+			label: "Number of developers",
+			term: "ndev",
+			verdict: percentileLabel(file.ndevScore),
+			tone: percentileTone(file.ndevScore),
+			desc: "How many different people changed this file.",
+			detail: higherThan(file.ndevScore),
+		},
+		{
+			label: "File age",
+			term: "age-score",
+			verdict: percentileLabel(file.ageScore),
+			tone: "neutral",
+			desc: "How long the file has been actively changed, from its first to its last change.",
+			detail: higherThan(file.ageScore),
+		},
+		{
+			label: "Number of changes",
+			term: "n-commits",
+			verdict: percentileLabel(commitsPct),
+			tone: percentileTone(commitsPct),
+			desc: "Commits that touched this file in the last 6 months.",
+			detail: `${file.commitCount} changes · ${higherThan(commitsPct).toLowerCase()}`,
+		},
+		{
+			label: "Commit message detail",
+			term: "low-info-ratio",
+			verdict: lowInfoLabel(file.lowInfoRatio),
+			tone: file.lowInfoRatio >= 0.5 ? "warn" : "neutral",
+			desc: "Messages under 5 words say too little to judge their tone.",
+			detail: `${Math.round(file.lowInfoRatio * 100)}% of messages are under 5 words`,
 		},
 	];
+
+	// Takeaway first: name the measures that stand out instead of making the reader scan 8 tiles.
+	const standOut = metrics.filter((m) => m.tone === "bad" || m.tone === "warn");
+	const takeaway =
+		standOut.length === 0
+			? "Nothing stands out: this file looks typical for this repository."
+			: `${standOut.length} of ${metrics.length} measures stand out: ${standOut
+					.map((m) => m.label.toLowerCase())
+					.join(", ")}.`;
 
 	return (
 		<Card id={id}>
 			<CardHeader>
-				<H1 variant="h4">Complexity metrics</H1>
+				<H1 variant="h4">Code structure and change history</H1>
 				<P className="text-muted-foreground">
-					Lizard static analysis + repository process metrics
+					How this file compares with the rest of the repository.
 				</P>
+				<P className="text-foreground mt-2">{takeaway}</P>
 			</CardHeader>
 			<CardContent>
-				<div
-					style={{
-						display: "grid",
-						gridTemplateColumns: "repeat(2, 1fr)",
-						gap: "0.75rem",
-					}}
-				>
-					{metrics.map(({ label, term, value, desc, tag, isOver }) => (
+				<div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+					{metrics.map(({ label, term, verdict, tone, desc, detail }) => (
 						<div
 							key={label}
-							style={{
-								borderRadius: "0.5rem",
-								border: "1px solid color-mix(in srgb, var(--border) 30%, transparent)",
-								padding: "1rem",
-								backgroundColor: "var(--background-800)",
-							}}
+							className="rounded-lg border p-4"
+							style={{ backgroundColor: "var(--background-800)" }}
 						>
-							<div
-								style={{
-									display: "flex",
-									alignItems: "flex-start",
-									justifyContent: "space-between",
-									gap: "0.5rem",
-								}}
+							<P className="font-fira-mono text-muted-foreground text-sm">
+								{label}
+								<GlossaryHint term={term} />
+							</P>
+							<P
+								className="font-fira-mono-bold mt-1 text-lg"
+								style={{ color: TONE_COLOR[tone] }}
 							>
-								<P className="font-fira-mono-bold text-sm">
-									{label}
-									<GlossaryHint term={term} />
-								</P>
-								<P
-									className="font-fira-mono-bold shrink-0 text-lg tabular-nums"
-									style={{ color: "var(--caution-500)" }}
-								>
-									{value}
-								</P>
-							</div>
+								{verdict}
+							</P>
 							<P className="text-muted-foreground mt-1 text-sm">{desc}</P>
-							{tag && (
-								<div className="mt-2.5">
-									<span
-										className="font-fira-mono-bold rounded px-2 py-0.5 text-[10px] tracking-wider uppercase"
-										style={{
-											backgroundColor: isOver
-												? "var(--caution-900)"
-												: "var(--background-700)",
-											color: isOver
-												? "var(--caution-500)"
-												: "var(--text-subtle)",
-											border: isOver
-												? "1px solid color-mix(in srgb, var(--caution-500) 30%, transparent)"
-												: "1px solid transparent",
-										}}
-									>
-										{tag}
-									</span>
-								</div>
-							)}
+							<P
+								className="font-fira-mono mt-2 text-xs"
+								style={{ color: "var(--text-subtle)" }}
+							>
+								{detail}
+							</P>
 						</div>
 					))}
 				</div>

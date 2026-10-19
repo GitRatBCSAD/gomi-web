@@ -4,7 +4,7 @@ import { GithubIcon, SearchIcon, SettingsIcon } from "lucide-react";
 import { useEffect, useState, type JSX } from "react";
 import * as v from "valibot";
 
-import { AnalysisLoadingScreen } from "@/components/analysis-loading-screen";
+import { AnalysisLoadingScreen, stepLabel } from "@/components/analysis-loading-screen";
 import type { UserProfile } from "@/components/navbar";
 import { OnboardingTour, startOnboardingDriverTour } from "@/components/onboarding-tour";
 import { TourTriggerButton } from "@/components/tour-trigger-button";
@@ -23,18 +23,6 @@ import {
 } from "@/lib/github/api";
 
 type RepoFilter = "all" | "unanalyzed" | "analyzed";
-
-const STEP_LABELS: Record<string, string> = {
-	queued: "Queued...",
-	cloning: "Cloning...",
-	extracting_git: "Reading history...",
-	scanning_complexity: "Scanning...",
-	scoring_files: "Scoring...",
-};
-
-function stepLabel(step: string): string {
-	return STEP_LABELS[step] ?? "Analyzing...";
-}
 
 const authMeQueryOptions = {
 	queryKey: ["authMe"],
@@ -340,9 +328,7 @@ function RouteComponent(): JSX.Element {
 									</Badge>
 								</CardHeader>
 								<CardContent className="space-y-1">
-									<CardTitle className="truncate text-xl">
-										{repo.name}
-									</CardTitle>
+									<CardTitle className="truncate text-xl">{repo.name}</CardTitle>
 									<P className="text-muted-foreground text-sm">
 										{cached ? "Analyzed" : "No cached analysis found."}
 									</P>

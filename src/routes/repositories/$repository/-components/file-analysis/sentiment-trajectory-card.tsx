@@ -3,6 +3,7 @@ import {
 	CartesianGrid,
 	Line,
 	LineChart,
+	ReferenceDot,
 	ReferenceLine,
 	Tooltip,
 	XAxis,
@@ -14,6 +15,17 @@ import { H1, P } from "@/components/typography";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { ChartContainer } from "@/components/ui/chart";
 import type { FileRiskResult } from "@/lib/github/model";
+import {
+	CAUTION_THRESHOLD,
+	fmtDate,
+	MIN_TREND_POINTS,
+	readableCommits,
+	toneLabel,
+	worryTrend,
+	type Trend,
+} from "@/lib/interpret";
+
+import { computeDrift } from "./drift-utils";
 
 type SentimentCode = "caution" | "neutral" | "satisfaction";
 
@@ -22,6 +34,19 @@ const SENTIMENT_COLOR: Record<SentimentCode, string> = {
 	neutral: "var(--muted-foreground)",
 	satisfaction: "var(--success-500)",
 };
+
+const TREND_COLOR: Record<Trend, string> = {
+	up: "var(--destructive-500)",
+	down: "var(--success-500)",
+	steady: "var(--text-subtle)",
+};
+
+// Dot colour follows the chart, not the argmax label: red only above the worried line,
+// so the caption "dots above the line read as worried" always matches what is drawn.
+function dotCode(prob: number, argmax: string | undefined): SentimentCode {
+	if (prob >= CAUTION_THRESHOLD) return "caution";
+	return argmax === "satisfaction" ? "satisfaction" : "neutral";
+}
 
 type ChartPoint = {
 	index: number;
@@ -49,9 +74,9 @@ function TooltipContent({
 		>
 			<P className="truncate text-sm font-bold">"{d.message}"</P>
 			<div className="font-fira-mono text-muted-foreground mt-1 flex items-center justify-between gap-4 text-xs">
-				<span>{d.hash}</span>
+				<span>{d.date}</span>
 				<span className="font-bold" style={{ color }}>
-					{d.sentimentCode}
+					{toneLabel(d.sentimentCode)} tone
 				</span>
 			</div>
 		</div>
@@ -60,38 +85,58 @@ function TooltipContent({
 
 export function SentimentTrajectoryCard({
 	file,
-	threshold,
 	id,
 }: {
 	file: FileRiskResult;
-	threshold: number;
 	id?: string;
 }): JSX.Element | null {
 	const [activeIdx, setActiveIdx] = useState<number | null>(null);
 
-	if (file.lowConfidence || file.commitSentiments.length < 10) {
-		return null;
+	const readable = readableCommits(file.commitSentiments);
+	const title = (
+		<P className="text-muted-foreground text-sm">
+			How worried commit messages sounded over time
+			<GlossaryHint term="sentiment-trajectory" />
+		</P>
+	);
+
+	// Never hide silently: say why there is no trend.
+	if (file.lowConfidence || readable.length < MIN_TREND_POINTS) {
+		return (
+			<Card id={id}>
+				<CardHeader>
+					{title}
+					<H1 variant="h4">Not enough to show a trend yet</H1>
+					<P className="text-muted-foreground">
+						{readable.length === 0
+							? "None of this file's commit messages are long enough to read."
+							: `Only ${readable.length} of the ${MIN_TREND_POINTS} readable commit messages needed to draw a trend.`}{" "}
+						Messages under 5 words are skipped.
+					</P>
+				</CardHeader>
+			</Card>
+		);
 	}
 
-	const commits = [...file.commitSentiments].sort((a, b) => a.committedAt - b.committedAt);
-	if (commits.length === 0) return null;
+	const trend = worryTrend(readable) as NonNullable<ReturnType<typeof worryTrend>>;
+	const drift = computeDrift(readable, file.shapBreakdown);
 
-	const data: ChartPoint[] = commits
-		.filter((c) => c.riskProbability != null)
-		.map((c, idx) => {
-			const prob = c.riskProbability as number;
-			const date = new Date(c.committedAt * 1000).toLocaleDateString("en-US", {
-				month: "short",
-				day: "numeric",
-			});
-			const sentimentCode: SentimentCode =
-				c.sentiment?.code === "caution" || c.sentiment?.code === "satisfaction"
-					? c.sentiment.code
-					: "neutral";
-			return { index: idx, prob, hash: c.hash.slice(0, 7), message: c.message, date, sentimentCode };
-		});
+	const data: ChartPoint[] = readable.map((c, idx) => {
+		const prob = c.riskProbability as number;
+		return {
+			index: idx,
+			prob,
+			hash: c.hash.slice(0, 7),
+			message: c.message,
+			date: fmtDate(c.committedAt),
+			sentimentCode: dotCode(prob, c.sentiment?.code),
+		};
+	});
 
-	if (data.length < 10) return null;
+	const jumpIdx = drift?.rootCauseCommit
+		? readable.findIndex((c) => c.hash === drift.rootCauseCommit?.hash)
+		: -1;
+	const jumpLabel = drift?.spikeDirection === "down" ? "Biggest drop" : "Biggest jump";
 
 	const dotRenderer = (props: {
 		cx?: number;
@@ -119,19 +164,21 @@ export function SentimentTrajectoryCard({
 	return (
 		<Card id={id}>
 			<CardHeader>
-				<H1 variant="h4">
-					Sentiment Trajectory
-					<GlossaryHint term="sentiment-trajectory" />
+				{title}
+				<H1 variant="h4" style={{ color: TREND_COLOR[trend.trend] }}>
+					{trend.headline}
 				</H1>
-				<P className="text-muted-foreground">
-					Per-commit caution probability over the 6-month analysis window
+				<P className="text-foreground">{trend.sentence}</P>
+				<P className="text-muted-foreground text-sm">
+					Each dot is one change, oldest on the left. Dots above the dashed line read as
+					worried; green dots read as positive.
 					<GlossaryHint term="caution-probability" />
 				</P>
 			</CardHeader>
 			<CardContent>
 				<ChartContainer
 					config={{
-						prob: { label: "p(caution)", color: "var(--primary-500)" },
+						prob: { label: "Worry level", color: "var(--primary-500)" },
 					}}
 					className="h-[220px] w-full"
 				>
@@ -154,35 +201,48 @@ export function SentimentTrajectoryCard({
 							type="number"
 							domain={[0, data.length - 1]}
 							tickFormatter={(idx: number) => data[idx]?.date ?? ""}
-							tick={{ fontSize: 9, fill: "var(--muted-foreground)", fontFamily: "var(--font-fira-mono)" }}
+							tick={{
+								fontSize: 9,
+								fill: "var(--muted-foreground)",
+								fontFamily: "var(--font-fira-mono)",
+							}}
 							interval="preserveStartEnd"
 							tickLine={false}
 							axisLine={false}
 						/>
 						<YAxis
 							domain={[0, 1]}
-							ticks={[0, 0.25, 0.5, 0.75, 1.0]}
-							tick={{ fontSize: 9, fill: "var(--muted-foreground)", fontFamily: "var(--font-fira-mono)" }}
+							ticks={[0, 0.5, 1.0]}
+							tickFormatter={(v: number) =>
+								v === 0 ? "Calm" : v === 1 ? "Worried" : "Mixed"
+							}
+							tick={{
+								fontSize: 9,
+								fill: "var(--muted-foreground)",
+								fontFamily: "var(--font-fira-mono)",
+							}}
 							tickLine={false}
 							axisLine={false}
-							width={32}
+							width={56}
 						/>
 						<Tooltip
 							content={(props) => (
 								<TooltipContent
 									active={props.active}
-									payload={props.payload as ReadonlyArray<{ payload: ChartPoint }>}
+									payload={
+										props.payload as ReadonlyArray<{ payload: ChartPoint }>
+									}
 								/>
 							)}
 							cursor={{ stroke: "var(--border)", strokeWidth: 1 }}
 						/>
 						<ReferenceLine
-							y={threshold}
+							y={CAUTION_THRESHOLD}
 							stroke="#eab308"
 							strokeDasharray="4 4"
 							strokeWidth={1.5}
 							label={{
-								value: `MODEL THRESHOLD ${threshold.toFixed(2)}`,
+								value: "WORRIED LINE",
 								position: "insideTopRight",
 								fontSize: 9,
 								fill: "#eab308",
@@ -190,6 +250,23 @@ export function SentimentTrajectoryCard({
 								fontWeight: "bold",
 							}}
 						/>
+						{jumpIdx >= 0 && (
+							<ReferenceDot
+								x={jumpIdx}
+								y={data[jumpIdx].prob}
+								r={9}
+								fill="none"
+								stroke="var(--foreground)"
+								strokeWidth={1.5}
+								label={{
+									value: jumpLabel,
+									position: "top",
+									fontSize: 9,
+									fill: "var(--foreground)",
+									fontFamily: "var(--font-fira-mono)",
+								}}
+							/>
+						)}
 						<Line
 							type="monotone"
 							dataKey="prob"
@@ -202,6 +279,18 @@ export function SentimentTrajectoryCard({
 						/>
 					</LineChart>
 				</ChartContainer>
+				<details className="mt-3">
+					<summary className="font-fira-mono text-muted-foreground cursor-pointer text-xs">
+						Show model numbers
+					</summary>
+					<P className="font-fira-mono mt-2 text-xs" style={{ color: "var(--text-subtle)" }}>
+						Average worry level (p(caution)) {trend.earlierAvg.toFixed(2)} →{" "}
+						{trend.laterAvg.toFixed(2)} ({trend.pctChange > 0 ? "+" : ""}
+						{trend.pctChange}%) · ±10% counts as a trend · worried line at{" "}
+						{CAUTION_THRESHOLD} · {data.length} readable commits
+						{drift ? ` · pattern: ${drift.category}` : ""}
+					</P>
+				</details>
 			</CardContent>
 		</Card>
 	);

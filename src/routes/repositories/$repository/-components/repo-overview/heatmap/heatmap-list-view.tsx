@@ -2,21 +2,18 @@ import { useNavigate } from "@tanstack/react-router";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useRef, type JSX } from "react";
 
+import { RiskLabel } from "@/components/risk-label";
 import { P } from "@/components/typography";
+import { cautionShareLabel } from "@/lib/interpret";
 
-import { RiskBadge, SentimentBar } from "./heatmap-tile";
+import { SentimentBar } from "./heatmap-tile";
 import type { FileInfo } from "./heatmap-utils";
 
-const ROW_HEIGHT = 44;
+const ROW_HEIGHT = 60;
 const LIST_VIEWPORT_HEIGHT = 600;
 
-function ListRow(props: {
-	file: FileInfo;
-	threshold: number;
-	even: boolean;
-	onClick: () => void;
-}): JSX.Element {
-	const { file, threshold, even, onClick } = props;
+function ListRow(props: { file: FileInfo; even: boolean; onClick: () => void }): JSX.Element {
+	const { file, even, onClick } = props;
 	return (
 		<tr
 			className="border-border/40 group hover:bg-muted/30 cursor-pointer border-b transition-colors last:border-0"
@@ -36,21 +33,22 @@ function ListRow(props: {
 					ok={file.sentimentOk}
 					lowConf={file.lowConf}
 				/>
+				{!file.lowConf && file.commits > 0 && (
+					<P className="text-muted-foreground mt-1 text-xs">
+						{cautionShareLabel(file.sentimentRisky)}
+					</P>
+				)}
 			</td>
 			<td className="px-4 py-3">
-				<RiskBadge file={file} threshold={threshold} />
+				<RiskLabel band={file.band} score={file.lowConf ? null : file.risk} size="xs" />
 			</td>
 			<td className="px-4 py-3 text-sm text-white">{file.commits}</td>
 		</tr>
 	);
 }
 
-export function HeatmapListView(props: {
-	files: FileInfo[];
-	threshold: number;
-	repository: string;
-}): JSX.Element {
-	const { files, threshold, repository } = props;
+export function HeatmapListView(props: { files: FileInfo[]; repository: string }): JSX.Element {
+	const { files, repository } = props;
 	// ponytail: hoisted — avoids N useNavigate hook calls inside each ListRow
 	const navigate = useNavigate();
 	const parentRef = useRef<HTMLDivElement>(null);
@@ -82,19 +80,19 @@ export function HeatmapListView(props: {
 			className="w-full overflow-x-auto"
 		>
 			<table className="font-fira-mono w-full min-w-[520px]">
-				<thead className="sticky top-0 z-10 bg-card">
+				<thead className="bg-card sticky top-0 z-10">
 					<tr className="border-border border-b">
 						<th className="text-muted-foreground px-4 py-2.5 text-left text-sm font-medium">
 							File
 						</th>
 						<th className="text-muted-foreground px-4 py-2.5 text-left text-sm font-medium">
-							Sentiment
+							Commit tone
 						</th>
 						<th className="text-muted-foreground px-4 py-2.5 text-left text-sm font-medium">
 							Risk
 						</th>
 						<th className="text-muted-foreground px-4 py-2.5 text-left text-sm font-medium">
-							Commits
+							Changes
 						</th>
 					</tr>
 				</thead>
@@ -110,7 +108,6 @@ export function HeatmapListView(props: {
 							<ListRow
 								key={`${f.dir}${f.name}`}
 								file={f}
-								threshold={threshold}
 								even={vRow.index % 2 === 0}
 								onClick={() =>
 									navigate({

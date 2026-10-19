@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import type { FileRiskResult } from "@/lib/github/model";
+import { cautionShareLabel, fmtDate, fmtPct, toneLabel } from "@/lib/interpret";
 
 const PAGE_SIZE = 5;
 
@@ -19,7 +20,7 @@ function SentimentBadge({ code }: { code: string | null }): JSX.Element {
 					borderColor: "transparent",
 				}}
 			>
-				Caution
+				Worried
 			</Badge>
 		);
 	}
@@ -33,7 +34,7 @@ function SentimentBadge({ code }: { code: string | null }): JSX.Element {
 					borderColor: "transparent",
 				}}
 			>
-				Satisfaction
+				Positive
 			</Badge>
 		);
 	}
@@ -60,28 +61,21 @@ export function CommitSentimentCard({
 }): JSX.Element | null {
 	const [page, setPage] = useState(1);
 
-	if (file.lowConfidence || file.commitSentiments.length < 10) {
-		return null;
-	}
+	if (file.lowConfidence) return null;
 
 	const commits = [...file.commitSentiments].sort((a, b) => b.committedAt - a.committedAt);
 	if (commits.length === 0) return null;
 
 	const total = commits.length;
-	let cautionCount = 0;
-	let neutralCount = 0;
-	let satisfactionCount = 0;
-
-	for (const c of commits) {
-		const code = c.sentiment?.code ?? null;
-		if (code === "caution") cautionCount++;
-		else if (code === "satisfaction") satisfactionCount++;
-		else neutralCount++;
-	}
-
-	const cautionPct = Math.round((cautionCount / total) * 100);
-	const neutralPct = Math.round((neutralCount / total) * 100);
-	const satisfactionPct = Math.round((satisfactionCount / total) * 100);
+	const count = (code: string) => commits.filter((c) => c.sentiment?.code === code).length;
+	const tooShort = commits.filter((c) => !c.sentiment).length;
+	const labelled = total - tooShort;
+	const groups = [
+		{ code: "caution", color: "var(--destructive-500)" },
+		{ code: "neutral", color: "var(--text-subtle)" },
+		{ code: "satisfaction", color: "var(--success-500)" },
+	].map((g) => ({ ...g, n: count(g.code) }));
+	const cautionShare = labelled ? groups[0].n / labelled : 0;
 
 	const totalPages = Math.ceil(commits.length / PAGE_SIZE);
 	const startIndex = (page - 1) * PAGE_SIZE;
@@ -92,85 +86,44 @@ export function CommitSentimentCard({
 			<CardHeader>
 				<div className="flex items-center justify-between">
 					<div>
-						<H1 variant="h4">Commit sentiment</H1>
+						<H1 variant="h4">Tone of commit messages</H1>
 						<P className="text-muted-foreground mt-1 text-sm">
-							{total} COMMITS ANALYZED BY DISTILBERT · 6-MONTH WINDOW
+							How developers described their {total} changes to this file in the last
+							6 months
 						</P>
 					</div>
 				</div>
 			</CardHeader>
 			<CardContent className="space-y-4">
-				<div className="grid grid-cols-3 gap-3">
-					<div
-						style={{
-							borderRadius: "0.5rem",
-							border: "1px solid color-mix(in srgb, var(--border) 30%, transparent)",
-							padding: "1rem",
-							backgroundColor: "var(--background-800)",
-						}}
-					>
-						<H2 variant="h4" className="text-sm" style={{ color: "var(--destructive-500)" }}>
-							Caution
-						</H2>
-						<div className="mt-1 flex items-baseline justify-between">
-							<H2 variant="h4" style={{ color: "var(--destructive-500)" }}>
-								{cautionPct}%
+				<P className="text-foreground text-base">
+					<span className="font-fira-mono-bold">{cautionShareLabel(cautionShare)}.</span>{" "}
+					{groups[0].n} of {labelled} readable messages sound worried or urgent.
+					{tooShort > 0 && ` ${tooShort} were too short to read.`}
+				</P>
+				<div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+					{groups.map((g) => (
+						<div
+							key={g.code}
+							className="rounded-lg border p-4"
+							style={{ backgroundColor: "var(--background-800)" }}
+						>
+							<H2 variant="h4" className="text-sm" style={{ color: g.color }}>
+								{toneLabel(g.code)} tone
 							</H2>
-							<P className="text-muted-foreground text-sm uppercase">
-								{cautionCount} OF {total} COMMITS
-							</P>
+							<div className="mt-1 flex items-baseline justify-between">
+								<H2 variant="h4" style={{ color: g.color }}>
+									{labelled ? fmtPct(g.n / labelled) : "—"}
+								</H2>
+								<P className="text-muted-foreground text-sm">
+									{g.n} of {labelled} messages
+								</P>
+							</div>
 						</div>
-					</div>
-
-					<div
-						style={{
-							borderRadius: "0.5rem",
-							border: "1px solid color-mix(in srgb, var(--border) 30%, transparent)",
-							padding: "1rem",
-							backgroundColor: "var(--background-800)",
-						}}
-					>
-						<H2 variant="h4" className="text-sm" style={{ color: "var(--text-subtle)" }}>
-							Neutral
-						</H2>
-						<div className="mt-1 flex items-baseline justify-between">
-							<H2 variant="h4" style={{ color: "var(--text-subtle)" }}>
-								{neutralPct}%
-							</H2>
-							<P className="text-muted-foreground text-sm uppercase">
-								{neutralCount} OF {total} COMMITS
-							</P>
-						</div>
-					</div>
-
-					<div
-						style={{
-							borderRadius: "0.5rem",
-							border: "1px solid color-mix(in srgb, var(--border) 30%, transparent)",
-							padding: "1rem",
-							backgroundColor: "var(--background-800)",
-						}}
-					>
-						<H2 variant="h4" className="text-sm" style={{ color: "var(--success-500)" }}>
-							Satisfaction
-						</H2>
-						<div className="mt-1 flex items-baseline justify-between">
-							<H2 variant="h4" style={{ color: "var(--success-500)" }}>
-								{satisfactionPct}%
-							</H2>
-							<P className="text-muted-foreground text-sm uppercase">
-								{satisfactionCount} OF {total} COMMITS
-							</P>
-						</div>
-					</div>
+					))}
 				</div>
 				<div className="space-y-2">
 					{pageCommits.map((c) => {
-						const date = new Date(c.committedAt * 1000).toLocaleDateString("en-US", {
-							month: "short",
-							day: "numeric",
-							year: "numeric",
-						});
+						const date = fmtDate(c.committedAt);
 
 						return (
 							<div
@@ -194,11 +147,16 @@ export function CommitSentimentCard({
 											gap: "0.5rem",
 										}}
 									>
-										<span className="font-fira-mono text-muted-foreground text-sm font-bold">
-											{c.hash.slice(0, 7)}
-										</span>
 										<span className="font-fira-mono text-muted-foreground text-sm">
 											{date}
+											{c.author ? ` · ${c.author}` : ""}
+										</span>
+										<span
+											className="font-fira-mono text-xs"
+											style={{ color: "var(--text-subtle)" }}
+											title="Commit ID"
+										>
+											{c.hash.slice(0, 7)}
 										</span>
 									</div>
 									<P
@@ -222,7 +180,7 @@ export function CommitSentimentCard({
 												borderColor: "transparent",
 											}}
 										>
-											Low info
+											Too short to read
 										</Badge>
 									) : (
 										<SentimentBadge code={c.sentiment?.code ?? null} />
@@ -234,7 +192,7 @@ export function CommitSentimentCard({
 				</div>
 
 				{totalPages > 1 && (
-					<div className="mt-4 flex items-center justify-between border-t border-border/40 pt-3">
+					<div className="border-border/40 mt-4 flex items-center justify-between border-t pt-3">
 						<span className="font-fira-mono text-muted-foreground text-sm tabular-nums">
 							Page {page} of {totalPages}
 						</span>

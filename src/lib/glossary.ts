@@ -3,6 +3,8 @@
 // the /guide reference page. Keep definitions jargon-free — the audience is a
 // non-specialist reading their own repo's risk report.
 
+import { BELOW_GATE } from "./interpret";
+
 export type GlossaryKey =
 	| "risk-score"
 	| "shap"
@@ -25,99 +27,129 @@ export interface GlossaryEntry {
 	title: string;
 	/** One or two plain-language sentences, no jargon. */
 	definition: string;
+	/** How to read the verbal label shown in the UI. Mirrors lib/interpret.ts. */
+	reading: string;
 	/** Authoritative external reference for "Learn more". */
 	href: string;
 }
 
 export const GLOSSARY: Record<GlossaryKey, GlossaryEntry> = {
 	"risk-score": {
-		title: "Risk score",
+		title: "Risk level",
 		definition:
-			"Gomi's overall estimate, from 0 to 1, that this file will need a bug fix soon. It blends how the code is built with how developers write about it.",
+			"Gomi's estimate of how likely it is that this file's changes in the last 6 months introduced a bug. It blends how the code is built with how developers write about it.",
+		reading:
+			"Shown as Low, Moderate, High or Very High. High starts at the model's warning line; Very High is above it and among the riskiest 20% of files in this repository.",
 		href: "https://www.google.com/search?q=what+is+technical+debt",
 	},
 	shap: {
-		title: "SHAP score",
+		title: "What drives the score (SHAP)",
 		definition:
-			"A way of splitting one prediction into each signal's share, so you can see exactly how much every factor pushed the risk score up or down.",
+			"A way of splitting one prediction into each signal's share, so you can see how much every factor pushed the risk up or down.",
+		reading:
+			"Main reason: 40% or more of the total push. Contributing factor: 15–40%. Minor factor: under 15%.",
 		href: "https://shap.readthedocs.io/en/latest/",
 	},
 	"base-rate": {
-		title: "Base rate",
+		title: "Typical starting point",
 		definition:
-			"The starting point of the score — the average risk across the whole repository, before this file's own signals are added on top.",
+			"The model's starting point for a typical file, before this file's own signals are added on top.",
+		reading: "Files that end up below this starting point are labelled Low risk.",
 		href: "https://www.google.com/search?q=what+is+base+rate+statistics",
 	},
 	"sentiment-score": {
-		title: "Sentiment score",
+		title: "Commit message tone",
 		definition:
-			"The average caution level across all of this file's commit messages. Higher means more worried or frustrated language over time.",
+			"The average worry level across this file's commit messages. Higher means more worried or frustrated language over time.",
+		reading:
+			"Mostly worried: half or more of the readable messages sound worried. Often: a quarter or more. Occasionally: fewer.",
 		href: "https://www.google.com/search?q=what+is+sentiment+analysis",
 	},
 	"caution-probability": {
-		title: "Caution probability",
+		title: "Worry level",
 		definition:
-			"For a single commit message, how strongly it reads as worried, frustrated, or cautious rather than upbeat — scored from 0 to 1.",
+			"For a single commit message, how strongly it reads as worried, frustrated, or cautious rather than upbeat.",
+		reading:
+			"Each message is labelled Worried, Neutral or Positive, whichever the model finds most likely.",
 		href: "https://www.google.com/search?q=what+is+sentiment+analysis",
 	},
 	"sentiment-trajectory": {
-		title: "Sentiment trajectory",
+		title: "Worry over time",
 		definition:
-			"A timeline of that caution level, commit by commit, so you can watch the mood around a file trend up or down over months.",
+			"A timeline of the worry level, commit by commit, so you can watch the mood around a file trend up or down over months.",
+		reading:
+			"Higher dots sound more worried. A change of 10% or more between the older and newer half counts as a trend.",
 		href: "https://www.google.com/search?q=what+is+exponential+moving+average",
 	},
 	"drift-category": {
-		title: "Drift category",
+		title: "Trend",
 		definition:
-			"A plain-language label for how a file's risk is trending — for example whether debt is piling up fast or a cleanup effort is working.",
+			"A plain-language label for how a file's risk is trending, for example whether debt is piling up fast or a cleanup effort is working.",
+		reading:
+			"Based on sudden jumps in worry level and on whether tone or code structure drives the score.",
 		href: "https://www.google.com/search?q=what+is+technical+debt",
 	},
 	"complexity-score": {
-		title: "Complexity score",
+		title: "Overall complexity",
 		definition:
-			"A single 0-to-1 rating of how structurally heavy the file is, combining function length and branching, ranked against the rest of the repo.",
+			"How structurally heavy the file is, combining function length and branching, ranked against the rest of the repo.",
+		reading:
+			"Lower than most: bottom 25% of files. Typical: middle 50%. Higher than most: top 25%. Among the highest: top 10%.",
 		href: "https://www.google.com/search?q=what+is+programming+complexity",
 	},
 	"cyclomatic-complexity": {
 		title: "Cyclomatic complexity",
 		definition:
 			"A count of how many different paths run through a function. More paths means more branches to test and more places a bug can hide.",
+		reading:
+			"Simple: 1–10. Moderately complex: 11–20. Complex, hard to test: 21–50. Very complex, untestable: over 50.",
 		href: "https://www.google.com/search?q=what+is+cyclomatic+complexity",
 	},
 	nloc: {
-		title: "NLOC",
+		title: "Function length",
 		definition:
 			"Average lines of code per function, ignoring blanks and comments. Longer functions are usually harder to read and change safely.",
+		reading:
+			"Compared with the other files in this repo using the same top-25% and top-10% cut-offs.",
 		href: "https://www.google.com/search?q=what+is+source+lines+of+code",
 	},
 	"change-entropy": {
-		title: "Change entropy",
+		title: "How scattered changes are",
 		definition:
-			"How scattered the edits to a file are. When lots of small changes touch many different parts, the file is churning in a messy, risky way.",
+			"How scattered the edits are: whether changes to this file usually come with changes to many other files at once.",
+		reading:
+			"Compared with the other files in this repo using the same top-25% and top-10% cut-offs.",
 		href: "https://www.google.com/search?q=what+is+entropy+information+theory",
 	},
 	ndev: {
-		title: "NDev",
+		title: "Number of developers",
 		definition:
-			"How many different developers have edited this file. When ownership is spread thin across many people, no one fully understands it.",
+			"How many different developers have edited this file. When ownership is spread thin, no one fully understands it.",
+		reading:
+			"Compared with the other files in this repo using the same top-25% and top-10% cut-offs.",
 		href: "https://www.microsoft.com/en-us/research/publication/dont-touch-my-code-examining-the-effects-of-ownership-on-software-quality/",
 	},
 	"age-score": {
-		title: "Age score",
+		title: "File age",
 		definition:
-			"How recently the file was last changed, ranked against the repo. Code left untouched for a long time can quietly rot as everything around it moves on.",
+			"How long this file has been actively changed: the time between its first and last change in the analysis window.",
+		reading:
+			"Higher than most means it has been worked on over a longer stretch than most files.",
 		href: "https://www.google.com/search?q=what+is+software+rot",
 	},
 	"low-info-ratio": {
-		title: "Low information ratio",
+		title: "Commit message detail",
 		definition:
-			"The share of commit messages too short to read for sentiment, like 'fix' or 'wip'. A high share means little is explained about the changes.",
+			"The share of commit messages too short to read for tone (under 5 words), like 'fix' or 'wip'.",
+		reading:
+			"Mostly vague: half or more of the messages are too short. Some vague: a quarter or more.",
 		href: "https://www.google.com/search?q=what+is+a+commit+version+control",
 	},
 	"n-commits": {
-		title: "Number of commits",
+		title: "How active the file is",
 		definition:
-			"How many times this file changed in the analysis window. Very active files carry more risk; too few, and the score is flagged as unreliable.",
+			"How often this file changed in the last 6 months. The model reads it on a log scale, so going from 1 to 5 changes counts more than going from 50 to 55.",
+		reading: `Files with ${BELOW_GATE} in the last 6 months are marked Not enough history and get no score.`,
 		href: "https://www.google.com/search?q=what+is+a+commit+version+control",
 	},
 };

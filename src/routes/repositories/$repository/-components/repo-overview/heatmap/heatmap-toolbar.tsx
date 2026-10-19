@@ -3,14 +3,24 @@ import type { JSX } from "react";
 
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { BELOW_GATE } from "@/lib/interpret";
 
-import { DOT_COLOR, FILTERS, type FilterKey, type RiskCategory, type SortOption } from "./heatmap-utils";
+import {
+	DOT_COLOR,
+	FILTERS,
+	type FilterKey,
+	type RiskCategory,
+	type SortOption,
+} from "./heatmap-utils";
 
-const LEGEND_ITEMS: { key: RiskCategory; label: string }[] = [
-	{ key: "acceptable", label: "Acceptable (< threshold)" },
-	{ key: "risky", label: "Risky (≥ threshold)" },
-	{ key: "low-conf", label: "Low Confidence (< 10 commits)" },
-];
+function legendItems(threshold: number): { key: RiskCategory; label: string }[] {
+	const t = threshold.toFixed(2);
+	return [
+		{ key: "acceptable", label: `OK for now: below the warning line (score < ${t})` },
+		{ key: "risky", label: `Needs attention: at or above the warning line (score ≥ ${t})` },
+		{ key: "low-conf", label: `Not enough history (${BELOW_GATE} in 6 months)` },
+	];
+}
 
 export function HeatmapToolbar(props: {
 	filter: FilterKey;
@@ -20,6 +30,7 @@ export function HeatmapToolbar(props: {
 	sort: SortOption;
 	onSortChange: (s: SortOption) => void;
 	counts: Record<FilterKey, number>;
+	threshold: number;
 }): JSX.Element {
 	const { filter, onFilterChange, search, onSearchChange, sort, onSortChange } = props;
 
@@ -30,7 +41,7 @@ export function HeatmapToolbar(props: {
 					<TabsList>
 						{FILTERS.map(({ key, label }) => (
 							<TabsTrigger key={key} value={key}>
-								{label}
+								{label} ({props.counts[key]})
 							</TabsTrigger>
 						))}
 					</TabsList>
@@ -46,7 +57,7 @@ export function HeatmapToolbar(props: {
 					<option value="risk-desc">Sort: Highest Risk</option>
 					<option value="risk-asc">Sort: Lowest Risk</option>
 					<option value="complexity-desc">Sort: Highest Complexity</option>
-					<option value="commits-desc">Sort: Most Commits</option>
+					<option value="commits-desc">Sort: Most Changes</option>
 					<option value="name-asc">Sort: Name (A-Z)</option>
 				</select>
 
@@ -56,7 +67,7 @@ export function HeatmapToolbar(props: {
 				</TabsList>
 			</div>
 
-			<div className="border-border flex flex-wrap items-center gap-4 border-b px-4 py-2.5 justify-between">
+			<div className="border-border flex flex-wrap items-center justify-between gap-4 border-b px-4 py-2.5">
 				<div className="relative max-w-md flex-1">
 					<SearchIcon className="text-muted-foreground absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2" />
 					<Input
@@ -77,7 +88,7 @@ export function HeatmapToolbar(props: {
 				</div>
 
 				<div className="flex shrink-0 flex-wrap items-center gap-4">
-					{LEGEND_ITEMS.map(({ key, label }) => (
+					{legendItems(props.threshold).map(({ key, label }) => (
 						<div key={key} className="flex items-center gap-1.5">
 							{key === "low-conf" ? (
 								<span

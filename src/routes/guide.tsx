@@ -9,6 +9,7 @@ import { H1, H2, H3, P } from "@/components/typography";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BACKEND_URL } from "@/lib/env";
 import { GLOSSARY } from "@/lib/glossary";
+import { BELOW_GATE } from "@/lib/interpret";
 
 export const Route = createFileRoute("/guide")({
 	component: Guide,
@@ -30,7 +31,7 @@ const PIPELINE = [
 	{
 		n: "03",
 		title: "Combines them into one score",
-		body: "Sentiment and structure are fused into a single risk score from 0 to 1: the chance this file is heading for a bug fix soon.",
+		body: "Sentiment and structure are fused into one risk level — Low, Moderate, High or Very High — based on how likely it is that this file's recent changes introduced a bug.",
 	},
 	{
 		n: "04",
@@ -53,7 +54,7 @@ const STEPS = [
 	{
 		n: "3",
 		title: "Read the heatmap",
-		body: "Every file becomes a tile. Big, red tiles are your loud, risky files. Scan the map to see where debt is concentrated.",
+		body: "Every file becomes a tile. Red and orange tiles need attention. Scan the map to see where debt is concentrated.",
 	},
 	{
 		n: "4",
@@ -138,16 +139,42 @@ function Guide(): JSX.Element {
 					<div className="grid gap-8 md:grid-cols-[1fr_auto]">
 						<div>
 							<H2 variant="h4" className="mb-3">
-								Size is structure. Color is risk.
+								Color is risk.
 							</H2>
 							<P className="text-muted-foreground mb-6 max-w-md text-sm leading-relaxed">
-								On the repository heatmap, each file is a tile.{" "}
-								<span className="text-foreground">Bigger tiles</span> are
-								structurally heavier files.{" "}
-								<span className="text-foreground">Redder tiles</span> carry more
-								risk. The file you want to look at first is the big red one.
+								On the repository heatmap, each file is a tile of the same size,
+								grouped by folder. The{" "}
+								<span className="text-foreground">color</span> tells you its risk
+								level. Start with the red tiles.
 							</P>
 							<RiskLegendRows />
+							<H3 variant="h4" className="mt-8 mb-2">
+								How Gomi picks the label
+							</H3>
+							<ul className="text-muted-foreground max-w-md list-disc space-y-1.5 pl-5 text-sm leading-relaxed">
+								<li>
+									<span className="text-foreground">Low</span>: below the
+									warning line and in the safer half of this repository.
+								</li>
+								<li>
+									<span className="text-foreground">Moderate</span>: below the
+									warning line, but in the riskier half of this repository.
+								</li>
+								<li>
+									<span className="text-foreground">High</span>: at or above the
+									warning line, the cut-off that best separated buggy from clean
+									files when the model was tested.
+								</li>
+								<li>
+									<span className="text-foreground">Very High</span>: above the
+									warning line and among the riskiest 20% of files in this
+									repository.
+								</li>
+								<li>
+									<span className="text-foreground">Not enough history</span>:
+									{BELOW_GATE} in six months, so no score is given.
+								</li>
+							</ul>
 						</div>
 						<HeatmapLegendPreview />
 					</div>
@@ -192,6 +219,10 @@ function Guide(): JSX.Element {
 								</H1>
 								<P className="text-muted-foreground mt-1.5 text-base leading-relaxed">
 									{entry.definition}
+								</P>
+								<P className="mt-2 text-sm leading-relaxed">
+									<span className="font-fira-mono-bold">How to read it: </span>
+									{entry.reading}
 								</P>
 								<a
 									href={entry.href}

@@ -1,4 +1,5 @@
 import type { CommitSentiment, ShapBreakdown } from "@/lib/github/model";
+import { MIN_TREND_POINTS, readableCommits, toneVsStructure } from "@/lib/interpret";
 
 const EWMA_ALPHA = 0.2;
 
@@ -21,11 +22,9 @@ export function computeDrift(
 	commits: CommitSentiment[],
 	shap: ShapBreakdown | null,
 ): DriftResult | null {
-	const sorted = [...commits]
-		.filter((c) => c.riskProbability != null)
-		.sort((a, b) => a.committedAt - b.committedAt);
+	const sorted = readableCommits(commits);
 
-	if (sorted.length < 10) return null;
+	if (sorted.length < MIN_TREND_POINTS) return null;
 
 	const values = sorted.map((c) => c.riskProbability as number);
 
@@ -68,16 +67,9 @@ export function computeDrift(
 			? sorted[upIdx]
 			: sorted[downIdx];
 
-	// SHAP group dominance
-	const affectiveSum =
-		(shap?.sentimentContrib ?? 0) + Math.max(0, shap?.lowInfoContrib ?? 0);
-	const structuralSum =
-		(shap?.entropyContrib ?? 0) +
-		(shap?.ndevContrib ?? 0) +
-		(shap?.ageContrib ?? 0) +
-		(shap?.complexityContrib ?? 0) +
-		(shap?.commitsContrib ?? 0);
-	const isAffective = affectiveSum > structuralSum;
+	// SHAP group dominance (|SHAP|, same split as the root-cause card)
+	const { tone, structure } = toneVsStructure(shap);
+	const isAffective = tone > structure;
 
 	// Drift categorization matrix per §4
 	let category: DriftCategory;

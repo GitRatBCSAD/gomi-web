@@ -1,24 +1,23 @@
 import { createFileRoute, redirect, Link } from "@tanstack/react-router";
 import { ArrowLeftIcon, FileIcon } from "lucide-react";
-import { useState, type JSX } from "react";
+import { useMemo, useState, type JSX } from "react";
 import * as v from "valibot";
 
 import { FileAnalysisTour, startFileAnalysisDriverTour } from "@/components/file-analysis-tour";
+import { RiskLabel } from "@/components/risk-label";
 import { TourTriggerButton } from "@/components/tour-trigger-button";
 import { H1, P } from "@/components/typography";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getAnalysisQueryOptions } from "@/lib/github/api";
-import { useTheme } from "@/lib/theme";
+import { RISK_BANDS, riskBand, riskScale, summarizeFile } from "@/lib/interpret";
 
 import { CommitSentimentCard } from "./-components/file-analysis/commit-sentiment-card";
 import { ComplexityMetricsCard } from "./-components/file-analysis/complexity-metrics-card";
 import { DriftGuidanceBanner } from "./-components/file-analysis/drift-guidance-banner";
-import { RiskDriftCard } from "./-components/file-analysis/risk-drift-card";
 import { RootCauseCard } from "./-components/file-analysis/root-cause-card";
 import { SentimentTrajectoryCard } from "./-components/file-analysis/sentiment-trajectory-card";
 import { ShapBreakdownCard } from "./-components/file-analysis/shap-breakdown-card";
-import { riskColor } from "./-components/repo-overview/heatmap";
 
 type FileView = "simple" | "detailed";
 
@@ -46,57 +45,20 @@ export const Route = createFileRoute("/repositories/$repository/file")({
 	},
 });
 
-function RiskBadge({
-	score,
-	threshold,
-	lowConf,
-}: {
-	score: number | null;
-	threshold: number;
-	lowConf: boolean;
-}): JSX.Element {
-	if (lowConf) {
-		return (
-			<span
-				className="font-fira-mono rounded px-2.5 py-1 text-xs font-medium"
-				style={{
-					backgroundColor: "var(--dark-500)",
-					color: "var(--text-subtle)",
-				}}
-			>
-				Low Confidence
-			</span>
-		);
-	}
-
-	if (score == null) return <></>;
-
-	const isRisky = score >= threshold;
-	return (
-		<span
-			className="font-fira-mono rounded px-2.5 py-1 text-xs font-bold"
-			style={{
-				backgroundColor: isRisky ? "var(--destructive-900)" : "var(--success-900)",
-				color: isRisky ? "var(--destructive-500)" : "var(--success-500)",
-			}}
-		>
-			{isRisky ? "Risky" : "Acceptable"} ({score.toFixed(2)})
-		</span>
-	);
-}
-
 const FILE_TOUR_SEEN_KEY = "gomi:file-tour-seen";
 
 function RouteComponent(): JSX.Element {
 	const { file, threshold, allFiles } = Route.useLoaderData();
 	const { repository } = Route.useParams();
-	const { theme } = useTheme();
-	// defaults to detailed so the driver.js tour's anchor ids are always present
-	const [view, setView] = useState<FileView>("detailed");
-
 	const [showFileTour, setShowFileTour] = useState(
 		() => localStorage.getItem(FILE_TOUR_SEEN_KEY) !== "1",
 	);
+	// Simple by default; the tour needs Detailed because its anchor ids live there.
+	const [view, setView] = useState<FileView>(() => (showFileTour ? "detailed" : "simple"));
+
+	const scale = useMemo(() => riskScale(allFiles, threshold), [allFiles, threshold]);
+	const band = riskBand(file.riskScore, file.lowConfidence, scale);
+	const info = RISK_BANDS[band];
 
 	function dismissFileTour() {
 		localStorage.setItem(FILE_TOUR_SEEN_KEY, "1");
@@ -120,7 +82,13 @@ function RouteComponent(): JSX.Element {
 					<ArrowLeftIcon className="size-4" />
 					Back to {repository}
 				</Link>
-				<TourTriggerButton onClick={() => startFileAnalysisDriverTour()} />
+				<TourTriggerButton
+					onClick={() => {
+						setView("detailed");
+						// wait one frame so the Detailed cards are mounted before driver.js looks them up
+						requestAnimationFrame(() => startFileAnalysisDriverTour());
+					}}
+				/>
 			</div>
 
 			<Card id="tour-file-header">
@@ -155,10 +123,7 @@ function RouteComponent(): JSX.Element {
 									minWidth: 0,
 								}}
 							>
-								<FileIcon
-									className="size-5 shrink-0"
-									style={{ color: "var(--destructive-500)" }}
-								/>
+								<FileIcon className="size-5 shrink-0" style={{ color: info.fg }} />
 								<H1
 									variant="h3"
 									style={{
@@ -170,64 +135,45 @@ function RouteComponent(): JSX.Element {
 									{name}
 								</H1>
 							</div>
-							<RiskBadge
-								score={file.riskScore}
-								threshold={threshold}
-								lowConf={file.lowConfidence}
-							/>
+							<RiskLabel band={band} score={file.riskScore} />
 						</div>
-						{!file.lowConfidence && file.riskScore != null && (
-							<div
-								style={{
-									display: "flex",
-									alignItems: "center",
-									gap: "0.75rem",
-									marginTop: "1rem",
-								}}
-							>
-								<div
-									style={{
-										flex: 1,
-										height: "0.75rem",
-										borderRadius: "999px",
-										overflow: "hidden",
-										backgroundColor: "var(--background-700)",
-									}}
-								>
-									<div
-										style={{
-											height: "0.75rem",
-											borderRadius: "999px",
-											width: `${file.riskScore * 100}%`,
-											backgroundColor: riskColor(file.riskScore, theme),
-										}}
-									/>
-								</div>
-								<span className="font-fira-mono-bold text-foreground text-xl tabular-nums">
-									{file.riskScore.toFixed(2)}
+						<div
+							className="mt-4 space-y-2 rounded-lg border p-3"
+							style={{ borderColor: info.fg }}
+						>
+							<P className="text-foreground text-base">
+								{summarizeFile(file, scale)}
+							</P>
+							<P className="text-muted-foreground text-sm">
+								<span className="font-fira-mono-bold text-foreground">
+									What to do:{" "}
 								</span>
-							</div>
-						)}
+								{info.action}
+							</P>
+						</div>
 					</div>
 				</CardHeader>
 				{view === "simple" && (
-					<CardContent>
+					<CardContent className="space-y-3">
 						<DriftGuidanceBanner file={file} />
 					</CardContent>
 				)}
 			</Card>
 
+			{/* Always shown: the trend is the core early-detection signal (see Ch. 3). */}
+			<SentimentTrajectoryCard file={file} id="tour-file-sentiment" />
+
+			{view === "simple" && (
+				<P className="text-muted-foreground text-sm">
+					Switch to <b>Detailed</b> for what drives this score and the code measurements.
+				</P>
+			)}
+
 			{view === "detailed" && (
 				<>
-					<SentimentTrajectoryCard
-						file={file}
-						threshold={threshold}
-						id="tour-file-sentiment"
-					/>
-					<RootCauseCard file={file} threshold={threshold} id="tour-file-rootcause" />
+					<RootCauseCard file={file} id="tour-file-rootcause" />
 					<CommitSentimentCard file={file} id="tour-file-commits" />
-					<RiskDriftCard file={file} id="tour-file-drift" />
-					<ShapBreakdownCard file={file} id="tour-file-shap" />
+					<ShapBreakdownCard file={file} scale={scale} id="tour-file-shap" />
 					<ComplexityMetricsCard
 						file={file}
 						allFiles={allFiles}
