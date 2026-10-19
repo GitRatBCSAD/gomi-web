@@ -30,7 +30,7 @@ function ListRow(props: { file: FileInfo; even: boolean; onClick: () => void }):
 					<P className="text-muted-foreground mt-0.5 font-mono text-xs">{file.dir}</P>
 				)}
 			</td>
-			<td className="w-36 px-4 py-3">
+			<td className="hidden w-36 px-4 py-3 sm:table-cell">
 				<SentimentBar
 					risky={file.sentimentRisky}
 					caution={file.sentimentCaution}
@@ -85,13 +85,13 @@ export function HeatmapListView(props: { files: FileInfo[]; repository: string }
 			style={{ height: LIST_VIEWPORT_HEIGHT, overflowY: "auto" }}
 			className="w-full overflow-x-auto"
 		>
-			<table className="w-full min-w-[520px]">
+			<table className="w-full sm:min-w-[520px]">
 				<thead className="bg-card sticky top-0 z-10">
 					<tr className="border-border border-b">
 						<th className="text-muted-foreground px-4 py-2.5 text-left text-sm font-medium">
 							File
 						</th>
-						<th className="text-muted-foreground px-4 py-2.5 text-left text-sm font-medium">
+						<th className="text-muted-foreground hidden px-4 py-2.5 text-left text-sm font-medium sm:table-cell">
 							Commit tone
 						</th>
 						<th className="text-muted-foreground px-4 py-2.5 text-left text-sm font-medium">

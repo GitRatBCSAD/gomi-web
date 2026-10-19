@@ -75,8 +75,10 @@ export function ShapBreakdownCard({
 					<GlossaryHint term="shap" />
 				</H1>
 				<P className="text-muted-foreground">
-					Each factor either pushes this file's risk up (red) or down (blue). Longer bars
-					matter more.
+					{factors.some((f) => !f.raises)
+						? "Each factor either pushes this file's risk up (red) or down (blue)."
+						: "Every factor here pushes this file's risk up."}{" "}
+					Longer bars matter more.
 				</P>
 			</CardHeader>
 			<CardContent>

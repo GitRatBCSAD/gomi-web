@@ -68,11 +68,11 @@ export const DOT_COLOR: Record<RiskCategory, string> = {
 	"low-conf": "var(--muted-foreground)",
 };
 
-export const FILTERS: { key: FilterKey; label: string }[] = [
-	{ key: "all", label: "All" },
-	{ key: "risky", label: "Needs attention" },
-	{ key: "acceptable", label: "OK for now" },
-	{ key: "low-conf", label: "Not enough history" },
+export const FILTERS: { key: FilterKey; label: string; short: string }[] = [
+	{ key: "all", label: "All", short: "All" },
+	{ key: "risky", label: "Needs attention", short: "Attention" },
+	{ key: "acceptable", label: "OK for now", short: "OK" },
+	{ key: "low-conf", label: "Not enough history", short: "No history" },
 ];
 
 export const DIR_LABEL_HEIGHT = 26;

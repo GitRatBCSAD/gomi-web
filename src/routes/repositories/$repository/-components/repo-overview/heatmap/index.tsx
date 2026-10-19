@@ -149,7 +149,7 @@ export function Heatmap(props: {
 	return (
 		<TooltipProvider>
 			<Tabs
-				defaultValue="heatmap"
+				defaultValue={window.matchMedia("(max-width: 639px)").matches ? "list" : "heatmap"}
 				className="border-border bg-card overflow-hidden rounded-xl border"
 			>
 				<HeatmapToolbar
@@ -183,7 +183,7 @@ export function Heatmap(props: {
 								{dirNodes.map((d) => (
 									<div
 										key={d.data.name}
-										className="bg-muted/50 pointer-events-none absolute rounded-[5px] px-2"
+										className="pointer-events-none absolute px-1"
 										style={{
 											left: d.x0,
 											top: d.y0,

@@ -46,6 +46,7 @@ export function Tile(props: {
 	const info = RISK_BANDS[props.node.data.band ?? "insufficient"];
 	const bandText = lowConf ? info.label : `${info.label} risk`;
 	const tooSmall = w < 56 || h < 36;
+	const narrow = w < 120;
 
 	return (
 		<Tooltip>
@@ -71,7 +72,7 @@ export function Tile(props: {
 							{name}
 						</P>
 						<P className="truncate text-[11px] leading-snug text-inherit opacity-80">
-							{lowConf ? "No score" : bandText}
+							{lowConf ? "No score" : narrow ? info.label : bandText}
 						</P>
 					</div>
 				)}

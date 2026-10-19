@@ -30,9 +30,10 @@ export function HeatmapToolbar(props: {
 					className="max-w-full overflow-x-auto"
 				>
 					<TabsList>
-						{FILTERS.map(({ key, label }) => (
+						{FILTERS.map(({ key, label, short }) => (
 							<TabsTrigger key={key} value={key}>
-								{label}
+								<span className="sm:hidden">{short}</span>
+								<span className="hidden sm:inline">{label}</span>
 								<span className="text-muted-foreground font-mono text-xs tabular-nums">
 									{props.counts[key]}
 								</span>
