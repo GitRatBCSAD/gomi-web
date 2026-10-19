@@ -113,10 +113,7 @@ export function ShapBreakdownCard({
 										}}
 									/>
 								</div>
-								<span
-									className="text-sm sm:text-right"
-									style={{ color }}
-								>
+								<span className="text-sm sm:text-right" style={{ color }}>
 									{f.raises ? "↑" : "↓"} {f.weight}
 								</span>
 							</li>

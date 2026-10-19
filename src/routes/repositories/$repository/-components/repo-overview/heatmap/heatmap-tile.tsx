@@ -84,7 +84,9 @@ export function Tile(props: {
 			>
 				<div className="min-w-0">
 					<P className="truncate text-sm font-semibold">{name}</P>
-					{dir && <P className="text-muted-foreground truncate font-mono text-xs">{dir}</P>}
+					{dir && (
+						<P className="text-muted-foreground truncate font-mono text-xs">{dir}</P>
+					)}
 				</div>
 				<span
 					className="rounded px-1.5 py-0.5 text-xs font-semibold"

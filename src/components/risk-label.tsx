@@ -28,7 +28,11 @@ export function RiskLabel({
 			<TooltipTrigger
 				className={cn(
 					"inline-flex shrink-0 cursor-help items-center rounded font-semibold whitespace-nowrap",
-					size === "xs" ? "px-1.5 py-0.5 text-[11px]" : size === "md" ? "px-3 py-1.5 text-sm" : "px-2.5 py-1 text-xs",
+					size === "xs"
+						? "px-1.5 py-0.5 text-[11px]"
+						: size === "md"
+							? "px-3 py-1.5 text-sm"
+							: "px-2.5 py-1 text-xs",
 					className,
 				)}
 				style={{ backgroundColor: info.bg, color: info.fg }}
@@ -40,8 +44,8 @@ export function RiskLabel({
 				<P className="text-muted-foreground">{info.meaning}</P>
 				{score != null && band !== "insufficient" && (
 					<P className="text-muted-foreground text-xs">
-						Model score: {score.toFixed(2)}. Compare files by it; it is not a
-						calibrated chance of a bug.
+						Model score: {score.toFixed(2)}. Compare files by it; it is not a calibrated
+						chance of a bug.
 					</P>
 				)}
 			</TooltipContent>

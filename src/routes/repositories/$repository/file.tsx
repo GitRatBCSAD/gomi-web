@@ -103,7 +103,9 @@ function RouteComponent(): JSX.Element {
 				<div className="space-y-5 p-6">
 					<div className="flex flex-wrap items-start justify-between gap-3">
 						<div className="min-w-0">
-							{dir && <P className="text-muted-foreground font-mono text-sm">{dir}</P>}
+							{dir && (
+								<P className="text-muted-foreground font-mono text-sm">{dir}</P>
+							)}
 							<H1 variant="h2" className="truncate">
 								{name}
 							</H1>
@@ -120,7 +122,9 @@ function RouteComponent(): JSX.Element {
 					</div>
 
 					<div className="max-w-3xl space-y-2">
-						<P className="text-foreground text-lg leading-snug">{summarizeFile(file, scale)}</P>
+						<P className="text-foreground text-lg leading-snug">
+							{summarizeFile(file, scale)}
+						</P>
 						<P className="text-muted-foreground flex items-start gap-2 text-sm">
 							<ArrowRightIcon className="text-foreground mt-0.5 size-4 shrink-0" />
 							<span>
@@ -145,7 +149,9 @@ function RouteComponent(): JSX.Element {
 										<Icon
 											className="size-3.5"
 											style={{
-												color: r.raises ? RISK_BANDS["very-high"].fg : "var(--primary)",
+												color: r.raises
+													? RISK_BANDS["very-high"].fg
+													: "var(--primary)",
 											}}
 										/>
 										{r.name}

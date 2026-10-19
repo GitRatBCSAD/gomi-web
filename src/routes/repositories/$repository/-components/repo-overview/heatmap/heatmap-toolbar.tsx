@@ -82,8 +82,15 @@ export function HeatmapToolbar(props: {
 				{LEGEND.map((b) => (
 					<span key={b} className="flex items-center gap-1.5">
 						<span
-							className={cn("border-border size-3 rounded-[2px] border", b === "insufficient" && "bg-hatch")}
-							style={b === "insufficient" ? undefined : { backgroundColor: RISK_BANDS[b].fill }}
+							className={cn(
+								"border-border size-3 rounded-[2px] border",
+								b === "insufficient" && "bg-hatch",
+							)}
+							style={
+								b === "insufficient"
+									? undefined
+									: { backgroundColor: RISK_BANDS[b].fill }
+							}
 						/>
 						{RISK_BANDS[b].label}
 					</span>

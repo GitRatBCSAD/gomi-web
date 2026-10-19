@@ -88,11 +88,15 @@ export function RepoSummary(props: {
 						>
 							<span
 								className="text-foreground font-mono font-medium tabular-nums"
-								style={b === "insufficient" ? undefined : { color: RISK_BANDS[b].fg }}
+								style={
+									b === "insufficient" ? undefined : { color: RISK_BANDS[b].fg }
+								}
 							>
 								{byBand[b]}
 							</span>
-							{b === "insufficient" ? RISK_BANDS[b].label : `${RISK_BANDS[b].label} risk`}
+							{b === "insufficient"
+								? RISK_BANDS[b].label
+								: `${RISK_BANDS[b].label} risk`}
 						</button>
 					</li>
 				))}

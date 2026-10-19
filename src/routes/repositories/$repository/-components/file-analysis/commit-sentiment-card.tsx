@@ -110,8 +110,14 @@ export function CommitSentimentCard({
 					</div>
 					<ul className="flex flex-wrap gap-x-5 gap-y-1 text-sm">
 						{groups.map((g) => (
-							<li key={g.code} className="text-muted-foreground flex items-baseline gap-1.5">
-								<span className="size-2 self-center rounded-full" style={{ backgroundColor: g.color }} />
+							<li
+								key={g.code}
+								className="text-muted-foreground flex items-baseline gap-1.5"
+							>
+								<span
+									className="size-2 self-center rounded-full"
+									style={{ backgroundColor: g.color }}
+								/>
 								<span className="text-foreground font-medium">
 									{labelled ? fmtPct(g.n / labelled) : "—"}
 								</span>

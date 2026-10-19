@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
-import { GithubIcon, SearchIcon, SettingsIcon } from "lucide-react";
+import { LockIcon, SearchIcon, SettingsIcon } from "lucide-react";
 import { useEffect, useState, type JSX } from "react";
 import * as v from "valibot";
 
@@ -9,9 +9,7 @@ import type { UserProfile } from "@/components/navbar";
 import { OnboardingTour, startOnboardingDriverTour } from "@/components/onboarding-tour";
 import { TourTriggerButton } from "@/components/tour-trigger-button";
 import { H1, H2, P } from "@/components/typography";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BACKEND_URL, GITHUB_APP_NAME } from "@/lib/env";
 import {
@@ -197,22 +195,16 @@ function RouteComponent(): JSX.Element {
 				progress={jobQuery.data?.progress ?? 0}
 				currentFile={jobQuery.data?.current_file}
 			/>
-			<div className="flex flex-1 flex-col items-center justify-center gap-4 px-4 py-12">
-				<div className="mb-2 flex w-full max-w-6xl flex-col items-center gap-1 text-center">
-					<H1 variant="h3">
-						Welcome back,{" "}
-						<span className="text-primary">
-							{userProfile?.githubUsername || "user"}
-						</span>
-					</H1>
-					<H2 variant="h4" className="text-muted-foreground text-2xs">
-						Ready to scan?
-					</H2>
-					<div className="mt-1">
-						<TourTriggerButton
-							onClick={() => startOnboardingDriverTour(notInstalled)}
-						/>
+			<div className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 px-4 py-10">
+				<div className="flex flex-wrap items-end justify-between gap-3">
+					<div className="space-y-1">
+						<H1 variant="h2">Repositories</H1>
+						<P className="text-muted-foreground">
+							Welcome back, {userProfile?.githubUsername || "user"}. Pick a repository
+							to scan or review.
+						</P>
 					</div>
+					<TourTriggerButton onClick={() => startOnboardingDriverTour(notInstalled)} />
 				</div>
 
 				{showOnboarding && (
@@ -220,7 +212,7 @@ function RouteComponent(): JSX.Element {
 				)}
 
 				{(analyzeMutation.isError || jobError) && (
-					<P className="text-destructive w-full max-w-6xl text-left text-sm">
+					<P className="text-destructive w-full text-left text-sm">
 						Analysis failed:{" "}
 						{jobError ?? analyzeMutation.error?.message ?? "Unknown error"}
 					</P>
@@ -229,7 +221,7 @@ function RouteComponent(): JSX.Element {
 				{notInstalled && (
 					<div
 						id="tour-install"
-						className="border-primary/20 bg-background-900 flex w-full max-w-6xl items-center justify-between gap-6 rounded-2xl border px-6 py-5 shadow-lg"
+						className="border-primary/20 bg-background-900 flex w-full items-center justify-between gap-6 rounded-2xl border px-6 py-5 shadow-lg"
 					>
 						<div className="flex flex-col gap-1.5">
 							<H2 variant="h4" className="text-base tracking-wide">
@@ -254,7 +246,7 @@ function RouteComponent(): JSX.Element {
 				)}
 
 				{!notInstalled && installationsCount !== null && (
-					<div className="border-border/20 bg-dark-600/30 flex w-full max-w-6xl items-center justify-between gap-4 rounded-xl border px-4 py-3">
+					<div className="border-border/20 bg-dark-600/30 flex w-full items-center justify-between gap-4 rounded-xl border px-4 py-3">
 						<P className="text-muted-foreground">
 							Want to add or remove repository access?
 						</P>
@@ -273,24 +265,24 @@ function RouteComponent(): JSX.Element {
 				)}
 
 				<div
-					className={`flex w-full max-w-6xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between ${notInstalled ? "pointer-events-none opacity-40" : ""}`}
+					className={`flex w-full flex-col gap-4 sm:flex-row sm:items-center sm:justify-between ${notInstalled ? "pointer-events-none opacity-40" : ""}`}
 				>
 					<div
 						id="tour-search"
-						className="bg-background-900 flex w-full items-center overflow-hidden rounded-2xl border px-4 py-3 sm:max-w-sm"
+						className="bg-background focus-within:ring-ring flex h-9 w-full items-center overflow-hidden rounded-md border px-3 focus-within:ring-1 sm:max-w-sm"
 					>
 						<input
-							className="text-muted-foreground placeholder:text-muted-foreground flex-1 bg-transparent text-sm tracking-widest outline-none"
+							className="text-foreground placeholder:text-muted-foreground flex-1 bg-transparent text-sm outline-none"
 							placeholder={
 								notInstalled
 									? "Install the GitHub App to search repositories"
-									: "Search Repository"
+									: "Search repositories"
 							}
 							value={search}
 							onChange={(e) => setSearch(e.target.value)}
 							disabled={notInstalled}
 						/>
-						<SearchIcon className="text-muted-foreground size-5" />
+						<SearchIcon className="text-muted-foreground size-4" />
 					</div>
 
 					<Tabs value={filter} onValueChange={(v) => setFilter(v as RepoFilter)}>
@@ -302,8 +294,8 @@ function RouteComponent(): JSX.Element {
 					</Tabs>
 				</div>
 
-				<div
-					className={`grid w-full max-w-6xl grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 ${notInstalled ? "pointer-events-none opacity-40" : ""}`}
+				<ul
+					className={`divide-border bg-card w-full divide-y overflow-hidden rounded-lg border ${notInstalled ? "pointer-events-none opacity-40" : ""}`}
 				>
 					{repos.map((repo, idx) => {
 						const cached = analyzedSet.has(String(repo.id));
@@ -318,86 +310,95 @@ function RouteComponent(): JSX.Element {
 							isPendingThisRepo && pendingJob?.fullName === repo.fullName
 								? jobQuery.data?.step
 								: undefined;
+						const busyLabel = currentStep ? stepLabel(currentStep) : "Analyzing...";
+						const target = {
+							id: String(repo.id),
+							fullName: repo.fullName,
+							owner,
+							name,
+						};
 
 						return (
-							<Card key={repo.id} id={idx === 0 ? "tour-repos" : undefined}>
-								<CardHeader className="flex-row items-center justify-between">
-									<GithubIcon className="text-foreground size-6 shrink-0" />
-									<Badge variant={repo.private ? "outline" : "default"}>
-										{repo.private ? "Private" : "Public"}
-									</Badge>
-								</CardHeader>
-								<CardContent className="space-y-1">
-									<CardTitle className="truncate text-xl">{repo.name}</CardTitle>
-									<P className="text-muted-foreground text-sm">
-										{cached ? "Analyzed" : "No cached analysis found."}
+							<li
+								key={repo.id}
+								id={idx === 0 ? "tour-repos" : undefined}
+								className="flex flex-wrap items-center justify-between gap-3 px-4 py-3.5"
+							>
+								<div className="min-w-0">
+									<P className="flex items-center gap-2 truncate font-medium">
+										<span>
+											<span className="text-muted-foreground font-normal">
+												{owner}/
+											</span>
+											{name}
+										</span>
+										{repo.private && (
+											<LockIcon
+												className="text-muted-foreground size-3.5"
+												aria-label="Private"
+											/>
+										)}
 									</P>
-								</CardContent>
-								<CardFooter className="gap-2">
+									<P className="text-muted-foreground flex items-center gap-1.5 text-sm">
+										<span
+											className="size-1.5 rounded-full"
+											style={{
+												backgroundColor: cached
+													? "var(--primary)"
+													: "var(--muted-foreground)",
+											}}
+										/>
+										{cached ? "Analyzed" : "Not analyzed yet"}
+									</P>
+								</div>
+								<div className="flex items-center gap-2">
 									{cached ? (
 										<>
 											<Button
+												variant="ghost"
+												size="sm"
 												disabled={isBusy}
-												onClick={() => {
+												onClick={() =>
+													setConfirmAction({
+														type: "reanalyze",
+														repo: target,
+													})
+												}
+											>
+												{isPendingThisRepo ? busyLabel : "Reanalyze"}
+											</Button>
+											<Button
+												size="sm"
+												disabled={isBusy}
+												onClick={() =>
 													navigate({
 														to: "/repositories/$repository",
 														params: { repository: repo.fullName },
-													});
-												}}
+													})
+												}
 											>
 												Review
-											</Button>
-											<Button
-												variant="outline"
-												disabled={isBusy}
-												onClick={() => {
-													setConfirmAction({
-														type: "reanalyze",
-														repo: {
-															id: String(repo.id),
-															fullName: repo.fullName,
-															owner,
-															name,
-														},
-													});
-												}}
-											>
-												{isPendingThisRepo
-													? currentStep
-														? stepLabel(currentStep)
-														: "Analyzing..."
-													: "Reanalyze"}
 											</Button>
 										</>
 									) : (
 										<Button
+											variant="outline"
+											size="sm"
 											disabled={isBusy}
-											onClick={() => {
-												setConfirmAction({
-													type: "analyze",
-													repo: {
-														id: String(repo.id),
-														fullName: repo.fullName,
-														owner,
-														name,
-													},
-												});
-											}}
+											onClick={() =>
+												setConfirmAction({ type: "analyze", repo: target })
+											}
 										>
-											{isPendingThisRepo
-												? currentStep
-													? stepLabel(currentStep)
-													: "Analyzing..."
-												: "Analyze"}
+											{isPendingThisRepo ? busyLabel : "Analyze"}
 										</Button>
 									)}
-								</CardFooter>
-							</Card>
+								</div>
+							</li>
 						);
 					})}
 
 					{repos.length === 0 && !notInstalled && (
-						<div className="col-span-full flex flex-col items-center justify-center gap-3 px-4 py-12">
+						<li className="flex flex-col items-center justify-center gap-3 px-4 py-12">
 							<P className="text-muted-foreground text-center text-sm">
 								No repositories found.
 							</P>
@@ -424,9 +425,9 @@ function RouteComponent(): JSX.Element {
 									</Button>
 								</>
 							)}
-						</div>
+						</li>
 					)}
-				</div>
+				</ul>
 
 				{confirmAction && (
 					<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">

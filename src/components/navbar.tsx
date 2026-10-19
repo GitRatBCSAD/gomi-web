@@ -71,7 +71,7 @@ export function Navbar(): JSX.Element {
 			<div className="flex items-center gap-6">
 				<Link
 					to={isAuthenticated ? "/repositories" : "/"}
-					className="text-foreground font-semibold flex items-center gap-2 text-2xl no-underline"
+					className="text-foreground flex items-center gap-2 text-2xl font-semibold no-underline"
 				>
 					<img src="/gomi-logo.svg" alt="" className="size-6" aria-hidden="true" />
 					Gomi
@@ -125,7 +125,7 @@ export function Navbar(): JSX.Element {
 									className="border-primary/20 size-12 rounded-full border"
 								/>
 							) : (
-								<div className="border-primary/20 bg-primary/10 text-primary font-semibold flex size-8 items-center justify-center rounded-full border text-xs">
+								<div className="border-primary/20 bg-primary/10 text-primary flex size-8 items-center justify-center rounded-full border text-xs font-semibold">
 									{userProfile?.githubUsername?.[0]?.toUpperCase() || "U"}
 								</div>
 							)}

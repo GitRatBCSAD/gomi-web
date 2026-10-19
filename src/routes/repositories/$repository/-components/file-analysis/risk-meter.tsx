@@ -56,7 +56,10 @@ export function RiskMeter({
 				/>
 				<span
 					className="absolute -top-2.5 -translate-x-1/2 text-[11px] font-semibold whitespace-nowrap"
-					style={{ left: `clamp(2rem, ${pct(score)}, calc(100% - 2rem))`, color: RISK_BANDS[band].fg }}
+					style={{
+						left: `clamp(2rem, ${pct(score)}, calc(100% - 2rem))`,
+						color: RISK_BANDS[band].fg,
+					}}
 				>
 					This file
 				</span>

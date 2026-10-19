@@ -2,8 +2,8 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 import { GithubIcon } from "lucide-react";
 
 import { LandingScanBg } from "@/components/landing-scan-bg";
-import { BACKEND_URL, CLIENT_URL, GITHUB_CLIENT_ID } from "@/lib/env";
 import { H1, P } from "@/components/typography";
+import { BACKEND_URL, CLIENT_URL, GITHUB_CLIENT_ID } from "@/lib/env";
 
 export const Route = createFileRoute("/")({
 	component: Home,
@@ -32,16 +32,13 @@ function Home() {
 			<H1 className="gomi-rise-in text-7xl">
 				Detect <span className="text-primary">Debt</span> Before It Breaks You
 			</H1>
-			<P
-				className="gomi-rise-in"
-				style={{ animationDelay: "90ms" }}
-			>
+			<P className="gomi-rise-in" style={{ animationDelay: "90ms" }}>
 				Analyze commit sentiment to uncover emotionally volatile code &mdash; the kind that
 				breaks in production.
 			</P>
 			<a
 				href={authUrl}
-				className="gomi-rise-in bg-primary font-semibold hover:bg-primary/90 text-primary-foreground mt-2 inline-flex w-full max-w-[52rem] cursor-pointer items-center justify-center gap-2.5 rounded-lg px-8 py-3.5 text-base font-bold no-underline transition-all duration-200"
+				className="gomi-rise-in bg-primary hover:bg-primary/90 text-primary-foreground mt-2 inline-flex w-full max-w-[52rem] cursor-pointer items-center justify-center gap-2.5 rounded-lg px-8 py-3.5 text-base font-bold font-semibold no-underline transition-all duration-200"
 				style={{ animationDelay: "180ms" }}
 			>
 				<GithubIcon className="size-5 shrink-0" />

@@ -147,7 +147,10 @@ export function ComplexityMetricsCard({
 								<P className="text-muted-foreground text-sm">{desc}</P>
 							</div>
 							<div className="sm:text-right">
-								<P className="text-base font-semibold" style={{ color: TONE_COLOR[tone] }}>
+								<P
+									className="text-base font-semibold"
+									style={{ color: TONE_COLOR[tone] }}
+								>
 									{verdict}
 								</P>
 								<P className="text-muted-foreground text-xs">{detail}</P>

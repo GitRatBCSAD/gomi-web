@@ -80,9 +80,7 @@ export function RootCauseCard({
 							<span className="text-muted-foreground text-sm font-bold">
 								{rootCommit.hash.slice(0, 7)}
 							</span>
-							<span className="text-muted-foreground/60 text-sm">
-								· {dateStr}
-							</span>
+							<span className="text-muted-foreground/60 text-sm">· {dateStr}</span>
 						</div>
 						<P className="mt-1 font-bold">"{rootCommit.message}"</P>
 					</div>

@@ -120,7 +120,7 @@ function Guide(): JSX.Element {
 					<ol className="space-y-6">
 						{STEPS.map((s) => (
 							<li key={s.n} className="flex gap-4">
-								<span className="border-primary/30 text-primary font-semibold flex size-9 shrink-0 items-center justify-center rounded-full border text-sm">
+								<span className="border-primary/30 text-primary flex size-9 shrink-0 items-center justify-center rounded-full border text-sm font-semibold">
 									{s.n}
 								</span>
 								<div className="pt-1">
@@ -153,8 +153,8 @@ function Guide(): JSX.Element {
 							</H3>
 							<ul className="text-muted-foreground max-w-md list-disc space-y-1.5 pl-5 text-sm leading-relaxed">
 								<li>
-									<span className="text-foreground">Low</span>: below the
-									warning line and in the safer half of this repository.
+									<span className="text-foreground">Low</span>: below the warning
+									line and in the safer half of this repository.
 								</li>
 								<li>
 									<span className="text-foreground">Moderate</span>: below the
@@ -188,7 +188,7 @@ function Guide(): JSX.Element {
 					<div className="border-border bg-border grid gap-px overflow-hidden rounded-lg border sm:grid-cols-2">
 						{PIPELINE.map((p) => (
 							<div key={p.n} className="bg-card p-6">
-								<span className="font-semibold text-primary/50 text-3xl tabular-nums">
+								<span className="text-primary/50 text-3xl font-semibold tabular-nums">
 									{p.n}
 								</span>
 								<H3 variant="h4" className="mt-2">
@@ -241,7 +241,7 @@ function Guide(): JSX.Element {
 			<div className="border-border mt-12 border-t pt-10 text-center">
 				<Link
 					to={isAuthenticated ? "/repositories" : "/"}
-					className="bg-primary font-semibold hover:bg-primary/90 text-primary-foreground inline-flex cursor-pointer items-center justify-center rounded-lg px-8 py-3 text-sm no-underline transition-all"
+					className="bg-primary hover:bg-primary/90 text-primary-foreground inline-flex cursor-pointer items-center justify-center rounded-lg px-8 py-3 text-sm font-semibold no-underline transition-all"
 				>
 					{isAuthenticated ? "Go to your repositories" : "Get started"}
 				</Link>

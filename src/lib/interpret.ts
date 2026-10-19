@@ -28,7 +28,8 @@ export const RISK_BANDS: Record<RiskBand, RiskBandInfo> = {
 	"very-high": {
 		band: "very-high",
 		label: "Very High",
-		meaning: "Above the model's warning line and among the riskiest 20% of files in this repository.",
+		meaning:
+			"Above the model's warning line and among the riskiest 20% of files in this repository.",
 		action: "Review this file before the next change and add tests or refactor.",
 		fg: "var(--risk-very-high-ink)",
 		bg: "var(--risk-very-high-tint)",
@@ -93,7 +94,11 @@ export function baselineFromShap(shap: ShapBreakdown | null | undefined): number
 export const TOP_FRACTION = 0.2;
 
 /** Score of the last file inside the top `fraction`; `fallback` when nothing is scored. */
-export function topFractionCut(scores: number[], fallback: number, fraction = TOP_FRACTION): number {
+export function topFractionCut(
+	scores: number[],
+	fallback: number,
+	fraction = TOP_FRACTION,
+): number {
 	if (scores.length === 0) return fallback;
 	const sorted = [...scores].sort((a, b) => b - a);
 	return sorted[Math.max(1, Math.ceil(fraction * sorted.length)) - 1];
@@ -232,8 +237,7 @@ export function worryTrend(commits: CommitSentiment[]): WorryTrend | null {
 	const avg = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
 	const earlierAvg = avg(ps.slice(0, mid));
 	const laterAvg = avg(ps.slice(mid));
-	const pctChange =
-		earlierAvg > 0 ? Math.round(((laterAvg - earlierAvg) / earlierAvg) * 100) : 0;
+	const pctChange = earlierAvg > 0 ? Math.round(((laterAvg - earlierAvg) / earlierAvg) * 100) : 0;
 	// ponytail: ±10% "steady" band is a display convention, documented in Ch. 3
 	const trend: Trend = pctChange >= 10 ? "up" : pctChange <= -10 ? "down" : "steady";
 	return {
