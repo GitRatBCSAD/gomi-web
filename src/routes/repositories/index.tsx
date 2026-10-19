@@ -14,11 +14,13 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BACKEND_URL, GITHUB_APP_NAME } from "@/lib/env";
 import {
 	analyzeRepository,
+	getAnalysisQueryOptions,
 	getAnalyzedRepositories,
 	getJobStatus,
 	getRepositories,
 	getRepositoriesQuery,
 } from "@/lib/github/api";
+import { isAtRisk, RISK_BANDS, riskBand, riskScale } from "@/lib/interpret";
 
 type RepoFilter = "all" | "unanalyzed" | "analyzed";
 
@@ -69,6 +71,25 @@ interface PendingJob {
 }
 
 const GUIDE_SEEN_KEY = "gomi:guide-seen";
+
+function RepoVerdict({ fullName }: { fullName: string }): JSX.Element {
+	const { data } = useQuery(getAnalysisQueryOptions(fullName));
+	if (!data) return <>Analyzed</>;
+	const scale = riskScale(data.fileResults, data.threshold);
+	const bands = data.fileResults.map((f) => riskBand(f.riskScore, f.lowConfidence, scale));
+	const risky = bands.filter(isAtRisk).length;
+	const veryHigh = bands.filter((b) => b === "very-high").length;
+	if (risky === 0) return <>Analyzed · nothing above the warning line</>;
+	return (
+		<>
+			Analyzed ·{" "}
+			<span style={{ color: RISK_BANDS[veryHigh > 0 ? "very-high" : "high"].fg }}>
+				{risky} {risky === 1 ? "file needs" : "files need"} attention
+				{veryHigh > 0 && `, ${veryHigh} Very High`}
+			</span>
+		</>
+	);
+}
 
 function RouteComponent(): JSX.Element {
 	const [search, setSearch] = useState("");
@@ -348,7 +369,11 @@ function RouteComponent(): JSX.Element {
 													: "var(--muted-foreground)",
 											}}
 										/>
-										{cached ? "Analyzed" : "Not analyzed yet"}
+										{cached ? (
+											<RepoVerdict fullName={repo.fullName} />
+										) : (
+											"Not analyzed yet"
+										)}
 									</P>
 								</div>
 								<div className="flex items-center gap-2">
