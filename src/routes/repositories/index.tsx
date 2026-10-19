@@ -5,6 +5,7 @@ import { useEffect, useState, type JSX } from "react";
 import * as v from "valibot";
 
 import { AnalysisLoadingScreen } from "@/components/analysis-loading-screen";
+import { BranchSelect } from "@/components/branch-select";
 import type { UserProfile } from "@/components/navbar";
 import { OnboardingTour, startOnboardingDriverTour } from "@/components/onboarding-tour";
 import { TourTriggerButton } from "@/components/tour-trigger-button";
@@ -17,6 +18,7 @@ import { BACKEND_URL, GITHUB_APP_NAME } from "@/lib/env";
 import {
 	analyzeRepository,
 	getAnalyzedRepositories,
+	getBranchesQueryOptions,
 	getJobStatus,
 	getRepositories,
 	getRepositoriesQuery,
@@ -75,11 +77,13 @@ interface ConfirmAction {
 		owner: string;
 		name: string;
 	};
+	branch: string | null;
 }
 
 interface PendingJob {
 	jobId: string;
 	fullName: string;
+	branch?: string;
 }
 
 const GUIDE_SEEN_KEY = "gomi:guide-seen";
@@ -130,9 +134,13 @@ function RouteComponent(): JSX.Element {
 			const fullName = `${variables.owner}/${variables.repository}`;
 			if (data.type === "cached") {
 				queryClient.invalidateQueries({ queryKey: ["analyzedRepositories"] });
-				navigate({ to: "/repositories/$repository", params: { repository: fullName } });
+				navigate({
+					to: "/repositories/$repository",
+					params: { repository: fullName },
+					search: { branch: variables.branch },
+				});
 			} else {
-				setPendingJob({ jobId: data.jobId, fullName });
+				setPendingJob({ jobId: data.jobId, fullName, branch: variables.branch });
 			}
 		},
 		onError: (error) => {
@@ -158,6 +166,7 @@ function RouteComponent(): JSX.Element {
 			navigate({
 				to: "/repositories/$repository",
 				params: { repository: pendingJob.fullName },
+				search: { branch: pendingJob.branch },
 			});
 			setPendingJob(null);
 		} else if (status === "failed") {
@@ -340,9 +349,7 @@ function RouteComponent(): JSX.Element {
 									</Badge>
 								</CardHeader>
 								<CardContent className="space-y-1">
-									<CardTitle className="truncate text-xl">
-										{repo.name}
-									</CardTitle>
+									<CardTitle className="truncate text-xl">{repo.name}</CardTitle>
 									<P className="text-muted-foreground text-sm">
 										{cached ? "Analyzed" : "No cached analysis found."}
 									</P>
@@ -373,6 +380,7 @@ function RouteComponent(): JSX.Element {
 															owner,
 															name,
 														},
+														branch: null,
 													});
 												}}
 											>
@@ -395,6 +403,7 @@ function RouteComponent(): JSX.Element {
 														owner,
 														name,
 													},
+													branch: null,
 												});
 											}}
 										>
@@ -454,6 +463,16 @@ function RouteComponent(): JSX.Element {
 									? `Are you sure you want to reanalyze ${confirmAction.repo.fullName}? This will re-run static code analysis and sentiment extraction.`
 									: `Are you sure you want to analyze ${confirmAction.repo.fullName}? This will fetch commit sentiment and run static analysis.`}
 							</P>
+							<div className="space-y-1.5">
+								<P className="text-sm font-medium">Branch</P>
+								<BranchSelect
+									fullName={confirmAction.repo.fullName}
+									value={confirmAction.branch}
+									onChange={(branch) =>
+										setConfirmAction({ ...confirmAction, branch })
+									}
+								/>
+							</div>
 							<div className="flex justify-end gap-3 pt-2">
 								<Button
 									variant="outline"
@@ -466,13 +485,19 @@ function RouteComponent(): JSX.Element {
 									size="sm"
 									disabled={analyzeMutation.isPending}
 									onClick={() => {
-										const { id, owner, name } = confirmAction.repo;
+										const { id, owner, name, fullName } = confirmAction.repo;
 										const isReanalyze = confirmAction.type === "reanalyze";
+										const branch =
+											confirmAction.branch ??
+											queryClient.getQueryData(
+												getBranchesQueryOptions(fullName).queryKey,
+											)?.defaultBranch;
 										setConfirmAction(null);
 										analyzeMutation.mutate({
 											id,
 											owner,
 											repository: name,
+											branch,
 											...(isReanalyze ? { force: true } : {}),
 										});
 									}}

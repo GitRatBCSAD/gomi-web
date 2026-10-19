@@ -1,8 +1,8 @@
+import { useNavigate } from "@tanstack/react-router";
 import { hierarchy, treemap, treemapBinary, treemapSquarify } from "d3-hierarchy";
 import type { HierarchyRectangularNode } from "d3-hierarchy";
 import { useMemo, useRef, useState, type JSX } from "react";
 
-import { useNavigate } from "@tanstack/react-router";
 import { P } from "@/components/typography";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -28,6 +28,7 @@ export function Heatmap(props: {
 	fileResults: FileRiskResult[];
 	threshold: number;
 	repository: string;
+	branch: string;
 	filter?: FilterKey;
 	onFilterChange?: (filter: FilterKey) => void;
 }): JSX.Element {
@@ -71,7 +72,8 @@ export function Heatmap(props: {
 				.sort((a, b) => {
 					if (sort === "risk-desc") return (b.risk ?? 0) - (a.risk ?? 0);
 					if (sort === "risk-asc") return (a.risk ?? 0) - (b.risk ?? 0);
-					if (sort === "complexity-desc") return (b.complexity ?? 0) - (a.complexity ?? 0);
+					if (sort === "complexity-desc")
+						return (b.complexity ?? 0) - (a.complexity ?? 0);
 					if (sort === "commits-desc") return (b.commits ?? 0) - (a.commits ?? 0);
 					if (sort === "name-asc") return (a.name ?? "").localeCompare(b.name ?? "");
 					return 0;
@@ -115,13 +117,15 @@ export function Heatmap(props: {
 			})),
 		})
 			// ponytail: flat count — size encodes file count, color encodes risk; complexity weighting caused 6:1 area ratios that crushed small dirs
-		.sum((d) => (d.children ? 0 : 1))
+			.sum((d) => (d.children ? 0 : 1))
 			.sort((a, b) => {
 				if (sort === "risk-desc") return (b.data.risk ?? 0) - (a.data.risk ?? 0);
 				if (sort === "risk-asc") return (a.data.risk ?? 0) - (b.data.risk ?? 0);
-				if (sort === "complexity-desc") return (b.data.complexity ?? 0) - (a.data.complexity ?? 0);
+				if (sort === "complexity-desc")
+					return (b.data.complexity ?? 0) - (a.data.complexity ?? 0);
 				if (sort === "commits-desc") return (b.data.commits ?? 0) - (a.data.commits ?? 0);
-				if (sort === "name-asc") return (a.data.name ?? "").localeCompare(b.data.name ?? "");
+				if (sort === "name-asc")
+					return (a.data.name ?? "").localeCompare(b.data.name ?? "");
 				return 0;
 			});
 
@@ -167,7 +171,8 @@ export function Heatmap(props: {
 						<>
 							{isCapped && (
 								<div className="text-muted-foreground border-border border-b px-4 py-2 text-sm">
-									Showing top {TREEMAP_CAP} files by risk score ({visible.length} total). Switch to list view to browse all.
+									Showing top {TREEMAP_CAP} files by risk score ({visible.length}{" "}
+									total). Switch to list view to browse all.
 								</div>
 							)}
 							<div
@@ -200,7 +205,7 @@ export function Heatmap(props: {
 											navigate({
 												to: "/repositories/$repository/file",
 												params: { repository: props.repository },
-												search: { path },
+												search: { path, branch: props.branch },
 											})
 										}
 									/>
@@ -215,6 +220,7 @@ export function Heatmap(props: {
 						files={visible}
 						threshold={props.threshold}
 						repository={props.repository}
+						branch={props.branch}
 					/>
 				</TabsContent>
 			</Tabs>

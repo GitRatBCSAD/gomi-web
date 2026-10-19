@@ -27,8 +27,15 @@ export type AnalyzeRepositoryRequest = {
 	id: string;
 	owner: string;
 	repository: string;
+	branch?: string;
 	force?: boolean;
 };
+
+export const BranchesResponseSchema = v.object({
+	defaultBranch: v.string(),
+	branches: v.array(v.object({ name: v.string(), analyzed: v.boolean() })),
+});
+export type BranchesResponse = v.InferOutput<typeof BranchesResponseSchema>;
 
 export const CommitSentimentSchema = v.object({
 	hash: v.string(),
@@ -75,7 +82,7 @@ export const FileRiskResultSchema = v.object({
 export const AnalysisResultSchema = v.object({
 	repoUrl: v.string(),
 	headSha: v.string(),
-	defaultBranch: v.string(),
+	branch: v.string(),
 	threshold: v.number(),
 	fileResults: v.array(FileRiskResultSchema),
 });
@@ -99,4 +106,3 @@ export const JobStatusSchema = v.object({
 	error: v.optional(v.string()),
 });
 export type JobStatus = v.InferOutput<typeof JobStatusSchema>;
-

@@ -23,14 +23,14 @@ import { riskColor } from "./-components/repo-overview/heatmap";
 type FileView = "simple" | "detailed";
 
 export const Route = createFileRoute("/repositories/$repository/file")({
-	validateSearch: v.object({ path: v.string() }),
-	loaderDeps: ({ search }) => ({ path: search.path }),
+	validateSearch: v.object({ path: v.string(), branch: v.optional(v.string()) }),
+	loaderDeps: ({ search }) => ({ path: search.path, branch: search.branch }),
 	component: RouteComponent,
 	loader: async ({ params, deps, context }) => {
 		let analysis;
 		try {
 			analysis = await context.queryClient.ensureQueryData(
-				getAnalysisQueryOptions(params.repository),
+				getAnalysisQueryOptions(params.repository, deps.branch),
 			);
 		} catch (e) {
 			const msg = e instanceof Error ? e.message : String(e);
@@ -41,7 +41,12 @@ export const Route = createFileRoute("/repositories/$repository/file")({
 			throw e;
 		}
 		const file = analysis.fileResults.find((f) => f.filename === deps.path);
-		if (!file) throw redirect({ to: "/repositories/$repository", params });
+		if (!file)
+			throw redirect({
+				to: "/repositories/$repository",
+				params,
+				search: { branch: deps.branch },
+			});
 		return { file, threshold: analysis.threshold, allFiles: analysis.fileResults };
 	},
 });
@@ -90,6 +95,7 @@ const FILE_TOUR_SEEN_KEY = "gomi:file-tour-seen";
 function RouteComponent(): JSX.Element {
 	const { file, threshold, allFiles } = Route.useLoaderData();
 	const { repository } = Route.useParams();
+	const { branch } = Route.useSearch();
 	const { theme } = useTheme();
 	// defaults to detailed so the driver.js tour's anchor ids are always present
 	const [view, setView] = useState<FileView>("detailed");
@@ -115,6 +121,7 @@ function RouteComponent(): JSX.Element {
 				<Link
 					to="/repositories/$repository"
 					params={{ repository }}
+					search={{ branch }}
 					className="font-fira-mono text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 text-sm transition-colors"
 				>
 					<ArrowLeftIcon className="size-4" />

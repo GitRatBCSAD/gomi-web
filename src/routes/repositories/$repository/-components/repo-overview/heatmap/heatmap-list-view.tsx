@@ -49,8 +49,9 @@ export function HeatmapListView(props: {
 	files: FileInfo[];
 	threshold: number;
 	repository: string;
+	branch: string;
 }): JSX.Element {
-	const { files, threshold, repository } = props;
+	const { files, threshold, repository, branch } = props;
 	// ponytail: hoisted — avoids N useNavigate hook calls inside each ListRow
 	const navigate = useNavigate();
 	const parentRef = useRef<HTMLDivElement>(null);
@@ -82,7 +83,7 @@ export function HeatmapListView(props: {
 			className="w-full overflow-x-auto"
 		>
 			<table className="font-fira-mono w-full min-w-[520px]">
-				<thead className="sticky top-0 z-10 bg-card">
+				<thead className="bg-card sticky top-0 z-10">
 					<tr className="border-border border-b">
 						<th className="text-muted-foreground px-4 py-2.5 text-left text-sm font-medium">
 							File
@@ -116,7 +117,7 @@ export function HeatmapListView(props: {
 									navigate({
 										to: "/repositories/$repository/file",
 										params: { repository },
-										search: { path: `${f.dir}${f.name}` },
+										search: { path: `${f.dir}${f.name}`, branch },
 									})
 								}
 							/>

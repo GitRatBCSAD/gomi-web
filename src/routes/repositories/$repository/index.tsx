@@ -1,7 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, redirect, Link, useRouter } from "@tanstack/react-router";
+import { createFileRoute, redirect, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type JSX } from "react";
+import * as v from "valibot";
 
+import { BranchSelect } from "@/components/branch-select";
 import { RepoDriverTour, startRepoDriverTour } from "@/components/repo-driver-tour";
 import { TourTriggerButton } from "@/components/tour-trigger-button";
 import { H1, H2, P } from "@/components/typography";
@@ -29,11 +31,13 @@ const STEP_LABELS: Record<string, string> = {
 };
 
 export const Route = createFileRoute("/repositories/$repository/")({
+	validateSearch: v.object({ branch: v.optional(v.string()) }),
+	loaderDeps: ({ search }) => ({ branch: search.branch }),
 	component: RouteComponent,
-	loader: async ({ params, context }) => {
+	loader: async ({ params, deps, context }) => {
 		try {
 			return await context.queryClient.ensureQueryData(
-				getAnalysisQueryOptions(params.repository),
+				getAnalysisQueryOptions(params.repository, deps.branch),
 			);
 		} catch (e) {
 			const msg = e instanceof Error ? e.message : String(e);
@@ -49,9 +53,10 @@ export const Route = createFileRoute("/repositories/$repository/")({
 function RouteComponent(): JSX.Element {
 	const analysis = Route.useLoaderData();
 	const { repository } = Route.useParams();
-	const router = useRouter();
+	const navigate = useNavigate({ from: Route.fullPath });
 	const queryClient = useQueryClient();
-	const [showConfirm, setShowConfirm] = useState(false);
+	const [confirmBranch, setConfirmBranch] = useState<string | null>(null);
+	const [jobBranch, setJobBranch] = useState<string | null>(null);
 	const [selectedFilter, setSelectedFilter] = useState<
 		"all" | "risky" | "acceptable" | "low-conf"
 	>("all");
@@ -80,11 +85,11 @@ function RouteComponent(): JSX.Element {
 		onMutate: () => {
 			setJobError(null);
 		},
-		onSuccess: (data) => {
+		onSuccess: (data, variables) => {
 			if (data.type === "cached") {
-				queryClient.invalidateQueries({ queryKey: ["analysis", repository] });
-				router.invalidate();
+				showBranch(variables.branch ?? analysis.branch);
 			} else {
+				setJobBranch(variables.branch ?? analysis.branch);
 				setPendingJobId(data.jobId);
 			}
 		},
@@ -108,15 +113,21 @@ function RouteComponent(): JSX.Element {
 		const { status } = jobQuery.data;
 		if (status === "done") {
 			setPendingJobId(null);
-			queryClient.invalidateQueries({ queryKey: ["analysis", repository] });
-			router.invalidate();
+			showBranch(jobBranch ?? analysis.branch);
 		} else if (status === "failed") {
 			setJobError(jobQuery.data.error ?? "Unknown error");
 			setPendingJobId(null);
 		}
-	}, [jobQuery.data, pendingJobId, queryClient, router, repository]);
+	}, [jobQuery.data, pendingJobId]);
+
+	function showBranch(branch: string) {
+		queryClient.invalidateQueries({ queryKey: ["analysis", repository] });
+		queryClient.invalidateQueries({ queryKey: ["branches", repository] });
+		navigate({ search: { branch } });
+	}
 
 	const isBusy = analyzeMutation.isPending || pendingJobId !== null;
+	const isNewBranch = confirmBranch !== null && confirmBranch !== analysis.branch;
 	const currentStep =
 		pendingJobId && jobQuery.data?.step
 			? (STEP_LABELS[jobQuery.data.step] ?? "Analyzing...")
@@ -140,11 +151,21 @@ function RouteComponent(): JSX.Element {
 					<H1>{repoName}</H1>
 					<CardAction className="flex items-center gap-2">
 						<TourTriggerButton onClick={handleStartTour} />
+						<BranchSelect
+							fullName={repoName}
+							value={analysis.branch}
+							disabled={isBusy}
+							onChange={(branch, analyzed) =>
+								analyzed
+									? navigate({ search: { branch } })
+									: setConfirmBranch(branch)
+							}
+						/>
 						<Button
 							variant="outline"
 							size="sm"
 							disabled={isBusy}
-							onClick={() => setShowConfirm(true)}
+							onClick={() => setConfirmBranch(analysis.branch)}
 						>
 							{isBusy ? (currentStep ?? "Analyzing...") : "Reanalyze"}
 						</Button>
@@ -161,6 +182,11 @@ function RouteComponent(): JSX.Element {
 
 				<CardContent className="flex items-center gap-4">
 					<Badge>Public</Badge>
+					<P className="text-muted-foreground text-sm">
+						Showing the{" "}
+						<span className="text-foreground font-medium">{analysis.branch}</span>{" "}
+						branch.
+					</P>
 					{(analyzeMutation.isError || jobError) && (
 						<P className="text-destructive text-sm">
 							Reanalysis failed:{" "}
@@ -186,24 +212,28 @@ function RouteComponent(): JSX.Element {
 					fileResults={analysis.fileResults}
 					threshold={analysis.threshold}
 					repository={repoName}
+					branch={analysis.branch}
 					filter={selectedFilter}
 					onFilterChange={setSelectedFilter}
 				/>
 			</div>
 
-			{showConfirm && (
+			{confirmBranch !== null && (
 				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
 					<div className="bg-background-900 border-border/40 flex w-full max-w-md flex-col gap-4 rounded-2xl border p-6 shadow-2xl">
-						<H2 variant="h4">Reanalyze {repoName}?</H2>
+						<H2 variant="h4">
+							{isNewBranch ? "Analyze" : "Reanalyze"} {repoName}?
+						</H2>
 						<P className="text-muted-foreground text-sm leading-relaxed">
-							Are you sure you want to reanalyze {repoName}? This will re-run static
-							code analysis and sentiment extraction.
+							{isNewBranch
+								? `The ${confirmBranch} branch has not been analyzed yet. Analyze it now? This runs static code analysis and sentiment extraction on that branch.`
+								: `Are you sure you want to reanalyze the ${confirmBranch} branch? This will re-run static code analysis and sentiment extraction.`}
 						</P>
 						<div className="flex justify-end gap-3 pt-2">
 							<Button
 								variant="outline"
 								size="sm"
-								onClick={() => setShowConfirm(false)}
+								onClick={() => setConfirmBranch(null)}
 							>
 								No
 							</Button>
@@ -211,7 +241,8 @@ function RouteComponent(): JSX.Element {
 								size="sm"
 								disabled={isBusy}
 								onClick={() => {
-									setShowConfirm(false);
+									const branch = confirmBranch;
+									setConfirmBranch(null);
 									const [owner, name] = repoName.split("/");
 									const repoMatch = reposQuery.data?.repositories.find(
 										(r) => r.fullName === repoName,
@@ -220,7 +251,8 @@ function RouteComponent(): JSX.Element {
 										id: repoMatch ? String(repoMatch.id) : "",
 										owner,
 										repository: name,
-										force: true,
+										branch,
+										force: !isNewBranch,
 									});
 								}}
 							>

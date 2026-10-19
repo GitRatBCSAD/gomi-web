@@ -6,16 +6,20 @@ import { BACKEND_URL } from "../env";
 import {
 	AnalysisResultSchema,
 	AnalyzeJobResponseSchema,
+	BranchesResponseSchema,
 	JobStatusSchema,
 	RepositoriesResponseSchema,
 	type AnalysisResult,
 	type AnalyzeRepositoryRequest,
+	type BranchesResponse,
 	type JobStatus,
 	type RepositoriesResponse,
 } from "./model";
 
 export async function getRepositories(forceRefresh?: boolean): Promise<RepositoriesResponse> {
-	const url = forceRefresh ? `${BACKEND_URL}/repositories?refresh=true` : `${BACKEND_URL}/repositories`;
+	const url = forceRefresh
+		? `${BACKEND_URL}/repositories?refresh=true`
+		: `${BACKEND_URL}/repositories`;
 	const response = await fetch(url, {
 		method: "GET",
 		credentials: "include",
@@ -40,7 +44,9 @@ export type AnalyzeRepositoryResponse =
 	| { type: "cached"; result: import("./model").AnalysisResult }
 	| { type: "job"; jobId: string };
 
-export async function analyzeRepository(data: AnalyzeRepositoryRequest): Promise<AnalyzeRepositoryResponse> {
+export async function analyzeRepository(
+	data: AnalyzeRepositoryRequest,
+): Promise<AnalyzeRepositoryResponse> {
 	const res = await fetch(`${BACKEND_URL}/repositories`, {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
@@ -82,9 +88,10 @@ export async function getAnalyzedRepositories(): Promise<string[]> {
 	return parsed.data;
 }
 
-export async function getAnalysis(fullName: string): Promise<AnalysisResult> {
+export async function getAnalysis(fullName: string, branch?: string): Promise<AnalysisResult> {
 	const [owner, repo] = fullName.split("/");
-	const url = `${BACKEND_URL}/repositories/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/analysis`;
+	const query = branch ? `?branch=${encodeURIComponent(branch)}` : "";
+	const url = `${BACKEND_URL}/repositories/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/analysis${query}`;
 	const res = await fetch(url, { credentials: "include" });
 	const json = await res.json();
 	if (!res.ok) throw new Error(json.message || "Analysis not found");
@@ -97,9 +104,27 @@ export async function getAnalysis(fullName: string): Promise<AnalysisResult> {
 	}
 }
 
-export const getAnalysisQueryOptions = (fullName: string) =>
+export const getAnalysisQueryOptions = (fullName: string, branch?: string) =>
 	queryOptions({
-		queryKey: ["analysis", fullName],
-		queryFn: () => getAnalysis(fullName),
+		queryKey: ["analysis", fullName, branch ?? ""],
+		queryFn: () => getAnalysis(fullName, branch),
 		staleTime: Infinity,
+	});
+
+export async function getBranches(fullName: string): Promise<BranchesResponse> {
+	const [owner, repo] = fullName.split("/");
+	const res = await fetch(
+		`${BACKEND_URL}/repositories/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/branches`,
+		{ credentials: "include" },
+	);
+	const json = await res.json();
+	if (!res.ok) throw new Error(json.message || "Failed to fetch branches");
+	return v.parse(ApiResponseSchema(BranchesResponseSchema), json).data;
+}
+
+export const getBranchesQueryOptions = (fullName: string) =>
+	queryOptions({
+		queryKey: ["branches", fullName],
+		queryFn: () => getBranches(fullName),
+		staleTime: 60 * 1000,
 	});
