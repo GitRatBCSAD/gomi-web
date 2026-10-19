@@ -6,9 +6,7 @@ import { stepLabel } from "@/components/analysis-loading-screen";
 import { RepoDriverTour, startRepoDriverTour } from "@/components/repo-driver-tour";
 import { TourTriggerButton } from "@/components/tour-trigger-button";
 import { H1, H2, P } from "@/components/typography";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardAction } from "@/components/ui/card";
 import {
 	analyzeRepository,
 	getAnalysisQueryOptions,
@@ -18,7 +16,7 @@ import {
 import { riskScale } from "@/lib/interpret";
 
 import { Heatmap } from "./-components/repo-overview/heatmap";
-import { RepoSummaryCards } from "./-components/repo-overview/repo-summary-cards";
+import { RepoSummary } from "./-components/repo-overview/repo-summary";
 
 const REPO_TOUR_KEY = "gomi:repo_detail_tour_seen";
 
@@ -60,6 +58,9 @@ function RouteComponent(): JSX.Element {
 		.split("/")
 		.slice(-2)
 		.join("/");
+
+	const [owner, name] = repoName.split("/");
+	const repoMatch = reposQuery.data?.repositories.find((r) => r.fullName === repoName);
 
 	const scale = useMemo(
 		() => riskScale(analysis.fileResults, analysis.threshold),
@@ -120,50 +121,53 @@ function RouteComponent(): JSX.Element {
 	};
 
 	return (
-		<div className="mx-auto w-full max-w-7xl space-y-2 p-4">
+		<div className="mx-auto w-full max-w-7xl space-y-6 p-4 pb-12">
 			{showTour && <RepoDriverTour onDone={handleDismissTour} />}
 
-			<Card>
-				<CardHeader id="tour-repo-header">
-					<H1>{repoName}</H1>
-					<CardAction className="flex items-center gap-2">
-						<TourTriggerButton onClick={handleStartTour} />
-						<Button
-							variant="outline"
-							size="sm"
-							disabled={isBusy}
-							onClick={() => setShowConfirm(true)}
-						>
-							{isBusy ? (currentStep ?? "Analyzing...") : "Reanalyze"}
-						</Button>
-						<Button
-							variant="outline"
-							size="sm"
-							nativeButton={false}
-							render={<Link to="/repositories" />}
-						>
-							Select Other Repo
-						</Button>
-					</CardAction>
-				</CardHeader>
-
-				<CardContent className="flex items-center gap-4">
-					<Badge>Public</Badge>
+			<header
+				id="tour-repo-header"
+				className="flex flex-wrap items-start justify-between gap-x-6 gap-y-3 pt-4"
+			>
+				<div className="min-w-0 space-y-1">
+					<H1 variant="h2" className="truncate">
+						<span className="text-muted-foreground font-normal">{owner}/</span>
+						{name}
+					</H1>
 					<P className="text-muted-foreground text-sm">
-						Based on the last 6 months of changes on{" "}
-						<span className="">{analysis.defaultBranch}</span>.
+						Last 6 months of changes on{" "}
+						<span className="text-foreground font-mono">{analysis.defaultBranch}</span>
+						{repoMatch && <> · {repoMatch.private ? "Private" : "Public"}</>}
 					</P>
-					{(analyzeMutation.isError || jobError) && (
-						<P className="text-destructive text-sm">
-							Could not re-analyze this repository:{" "}
-							{jobError ?? analyzeMutation.error?.message ?? "Unknown error"}
-						</P>
-					)}
-				</CardContent>
-			</Card>
+				</div>
+				<div className="flex items-center gap-2">
+					<TourTriggerButton onClick={handleStartTour} />
+					<Button
+						variant="outline"
+						size="sm"
+						disabled={isBusy}
+						onClick={() => setShowConfirm(true)}
+					>
+						{isBusy ? (currentStep ?? "Analyzing...") : "Reanalyze"}
+					</Button>
+					<Button
+						variant="ghost"
+						size="sm"
+						nativeButton={false}
+						render={<Link to="/repositories" />}
+					>
+						Other repositories
+					</Button>
+				</div>
+				{(analyzeMutation.isError || jobError) && (
+					<P className="text-destructive w-full text-sm">
+						Could not re-analyze this repository:{" "}
+						{jobError ?? analyzeMutation.error?.message ?? "Unknown error"}
+					</P>
+				)}
+			</header>
 
-			<div id="tour-repo-summary">
-				<RepoSummaryCards
+			<div id="tour-repo-summary" className="pb-2">
+				<RepoSummary
 					fileResults={analysis.fileResults}
 					scale={scale}
 					selectedFilter={selectedFilter}
@@ -202,10 +206,6 @@ function RouteComponent(): JSX.Element {
 								disabled={isBusy}
 								onClick={() => {
 									setShowConfirm(false);
-									const [owner, name] = repoName.split("/");
-									const repoMatch = reposQuery.data?.repositories.find(
-										(r) => r.fullName === repoName,
-									);
 									analyzeMutation.mutate({
 										id: repoMatch ? String(repoMatch.id) : "",
 										owner,
