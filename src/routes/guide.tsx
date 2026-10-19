@@ -145,7 +145,7 @@ function Guide(): JSX.Element {
 								On the repository heatmap, each file is a tile of the same size,
 								grouped by folder. The{" "}
 								<span className="text-foreground">color</span> tells you its risk
-								level. Start with the red tiles.
+								level. Start with the Very High tiles.
 							</P>
 							<RiskLegendRows />
 							<H3 variant="h4" className="mt-8 mb-2">

@@ -51,6 +51,7 @@ function dotCode(prob: number, argmax: string | undefined): SentimentCode {
 
 type ChartPoint = {
 	index: number;
+	at: number;
 	prob: number;
 	hash: string;
 	message: string;
@@ -126,6 +127,7 @@ export function SentimentTrajectoryCard({
 		const prob = c.riskProbability as number;
 		return {
 			index: idx,
+			at: c.committedAt,
 			prob,
 			hash: c.hash.slice(0, 7),
 			message: c.message,
@@ -171,7 +173,7 @@ export function SentimentTrajectoryCard({
 				</H1>
 				<P className="text-foreground">{trend.sentence}</P>
 				<P className="text-muted-foreground text-sm">
-					Each dot is one change, oldest on the left. Dots above the dashed line read as
+					Each dot is one change, placed on the date it was made. Dots above the dashed line read as
 					worried; green dots read as positive.
 					<GlossaryHint term="caution-probability" />
 				</P>
@@ -185,7 +187,7 @@ export function SentimentTrajectoryCard({
 				>
 					<LineChart
 						data={data}
-						margin={{ top: 8, right: 16, bottom: 8, left: 0 }}
+						margin={{ top: 16, right: 24, bottom: 8, left: 0 }}
 						onMouseMove={(s) => {
 							const idx = s?.activeTooltipIndex;
 							setActiveIdx(typeof idx === "number" ? idx : null);
@@ -198,10 +200,13 @@ export function SentimentTrajectoryCard({
 							strokeOpacity={0.3}
 						/>
 						<XAxis
-							dataKey="index"
+							dataKey="at"
 							type="number"
-							domain={[0, data.length - 1]}
-							tickFormatter={(idx: number) => data[idx]?.date ?? ""}
+							scale="time"
+							domain={["dataMin", "dataMax"]}
+							tickFormatter={(t: number) => fmtDate(t)}
+							tickCount={5}
+							tickMargin={10}
 							tick={{
 								fontSize: 11,
 								fill: "var(--muted-foreground)",
@@ -260,7 +265,7 @@ export function SentimentTrajectoryCard({
 						/>
 						{jumpIdx >= 0 && (
 							<ReferenceDot
-								x={jumpIdx}
+								x={data[jumpIdx].at}
 								y={data[jumpIdx].prob}
 								r={9}
 								fill="none"
