@@ -103,9 +103,9 @@ export function ShapBreakdownCard({
 								</span>
 								{/* Diverging: direction by position, not just color. Half width = largest share. */}
 								<div className="relative h-2" aria-hidden="true">
-									<span className="bg-border absolute inset-y-[-6px] left-1/2 w-px" />
+									<span className="bg-muted-foreground absolute inset-y-[-8px] left-1/2 w-0.5 -translate-x-1/2" />
 									<div
-										className="absolute h-2 rounded-full"
+										className="absolute h-2 rounded-[2px]"
 										style={{
 											width: `${Math.max((f.share / maxShare) * 50, 1)}%`,
 											left: f.raises ? "50%" : undefined,
