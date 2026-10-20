@@ -28,6 +28,10 @@ import {
 
 import { computeDrift } from "./drift-utils";
 
+/** p-value as a plain percentage chance, e.g. 0.005 -> "0.5%". */
+const fmtChance = (p: number) =>
+	p < 0.001 ? "Under 0.1%" : `${(p * 100).toFixed(p < 0.01 ? 1 : 0)}%`;
+
 type SentimentCode = "caution" | "neutral" | "satisfaction";
 
 const SENTIMENT_COLOR: Record<SentimentCode, string> = {
@@ -321,14 +325,14 @@ export function SentimentTrajectoryCard({
 					<dl className="text-muted-foreground mt-2 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-xs tabular-nums">
 						{[
 							[
-								"Average p(caution), older → newer half",
+								"Average caution level, older → newer half",
 								`${trend.earlierAvg.toFixed(2)} → ${trend.laterAvg.toFixed(2)} (${trend.pctChange > 0 ? "+" : ""}${trend.pctChange}%)`,
 							],
 							[
 								"Trend test (Mann–Kendall)",
-								`p = ${trend.pValue.toFixed(3)}; a trend needs p < 0.05`,
+								`${fmtChance(trend.pValue)} chance of a pattern this strong with no real trend (a trend needs under 5%)`,
 							],
-							["Caution line", `p(caution) ≥ ${CAUTION_THRESHOLD}`],
+							["Caution line", `caution level of ${CAUTION_THRESHOLD} or higher`],
 							["Readable commits", String(data.length)],
 							...(drift ? [["Drift pattern", drift.category]] : []),
 						].map(([k, v]) => (

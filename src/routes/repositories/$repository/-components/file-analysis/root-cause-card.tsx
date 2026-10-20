@@ -145,7 +145,7 @@ export function RootCauseCard({
 					<summary className="cursor-pointer">Show model numbers</summary>
 					<P className="mt-2 text-xs">
 						Commit tone {sentimentPct}% · code structure and history {complexityPct}% of
-						the score's influence (share of |SHAP|)
+						the factors' total push on the score
 					</P>
 				</details>
 			</CardContent>

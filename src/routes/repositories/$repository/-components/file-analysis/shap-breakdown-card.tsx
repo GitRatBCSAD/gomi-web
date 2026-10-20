@@ -130,12 +130,24 @@ export function ShapBreakdownCard({
 				<details className="text-muted-foreground mt-4 text-xs">
 					<summary className="cursor-pointer">Show model numbers</summary>
 					<P className="mt-2 text-xs">
-						SHAP values are in log-odds: baseline {s.baseRate.toFixed(2)} plus the
-						contributions below equals logit(score). Shares above are |contribution| ÷
-						total |contribution|.
+						Pushes are in the model's internal units (log-odds): the starting point plus
+						every push gives the final score before it is turned into 0–1. Share is each
+						push's part of the total push, ignoring direction.
 					</P>
 					<table className="mt-2 w-full tabular-nums">
+						<thead>
+							<tr className="text-left">
+								<th className="py-0.5 font-medium">Factor</th>
+								<th className="text-right font-medium">Push</th>
+								<th className="text-right font-medium">Share</th>
+							</tr>
+						</thead>
 						<tbody>
+							<tr>
+								<td className="py-0.5">Starting point (typical file)</td>
+								<td className="text-right">{s.baseRate.toFixed(3)}</td>
+								<td />
+							</tr>
 							{factors.map((f) => (
 								<tr key={f.key}>
 									<td className="py-0.5">{f.name}</td>
@@ -147,7 +159,7 @@ export function ShapBreakdownCard({
 								</tr>
 							))}
 							<tr>
-								<td className="py-0.5">Final score</td>
+								<td className="py-0.5">Final score (0–1)</td>
 								<td className="text-right">{(file.riskScore ?? 0).toFixed(3)}</td>
 								<td />
 							</tr>

@@ -121,7 +121,7 @@ function RouteComponent(): JSX.Element {
 						<P className="text-foreground text-lg leading-snug">
 							{summarizeFile(file, scale)}
 						</P>
-						<P className="text-muted-foreground flex items-start gap-2 text-sm w-full">
+						<P className="text-muted-foreground flex w-full items-start gap-2 text-sm">
 							<ArrowRightIcon className="text-foreground mt-0.5 size-4 shrink-0" />
 							<span>
 								<span className="text-foreground font-semibold">What to do: </span>
