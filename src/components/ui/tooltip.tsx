@@ -31,7 +31,10 @@ function TooltipContent({
 				alignOffset={alignOffset}
 				side={side}
 				sideOffset={sideOffset}
-				className="isolate z-50"
+				// The fixed navbar is 4.5rem tall at z-999: treat it as the viewport edge so
+				// tooltips flip below instead of hiding under it, and stack above it anyway.
+				collisionPadding={{ top: 80, right: 8, bottom: 8, left: 8 }}
+				className="isolate z-1000"
 			>
 				<TooltipPrimitive.Popup
 					data-slot="tooltip-content"
