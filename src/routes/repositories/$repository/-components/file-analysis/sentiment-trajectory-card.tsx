@@ -188,11 +188,11 @@ export function SentimentTrajectoryCard({
 					config={{
 						prob: { label: "Caution level", color: "var(--primary-500)" },
 					}}
-					className="h-[220px] w-full"
+					className="h-[236px] w-full"
 				>
 					<LineChart
 						data={data}
-						margin={{ top: 16, right: 24, bottom: 8, left: 0 }}
+						margin={{ top: 32, right: 44, bottom: 8, left: 0 }}
 						onMouseMove={(s) => {
 							const idx = s?.activeTooltipIndex;
 							setActiveIdx(typeof idx === "number" ? idx : null);
