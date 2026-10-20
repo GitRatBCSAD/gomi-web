@@ -26,6 +26,17 @@ function rankIn(all: FileRiskResult[], get: (f: FileRiskResult) => number, v: nu
 	return all.length ? all.filter((f) => get(f) < v).length / all.length : 0;
 }
 
+// CCN's label is an absolute McCabe band (Table 19), so its marker uses the same bands,
+// one quarter each, instead of a repo rank: a "Simple" file must sit on the left.
+function ccnPosition(ccn: number): number {
+	const seg = (lo: number, hi: number, i: number) =>
+		(i + Math.min(1, Math.max(0, (ccn - lo) / (hi - lo)))) / 4;
+	if (ccn <= 10) return seg(1, 10, 0);
+	if (ccn <= 20) return seg(10, 20, 1);
+	if (ccn <= 50) return seg(20, 50, 2);
+	return seg(50, 100, 3);
+}
+
 const higherThan = (pct: number) => `Higher than ${Math.round(pct * 100)}% of files in this repo`;
 
 export function ComplexityMetricsCard({
@@ -58,7 +69,7 @@ export function ComplexityMetricsCard({
 		},
 		{
 			label: "Decision paths per function",
-			pct: rankIn(allFiles, (f) => f.avgCcn, file.avgCcn),
+			pct: ccnPosition(file.avgCcn),
 			term: "cyclomatic-complexity",
 			verdict: ccnLabel(file.avgCcn),
 			tone: ccnTone(file.avgCcn),
@@ -106,7 +117,7 @@ export function ComplexityMetricsCard({
 		},
 		{
 			label: "Commit message detail",
-			pct: rankIn(allFiles, (f) => f.lowInfoRatio, file.lowInfoRatio),
+			pct: file.lowInfoRatio,
 			term: "low-info-ratio",
 			verdict: lowInfoLabel(file.lowInfoRatio),
 			tone: file.lowInfoRatio >= 0.5 ? "warn" : "neutral",
@@ -128,7 +139,8 @@ export function ComplexityMetricsCard({
 			<CardHeader>
 				<H1 variant="h4">Code structure and change history</H1>
 				<P className="text-muted-foreground">
-					Where this file sits among all files in the repo. Further right means higher.
+					Further right means higher. Most rows compare this file with the rest of the
+					repo.
 				</P>
 				<P className="text-foreground mt-2">{takeaway}</P>
 			</CardHeader>
