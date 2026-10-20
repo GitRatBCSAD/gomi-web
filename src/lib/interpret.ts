@@ -305,11 +305,14 @@ export type Factor = {
 	weight: FactorWeight;
 };
 
-// ponytail: share cutoffs (.40 / .15) are design conventions, documented in
-// Ch. 3 and validated by the usability survey, not derived from data.
-export function factorWeight(share: number): FactorWeight {
-	if (share >= 0.4) return "Main reason";
-	if (share >= 0.15) return "Contributing factor";
+// Derived, not chosen: the largest factor is the main reason, and any other factor
+// counts as contributing when its share is at least what it would hold if all seven
+// factors contributed equally (1/7).
+export const EQUAL_SHARE = 1 / 7;
+
+export function factorWeight(share: number, rank: number): FactorWeight {
+	if (rank === 0 && share > 0) return "Main reason";
+	if (share >= EQUAL_SHARE) return "Contributing factor";
 	return "Minor factor";
 }
 
@@ -327,10 +330,10 @@ export function shapFactors(shap: ShapBreakdown): Factor[] {
 				contrib,
 				share,
 				raises: contrib > 0,
-				weight: factorWeight(share),
 			};
 		})
-		.sort((a, b) => b.share - a.share);
+		.sort((a, b) => b.share - a.share)
+		.map((f, rank) => ({ ...f, weight: factorWeight(f.share, rank) }));
 }
 
 // Ways to reduce the underlying risk, one per actionable factor. Sources in

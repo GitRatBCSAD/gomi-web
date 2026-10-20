@@ -4,6 +4,7 @@ import type { FileRiskResult } from "./github/model";
 import type { CommitSentiment } from "./github/model";
 import {
 	ccnLabel,
+	factorWeight,
 	percentileLabel,
 	riskBand,
 	riskScale,
@@ -103,6 +104,13 @@ describe("shap", () => {
 		expect(f[0].key).toBe("sentimentContrib");
 		expect(f[0].weight).toBe("Main reason");
 		expect(f.reduce((s, x) => s + x.share, 0)).toBeCloseTo(1);
+	});
+
+	it("weights factors by rank and the equal-share baseline (1/7)", () => {
+		expect(factorWeight(0.2, 0)).toBe("Main reason");
+		expect(factorWeight(0.15, 1)).toBe("Contributing factor");
+		expect(factorWeight(0.14, 1)).toBe("Minor factor");
+		expect(factorWeight(0, 0)).toBe("Minor factor");
 	});
 
 	it("summarizes with the top risk-raising factors", () => {

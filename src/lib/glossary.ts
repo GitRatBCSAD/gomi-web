@@ -47,7 +47,7 @@ export const GLOSSARY: Record<GlossaryKey, GlossaryEntry> = {
 		definition:
 			"A way of splitting one prediction into each signal's share, so you can see how much every factor pushed the risk up or down.",
 		reading:
-			"Main reason: 40% or more of the total push. Contributing factor: 15–40%. Minor factor: under 15%.",
+			"Main reason: the factor with the biggest push. Contributing factor: any other factor with at least a seventh of the total push, its fair share if all seven factors pushed equally. Minor factor: less than that.",
 		href: "https://shap.readthedocs.io/en/latest/",
 	},
 	"base-rate": {
