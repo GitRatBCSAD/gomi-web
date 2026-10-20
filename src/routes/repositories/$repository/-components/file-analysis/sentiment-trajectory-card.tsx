@@ -317,14 +317,27 @@ export function SentimentTrajectoryCard({
 					<summary className="text-muted-foreground cursor-pointer text-xs">
 						Show model numbers
 					</summary>
-					<P className="mt-2 text-xs" style={{ color: "var(--text-subtle)" }}>
-						Average caution level (p(caution)) {trend.earlierAvg.toFixed(2)} →{" "}
-						{trend.laterAvg.toFixed(2)} ({trend.pctChange > 0 ? "+" : ""}
-						{trend.pctChange}%) · Mann–Kendall p = {trend.pValue.toFixed(3)} (trend if p
-						&lt; 0.05) · caution line at {CAUTION_THRESHOLD} · {data.length} readable
-						commits
-						{drift ? ` · pattern: ${drift.category}` : ""}
-					</P>
+					{/* One labelled row per number instead of a single run-on line. */}
+					<dl className="text-muted-foreground mt-2 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-xs tabular-nums">
+						{[
+							[
+								"Average p(caution), older → newer half",
+								`${trend.earlierAvg.toFixed(2)} → ${trend.laterAvg.toFixed(2)} (${trend.pctChange > 0 ? "+" : ""}${trend.pctChange}%)`,
+							],
+							[
+								"Trend test (Mann–Kendall)",
+								`p = ${trend.pValue.toFixed(3)}; a trend needs p < 0.05`,
+							],
+							["Caution line", `p(caution) ≥ ${CAUTION_THRESHOLD}`],
+							["Readable commits", String(data.length)],
+							...(drift ? [["Drift pattern", drift.category]] : []),
+						].map(([k, v]) => (
+							<div key={k} className="contents">
+								<dt>{k}</dt>
+								<dd className="text-foreground">{v}</dd>
+							</div>
+						))}
+					</dl>
 				</details>
 			</CardContent>
 		</Card>
