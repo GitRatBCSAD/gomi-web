@@ -91,6 +91,10 @@ export function Heatmap(props: {
 	const attachRef = (el: HTMLDivElement | null) => {
 		roRef.current?.disconnect();
 		if (!el) return;
+		// Measure now instead of waiting for the observer's first callback, so the first
+		// render after navigation already has tiles.
+		const w = el.getBoundingClientRect().width;
+		if (w > 0) setContainerWidth((prev) => (prev === w ? prev : w));
 		roRef.current = new ResizeObserver(([entry]) => {
 			const { width } = entry.contentRect;
 			if (width > 0) setContainerWidth(width);

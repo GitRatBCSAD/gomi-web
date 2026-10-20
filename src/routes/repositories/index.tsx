@@ -160,6 +160,8 @@ function RouteComponent(): JSX.Element {
 		const { status } = jobQuery.data;
 		if (status === "done") {
 			queryClient.invalidateQueries({ queryKey: ["analyzedRepositories"] });
+			// Drop any cached analysis (staleTime is Infinity) so the repo page loads the new result.
+			queryClient.removeQueries({ queryKey: ["analysis", pendingJob.fullName] });
 			navigate({
 				to: "/repositories/$repository",
 				params: { repository: pendingJob.fullName },

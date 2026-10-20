@@ -74,7 +74,7 @@ function RouteComponent(): JSX.Element {
 		},
 		onSuccess: (data) => {
 			if (data.type === "cached") {
-				queryClient.invalidateQueries({ queryKey: ["analysis", repository] });
+				queryClient.removeQueries({ queryKey: ["analysis", repository] });
 				router.invalidate();
 			} else {
 				setPendingJobId(data.jobId);
@@ -100,7 +100,9 @@ function RouteComponent(): JSX.Element {
 		const { status } = jobQuery.data;
 		if (status === "done") {
 			setPendingJobId(null);
-			queryClient.invalidateQueries({ queryKey: ["analysis", repository] });
+			// invalidateQueries only marks it stale; the loader's ensureQueryData would still
+			// return the old result. Remove it so the loader fetches the new one.
+			queryClient.removeQueries({ queryKey: ["analysis", repository] });
 			router.invalidate();
 		} else if (status === "failed") {
 			setJobError(jobQuery.data.error ?? "Unknown error");
