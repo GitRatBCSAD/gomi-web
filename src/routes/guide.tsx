@@ -21,7 +21,7 @@ const PIPELINE = [
 	{
 		n: "01",
 		title: "Reads your commit messages",
-		body: "Every commit message is scored for how worried or frustrated it sounds. Venting, 'temp fix', and 'no idea why this works' are signals, not noise.",
+		body: "Every commit message is scored for how cautious, urgent or frustrated it sounds. Venting, 'temp fix', and 'no idea why this works' are signals, not noise.",
 	},
 	{
 		n: "02",

@@ -24,17 +24,17 @@ const CANDIDATES: Candidate[] = [
 		id: "sentiment",
 		selector: "#tour-file-sentiment",
 		side: "top",
-		title: "Worry over time",
+		title: "Caution over time",
 		description:
-			"Whether commit messages are getting more worried, calmer, or holding steady, with the chart that shows it. Red dots sit above the worried line; the circled dot marks the biggest jump.",
+			"Whether commit messages are getting more cautious, calmer, or holding steady, with the chart that shows it. Red dots sit above the caution line; the circled dot marks the biggest jump.",
 	},
 	{
 		id: "rootcause",
 		selector: "#tour-file-rootcause",
 		side: "top",
-		title: "Where the worry started",
+		title: "Biggest rise in caution",
 		description:
-			"When worry jumps, Gomi points to the change where it started and says whether tone or code structure drives the risk.",
+			"When caution jumps, Gomi points to the change with the biggest jump and says whether tone or code structure drives the risk.",
 	},
 	{
 		id: "commits",
@@ -42,7 +42,7 @@ const CANDIDATES: Candidate[] = [
 		side: "top",
 		title: "Tone of commit messages",
 		description:
-			"Every commit message from the last 6 months, labelled Worried, Neutral or Positive.",
+			"Every commit message from the last 6 months, labelled Caution, Neutral or Positive.",
 	},
 	{
 		id: "shap",

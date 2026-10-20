@@ -29,7 +29,7 @@ export function RootCauseCard({
 	const rootCommit = drift.rootCauseCommit;
 	const cautionProb = rootCommit.riskProbability ?? 0;
 
-	// Root cause only meaningful if the commit itself reads as worried
+	// Root cause only meaningful if the commit itself reads as cautious
 	if (cautionProb < CAUTION_THRESHOLD) return null;
 
 	const { tone: affectiveSum, structure: structuralSum } = toneVsStructure(file.shapBreakdown);
@@ -54,10 +54,9 @@ export function RootCauseCard({
 	return (
 		<Card id={id}>
 			<CardHeader>
-				<H1 variant="h4">Where the worry started</H1>
+				<H1 variant="h4">Biggest rise in caution</H1>
 				<P className="text-muted-foreground">
-					The change where commit messages for this file first turned noticeably more
-					worried
+					The change whose commit message showed this file's biggest jump in caution
 				</P>
 			</CardHeader>
 			<CardContent className="space-y-4">
@@ -92,7 +91,7 @@ export function RootCauseCard({
 						}}
 						className="shrink-0 font-bold"
 					>
-						Worried tone
+						Caution tone
 					</Badge>
 				</div>
 

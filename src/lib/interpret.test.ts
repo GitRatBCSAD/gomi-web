@@ -140,8 +140,8 @@ describe("worryTrend", () => {
 
 	it("puts the averages into words", () => {
 		const t = worryTrend(commits([0.1, 0.1, 0.9, 0.9]))!;
-		expect(t.headline).toBe("Getting more worried");
-		expect(t.sentence).toMatch(/mostly calm .* mostly worried/);
+		expect(t.headline).toBe("Getting more cautious");
+		expect(t.sentence).toMatch(/mostly calm .* mostly cautious/);
 	});
 
 	it("skips unreadable commits and needs two readable ones", () => {

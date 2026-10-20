@@ -60,25 +60,25 @@ export const GLOSSARY: Record<GlossaryKey, GlossaryEntry> = {
 	"sentiment-score": {
 		title: "Commit message tone",
 		definition:
-			"The average worry level across this file's commit messages. Higher means more worried or frustrated language over time.",
+			"The average caution level across this file's commit messages. Higher means more cautionary, urgent or frustrated language over time.",
 		reading:
-			"Mostly worried: half or more of the readable messages sound worried. Often: a quarter or more. Occasionally: fewer.",
+			"Mostly cautious: half or more of the readable messages are labelled Caution. Often: a quarter or more. Occasionally: fewer.",
 		href: "https://www.google.com/search?q=what+is+sentiment+analysis",
 	},
 	"caution-probability": {
-		title: "Worry level",
+		title: "Caution level",
 		definition:
-			"For a single commit message, how strongly it reads as worried, frustrated, or cautious rather than upbeat.",
+			"For a single commit message, how strongly it reads as cautionary, urgent or frustrated rather than upbeat.",
 		reading:
-			"Each message is labelled Worried, Neutral or Positive, whichever the model finds most likely.",
+			"Each message is labelled Caution, Neutral or Positive, whichever the model finds most likely.",
 		href: "https://www.google.com/search?q=what+is+sentiment+analysis",
 	},
 	"sentiment-trajectory": {
-		title: "Worry over time",
+		title: "Caution over time",
 		definition:
-			"A timeline of the worry level, commit by commit, so you can watch the mood around a file trend up or down over months.",
+			"A timeline of the caution level, commit by commit, so you can watch the mood around a file trend up or down over months.",
 		reading:
-			"Higher dots sound more worried. A change of 10% or more between the older and newer half counts as a trend.",
+			"Higher dots sound more cautious. A change of 10% or more between the older and newer half counts as a trend.",
 		href: "https://www.google.com/search?q=what+is+exponential+moving+average",
 	},
 	"drift-category": {
@@ -86,7 +86,7 @@ export const GLOSSARY: Record<GlossaryKey, GlossaryEntry> = {
 		definition:
 			"A plain-language label for how a file's risk is trending, for example whether debt is piling up fast or a cleanup effort is working.",
 		reading:
-			"Based on sudden jumps in worry level and on whether tone or code structure drives the score.",
+			"Based on sudden jumps in caution level and on whether tone or code structure drives the score.",
 		href: "https://www.google.com/search?q=what+is+technical+debt",
 	},
 	"complexity-score": {

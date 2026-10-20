@@ -42,8 +42,8 @@ const TREND_COLOR: Record<Trend, string> = {
 	steady: "var(--foreground)",
 };
 
-// Dot colour follows the chart, not the argmax label: red only above the worried line,
-// so the caption "dots above the line read as worried" always matches what is drawn.
+// Dot colour follows the chart, not the argmax label: red only above the caution line,
+// so the caption "dots above the line read as cautious" always matches what is drawn.
 function dotCode(prob: number, argmax: string | undefined): SentimentCode {
 	if (prob >= CAUTION_THRESHOLD) return "caution";
 	return argmax === "satisfaction" ? "satisfaction" : "neutral";
@@ -82,7 +82,7 @@ function TooltipContent({
 					{d.date}
 				</span>
 				<span className="font-bold" style={{ color }}>
-					{toneLabel(d.sentimentCode)} tone
+					{toneLabel(d.sentimentCode)}
 				</span>
 			</div>
 		</div>
@@ -101,7 +101,7 @@ export function SentimentTrajectoryCard({
 	const readable = readableCommits(file.commitSentiments);
 	const title = (
 		<P className="text-muted-foreground text-sm">
-			How worried commit messages sounded over time
+			How cautious commit messages sounded over time
 			<GlossaryHint term="sentiment-trajectory" />
 		</P>
 	);
@@ -179,14 +179,14 @@ export function SentimentTrajectoryCard({
 				<P className="text-foreground">{trend.sentence}</P>
 				<P className="text-muted-foreground text-sm">
 					Each dot is one change, placed on the date it was made. Dots above the dashed
-					line read as worried; green dots read as positive.
+					line read as cautious; green dots read as positive.
 					<GlossaryHint term="caution-probability" />
 				</P>
 			</CardHeader>
 			<CardContent>
 				<ChartContainer
 					config={{
-						prob: { label: "Worry level", color: "var(--primary-500)" },
+						prob: { label: "Caution level", color: "var(--primary-500)" },
 					}}
 					className="h-[220px] w-full"
 				>
@@ -225,7 +225,7 @@ export function SentimentTrajectoryCard({
 							domain={[0, 1]}
 							ticks={[0, 0.5, 1.0]}
 							tickFormatter={(v: number) =>
-								v === 0 ? "Calm" : v === 1 ? "Worried" : "Mixed"
+								v === 0 ? "Calm" : v === 1 ? "Cautious" : "Mixed"
 							}
 							tick={{
 								fontSize: 11,
@@ -260,7 +260,7 @@ export function SentimentTrajectoryCard({
 							strokeDasharray="4 4"
 							strokeWidth={1.5}
 							label={{
-								value: "Worried line",
+								value: "Caution line",
 								position: "insideTopRight",
 								fontSize: 11,
 								fill: "var(--risk-high-ink)",
@@ -302,9 +302,9 @@ export function SentimentTrajectoryCard({
 						Show model numbers
 					</summary>
 					<P className="mt-2 text-xs" style={{ color: "var(--text-subtle)" }}>
-						Average worry level (p(caution)) {trend.earlierAvg.toFixed(2)} →{" "}
+						Average caution level (p(caution)) {trend.earlierAvg.toFixed(2)} →{" "}
 						{trend.laterAvg.toFixed(2)} ({trend.pctChange > 0 ? "+" : ""}
-						{trend.pctChange}%) · ±10% counts as a trend · worried line at{" "}
+						{trend.pctChange}%) · ±10% counts as a trend · caution line at{" "}
 						{CAUTION_THRESHOLD} · {data.length} readable commits
 						{drift ? ` · pattern: ${drift.category}` : ""}
 					</P>

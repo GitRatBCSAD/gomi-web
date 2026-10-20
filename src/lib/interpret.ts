@@ -155,13 +155,13 @@ export const CAUTION_THRESHOLD = 0.72;
 
 /** Average p(caution) over a set of commits, in words. */
 export function worryLevel(p: number): string {
-	if (p >= CAUTION_THRESHOLD) return "mostly worried";
-	if (p >= 0.5) return "somewhat worried";
+	if (p >= CAUTION_THRESHOLD) return "mostly cautious";
+	if (p >= 0.5) return "somewhat cautious";
 	return "mostly calm";
 }
 
 export const TONE_LABEL: Record<string, string> = {
-	caution: "Worried",
+	caution: "Caution",
 	neutral: "Neutral",
 	satisfaction: "Positive",
 };
@@ -170,15 +170,15 @@ export function toneLabel(code: string | null | undefined): string {
 	return code ? (TONE_LABEL[code] ?? code) : "Too short to read";
 }
 
-/** Share of commits whose message reads as worried/urgent. */
+/** Share of commits whose message reads as cautionary/urgent. */
 export function cautionShareLabel(share: number): string {
-	if (share >= 0.5) return "Mostly worried";
-	if (share >= 0.25) return "Often worried";
-	if (share > 0) return "Occasionally worried";
-	return "No worried messages";
+	if (share >= 0.5) return "Mostly cautious";
+	if (share >= 0.25) return "Often cautious";
+	if (share > 0) return "Occasionally cautious";
+	return "No cautious messages";
 }
 
-// --- Worry trend (older half vs newer half of readable commits) ---
+// --- Caution trend (older half vs newer half of readable commits) ---
 
 // Readable (≥5-word) commits needed before a trend, spike or root cause is drawn.
 export const MIN_TREND_POINTS = 10;
@@ -195,7 +195,7 @@ export type WorryTrend = {
 };
 
 export const TREND_HEADLINE: Record<Trend, string> = {
-	up: "Getting more worried",
+	up: "Getting more cautious",
 	down: "Getting calmer",
 	steady: "Holding steady",
 };

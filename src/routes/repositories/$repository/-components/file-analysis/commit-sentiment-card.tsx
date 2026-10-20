@@ -20,7 +20,7 @@ function SentimentBadge({ code }: { code: string | null }): JSX.Element {
 					borderColor: "transparent",
 				}}
 			>
-				Worried
+				Caution
 			</Badge>
 		);
 	}
@@ -90,7 +90,7 @@ export function CommitSentimentCard({
 				<H1 variant="h4">Tone of commit messages</H1>
 				<P className="text-muted-foreground">
 					{cautionShareLabel(cautionShare)}: {groups[0].n} of {labelled} readable messages
-					in the last 6 months sound worried or urgent.
+					in the last 6 months sound cautious or urgent.
 				</P>
 			</CardHeader>
 			<CardContent className="space-y-4">
@@ -127,7 +127,7 @@ export function CommitSentimentCard({
 								setPage(1);
 							}}
 						>
-							{f === "all" ? `All ${total}` : `Worried ${groups[0].n}`}
+							{f === "all" ? `All ${total}` : `Caution ${groups[0].n}`}
 						</Button>
 					))}
 				</div>
