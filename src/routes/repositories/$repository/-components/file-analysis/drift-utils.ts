@@ -1,6 +1,10 @@
 import type { CommitSentiment, ShapBreakdown } from "@/lib/github/model";
+import { MIN_TREND_POINTS, readableCommits, toneVsStructure } from "@/lib/interpret";
 
+// NIST/SEMATECH e-Handbook 6.3.2.4: lambda is usually set between 0.2 and 0.3.
 const EWMA_ALPHA = 0.2;
+// NIST/SEMATECH e-Handbook: control limits at k = 3.
+const EWMA_K = 3;
 
 export type DriftCategory =
 	| "Developer Frustration Drift"
@@ -21,41 +25,40 @@ export function computeDrift(
 	commits: CommitSentiment[],
 	shap: ShapBreakdown | null,
 ): DriftResult | null {
-	const sorted = [...commits]
-		.filter((c) => c.riskProbability != null)
-		.sort((a, b) => a.committedAt - b.committedAt);
+	const sorted = readableCommits(commits);
 
-	if (sorted.length < 10) return null;
+	if (sorted.length < MIN_TREND_POINTS) return null;
 
 	const values = sorted.map((c) => c.riskProbability as number);
 
-	// Global σ over the commit sequence
-	const mean = values.reduce((a, b) => a + b, 0) / values.length;
-	const sigma = Math.sqrt(
-		values.reduce((a, v) => a + (v - mean) ** 2, 0) / values.length,
-	);
-
-	// EWMA spike detection — α = 0.2
+	// One-step-ahead EWMA forecast errors (exponential smoothing as a forecast, NIST/SEMATECH
+	// e-Handbook 6.4.3.1), checked with individuals-chart limits (6.3.2.2): ±k·σ with k = 3
+	// and σ = average moving range / 1.128, which a single shift barely inflates.
+	const errors: number[] = [];
 	let ewma = values[0];
+	for (let i = 1; i < values.length; i++) {
+		errors.push(values[i] - ewma);
+		ewma = EWMA_ALPHA * values[i] + (1 - EWMA_ALPHA) * ewma;
+	}
+	let mrSum = 0;
+	for (let i = 1; i < errors.length; i++) mrSum += Math.abs(errors[i] - errors[i - 1]);
+	const limit = EWMA_K * (mrSum / (errors.length - 1) / 1.128);
+
 	let maxUpDev = 0;
 	let maxDownDev = 0;
 	let upIdx = -1;
 	let downIdx = -1;
-
-	for (let i = 1; i < values.length; i++) {
-		const prevEwma = ewma;
-		ewma = EWMA_ALPHA * values[i] + (1 - EWMA_ALPHA) * ewma;
-		const upDev = values[i] - prevEwma;
-		const downDev = prevEwma - values[i];
-		if (upDev > 2 * sigma && upDev > maxUpDev) {
-			maxUpDev = upDev;
+	errors.forEach((e, k) => {
+		const i = k + 1; // errors[k] belongs to commit i
+		if (e > limit && e > maxUpDev) {
+			maxUpDev = e;
 			upIdx = i;
 		}
-		if (downDev > 2 * sigma && downDev > maxDownDev) {
-			maxDownDev = downDev;
+		if (-e > limit && -e > maxDownDev) {
+			maxDownDev = -e;
 			downIdx = i;
 		}
-	}
+	});
 
 	const hasSpike = upIdx >= 0 || downIdx >= 0;
 	const spikeDirection: "up" | "down" | null =
@@ -68,16 +71,9 @@ export function computeDrift(
 			? sorted[upIdx]
 			: sorted[downIdx];
 
-	// SHAP group dominance
-	const affectiveSum =
-		(shap?.sentimentContrib ?? 0) + Math.max(0, shap?.lowInfoContrib ?? 0);
-	const structuralSum =
-		(shap?.entropyContrib ?? 0) +
-		(shap?.ndevContrib ?? 0) +
-		(shap?.ageContrib ?? 0) +
-		(shap?.complexityContrib ?? 0) +
-		(shap?.commitsContrib ?? 0);
-	const isAffective = affectiveSum > structuralSum;
+	// SHAP group dominance (|SHAP|, same split as the root-cause card)
+	const { tone, structure } = toneVsStructure(shap);
+	const isAffective = tone > structure;
 
 	// Drift categorization matrix per §4
 	let category: DriftCategory;
@@ -95,8 +91,7 @@ export function computeDrift(
 		}
 	} else if (hasSpike && spikeDirection === "down") {
 		category = "Refactoring Recovery";
-		guidanceText =
-			"Cleanup is working and risk is dropping. Keep the current approach going.";
+		guidanceText = "Cleanup is working and risk is dropping. Keep the current approach going.";
 	} else {
 		if (isAffective) {
 			category = "Developer Frustration Drift";

@@ -150,7 +150,7 @@ export function LandingScanBg(): JSX.Element {
 		<canvas
 			ref={canvasRef}
 			aria-hidden="true"
-			className="pointer-events-none absolute inset-0 -z-20 h-full w-screen left-1/2 -translate-x-1/2"
+			className="pointer-events-none absolute inset-0 left-1/2 -z-20 h-full w-screen -translate-x-1/2"
 			style={{
 				maskImage:
 					"radial-gradient(ellipse 75% 85% at 50% 92%, #000 0%, rgba(0,0,0,0.55) 45%, transparent 80%)",

@@ -3,14 +3,12 @@ import type { JSX } from "react";
 
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { RISK_BANDS, type RiskBand } from "@/lib/interpret";
+import { cn } from "@/lib/utils";
 
-import { DOT_COLOR, FILTERS, type FilterKey, type RiskCategory, type SortOption } from "./heatmap-utils";
+import { FILTERS, type FilterKey, type SortOption } from "./heatmap-utils";
 
-const LEGEND_ITEMS: { key: RiskCategory; label: string }[] = [
-	{ key: "acceptable", label: "Acceptable (< threshold)" },
-	{ key: "risky", label: "Risky (≥ threshold)" },
-	{ key: "low-conf", label: "Low Confidence (< 10 commits)" },
-];
+const LEGEND: RiskBand[] = ["low", "moderate", "high", "insufficient"];
 
 export function HeatmapToolbar(props: {
 	filter: FilterKey;
@@ -24,77 +22,86 @@ export function HeatmapToolbar(props: {
 	const { filter, onFilterChange, search, onSearchChange, sort, onSortChange } = props;
 
 	return (
-		<>
-			<div className="border-border flex flex-wrap items-center gap-2 border-b px-4 py-3">
-				<Tabs value={filter} onValueChange={(v) => onFilterChange(v as FilterKey)}>
+		<div className="border-border space-y-3 border-b px-4 py-3">
+			<div className="flex flex-wrap items-center gap-2">
+				<Tabs
+					value={filter}
+					onValueChange={(v) => onFilterChange(v as FilterKey)}
+					className="max-w-full overflow-x-auto"
+				>
 					<TabsList>
-						{FILTERS.map(({ key, label }) => (
+						{FILTERS.map(({ key, label, short }) => (
 							<TabsTrigger key={key} value={key}>
-								{label}
+								<span className="sm:hidden">{short}</span>
+								<span className="hidden sm:inline">{label}</span>
+								<span className="text-muted-foreground font-mono text-xs tabular-nums">
+									{props.counts[key]}
+								</span>
 							</TabsTrigger>
 						))}
 					</TabsList>
 				</Tabs>
 
-				<div className="flex-1" />
-
-				<select
-					value={sort}
-					onChange={(e) => onSortChange(e.target.value as SortOption)}
-					className="border-input bg-background font-fira-mono text-muted-foreground focus-visible:ring-ring hover:text-foreground h-8 rounded-md border px-2.5 text-xs font-medium transition-colors focus-visible:ring-1 focus-visible:outline-none"
-				>
-					<option value="risk-desc">Sort: Highest Risk</option>
-					<option value="risk-asc">Sort: Lowest Risk</option>
-					<option value="complexity-desc">Sort: Highest Complexity</option>
-					<option value="commits-desc">Sort: Most Commits</option>
-					<option value="name-asc">Sort: Name (A-Z)</option>
-				</select>
-
-				<TabsList>
-					<TabsTrigger value="heatmap">Heatmap</TabsTrigger>
-					<TabsTrigger value="list">List</TabsTrigger>
-				</TabsList>
-			</div>
-
-			<div className="border-border flex flex-wrap items-center gap-4 border-b px-4 py-2.5 justify-between">
-				<div className="relative max-w-md flex-1">
+				<div className="relative min-w-48 flex-1">
 					<SearchIcon className="text-muted-foreground absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2" />
 					<Input
-						placeholder="Search Files"
+						placeholder="Search by file or folder"
+						aria-label="Search files"
 						value={search}
 						onChange={(e) => onSearchChange(e.target.value)}
-						className="h-8 pr-6 pl-8 text-xs"
+						className="h-8 pr-7 pl-8 text-sm"
 					/>
 					{search && (
 						<button
 							type="button"
+							aria-label="Clear search"
 							onClick={() => onSearchChange("")}
 							className="text-muted-foreground hover:text-foreground absolute top-1/2 right-2 -translate-y-1/2"
 						>
-							<XIcon className="size-3" />
+							<XIcon className="size-3.5" />
 						</button>
 					)}
 				</div>
 
-				<div className="flex shrink-0 flex-wrap items-center gap-4">
-					{LEGEND_ITEMS.map(({ key, label }) => (
-						<div key={key} className="flex items-center gap-1.5">
-							{key === "low-conf" ? (
-								<span
-									className="size-2.5 shrink-0 rounded-full border"
-									style={{ borderColor: DOT_COLOR[key] }}
-								/>
-							) : (
-								<span
-									className="size-2.5 shrink-0 rounded-full"
-									style={{ backgroundColor: DOT_COLOR[key] }}
-								/>
-							)}
-							<span className="text-foreground text-xs">{label}</span>
-						</div>
-					))}
-				</div>
+				<select
+					value={sort}
+					aria-label="Sort files"
+					onChange={(e) => onSortChange(e.target.value as SortOption)}
+					className="border-input bg-background text-foreground focus-visible:ring-ring h-8 rounded-md border px-2.5 text-sm transition-colors focus-visible:ring-1 focus-visible:outline-none"
+				>
+					<option value="risk-desc">Riskiest first</option>
+					<option value="risk-asc">Safest first</option>
+					<option value="complexity-desc">Most complex first</option>
+					<option value="commits-desc">Most changed first</option>
+					<option value="name-asc">Name (A–Z)</option>
+				</select>
+
+				<TabsList>
+					<TabsTrigger value="heatmap">Map</TabsTrigger>
+					<TabsTrigger value="list">List</TabsTrigger>
+				</TabsList>
 			</div>
-		</>
+
+			<div className="text-muted-foreground flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs">
+				<span className="text-foreground font-medium">Risk</span>
+				{LEGEND.map((b) => (
+					<span key={b} className="flex items-center gap-1.5">
+						<span
+							className={cn(
+								"border-border size-3 rounded-[2px] border",
+								b === "insufficient" && "bg-hatch",
+							)}
+							style={
+								b === "insufficient"
+									? undefined
+									: { backgroundColor: RISK_BANDS[b].fill }
+							}
+						/>
+						{RISK_BANDS[b].label}
+					</span>
+				))}
+				<span className="sm:ml-auto">High is above the model's warning line.</span>
+			</div>
+		</div>
 	);
 }

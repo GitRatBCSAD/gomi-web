@@ -1,4 +1,5 @@
 import { driver, type DriveStep } from "driver.js";
+
 import "driver.js/dist/driver.css";
 import { useEffect, type JSX } from "react";
 
@@ -15,57 +16,49 @@ const CANDIDATES: Candidate[] = [
 		id: "header",
 		selector: "#tour-file-header",
 		side: "bottom",
-		title: "Your file's risk score",
+		title: "Your file's risk level",
 		description:
-			"A 0-to-1 estimate of how likely this file is to need a bug fix soon. It blends code structure with commit sentiment into one number.",
+			"Low, Moderate or High: how likely it is that this file's recent changes introduced a bug, with a one-line reason and what to do next. Hover the label to see the exact score.",
 	},
 	{
 		id: "sentiment",
 		selector: "#tour-file-sentiment",
 		side: "top",
-		title: "Sentiment trajectory",
+		title: "Caution over time",
 		description:
-			"How cautious commit messages sounded over time, with a smoothed trend line. Spikes mark moments worth a closer look.",
+			"Whether commit messages are getting more cautious, calmer, or holding steady, with the chart that shows it. Red dots sit above the caution line; the circled dot marks the biggest jump.",
 	},
 	{
 		id: "rootcause",
 		selector: "#tour-file-rootcause",
 		side: "top",
-		title: "Root cause commit",
+		title: "Biggest rise in caution",
 		description:
-			"When risk spikes, Gomi finds the single commit most responsible and explains whether it was driven by sentiment or by structural change.",
+			"When caution jumps, Gomi points to the change with the biggest jump and says whether tone or code structure drives the risk.",
 	},
 	{
 		id: "commits",
 		selector: "#tour-file-commits",
 		side: "top",
-		title: "Commit sentiment",
+		title: "Tone of commit messages",
 		description:
-			"Every commit message in the window, scored as caution, neutral, or satisfaction by the sentiment model.",
-	},
-	{
-		id: "drift",
-		selector: "#tour-file-drift",
-		side: "top",
-		title: "Risk drift",
-		description:
-			"Compares the first and second half of the commit history to show whether this file is trending toward or away from risk.",
+			"Every commit message from the last 6 months, labelled Caution, Neutral or Positive.",
 	},
 	{
 		id: "shap",
 		selector: "#tour-file-shap",
 		side: "top",
-		title: "Why this score?",
+		title: "What drives this score",
 		description:
-			"The risk score broken into the individual signals that pushed it up or down, so nothing here is a black box.",
+			"Each factor is marked as the main reason, a contributing factor, or a minor factor, and whether it raises or lowers risk.",
 	},
 	{
 		id: "complexity",
 		selector: "#tour-file-complexity",
 		side: "top",
-		title: "Complexity metrics",
+		title: "Code structure and change history",
 		description:
-			"The raw structural numbers behind the complexity score, compared against the rest of the repo. Every metric on this page has an ⓘ — hover it for a plain-language definition.",
+			"How this file compares with the rest of the repo, in words. Every item has an ⓘ: hover it to see what it means and how to read it.",
 	},
 ];
 

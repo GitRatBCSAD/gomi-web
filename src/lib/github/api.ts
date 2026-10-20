@@ -15,7 +15,9 @@ import {
 } from "./model";
 
 export async function getRepositories(forceRefresh?: boolean): Promise<RepositoriesResponse> {
-	const url = forceRefresh ? `${BACKEND_URL}/repositories?refresh=true` : `${BACKEND_URL}/repositories`;
+	const url = forceRefresh
+		? `${BACKEND_URL}/repositories?refresh=true`
+		: `${BACKEND_URL}/repositories`;
 	const response = await fetch(url, {
 		method: "GET",
 		credentials: "include",
@@ -40,7 +42,9 @@ export type AnalyzeRepositoryResponse =
 	| { type: "cached"; result: import("./model").AnalysisResult }
 	| { type: "job"; jobId: string };
 
-export async function analyzeRepository(data: AnalyzeRepositoryRequest): Promise<AnalyzeRepositoryResponse> {
+export async function analyzeRepository(
+	data: AnalyzeRepositoryRequest,
+): Promise<AnalyzeRepositoryResponse> {
 	const res = await fetch(`${BACKEND_URL}/repositories`, {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },

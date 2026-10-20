@@ -1,10 +1,11 @@
 import { useState, type JSX } from "react";
 
-import { H1, H2, P } from "@/components/typography";
+import { H1, P } from "@/components/typography";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import type { FileRiskResult } from "@/lib/github/model";
+import { cautionShareLabel, fmtDate, fmtPct, toneLabel } from "@/lib/interpret";
 
 const PAGE_SIZE = 5;
 
@@ -12,10 +13,10 @@ function SentimentBadge({ code }: { code: string | null }): JSX.Element {
 	if (code === "caution") {
 		return (
 			<Badge
-				className="gap-1 text-[10px]"
+				className="text-[11px]"
 				style={{
-					backgroundColor: "var(--destructive-900)",
-					color: "var(--destructive-500)",
+					backgroundColor: "var(--risk-very-high-tint)",
+					color: "var(--risk-very-high-ink)",
 					borderColor: "transparent",
 				}}
 			>
@@ -26,23 +27,23 @@ function SentimentBadge({ code }: { code: string | null }): JSX.Element {
 	if (code === "satisfaction") {
 		return (
 			<Badge
-				className="gap-1 text-[10px]"
+				className="text-[11px]"
 				style={{
 					backgroundColor: "var(--success-900)",
 					color: "var(--success-500)",
 					borderColor: "transparent",
 				}}
 			>
-				Satisfaction
+				Positive
 			</Badge>
 		);
 	}
 	return (
 		<Badge
-			className="gap-1 text-[10px]"
+			className="text-[11px]"
 			style={{
-				backgroundColor: "var(--dark-500)",
-				color: "var(--text-subtle)",
+				backgroundColor: "var(--risk-none-fill)",
+				color: "var(--risk-none-text)",
 				borderColor: "transparent",
 			}}
 		>
@@ -59,183 +60,111 @@ export function CommitSentimentCard({
 	id?: string;
 }): JSX.Element | null {
 	const [page, setPage] = useState(1);
+	const [filter, setFilter] = useState<"all" | "caution">("all");
 
-	if (file.lowConfidence || file.commitSentiments.length < 10) {
-		return null;
-	}
+	if (file.lowConfidence) return null;
 
 	const commits = [...file.commitSentiments].sort((a, b) => b.committedAt - a.committedAt);
 	if (commits.length === 0) return null;
 
 	const total = commits.length;
-	let cautionCount = 0;
-	let neutralCount = 0;
-	let satisfactionCount = 0;
+	const count = (code: string) => commits.filter((c) => c.sentiment?.code === code).length;
+	const tooShort = commits.filter((c) => !c.sentiment).length;
+	const labelled = total - tooShort;
+	const groups = [
+		{ code: "caution", color: "var(--risk-very-high-fill)", ink: "var(--risk-very-high-ink)" },
+		{ code: "neutral", color: "var(--muted-foreground)", ink: "var(--foreground)" },
+		{ code: "satisfaction", color: "var(--success-500)", ink: "var(--success-500)" },
+	].map((g) => ({ ...g, n: count(g.code) }));
+	const cautionShare = labelled ? groups[0].n / labelled : 0;
 
-	for (const c of commits) {
-		const code = c.sentiment?.code ?? null;
-		if (code === "caution") cautionCount++;
-		else if (code === "satisfaction") satisfactionCount++;
-		else neutralCount++;
-	}
-
-	const cautionPct = Math.round((cautionCount / total) * 100);
-	const neutralPct = Math.round((neutralCount / total) * 100);
-	const satisfactionPct = Math.round((satisfactionCount / total) * 100);
-
-	const totalPages = Math.ceil(commits.length / PAGE_SIZE);
+	const shown =
+		filter === "all" ? commits : commits.filter((c) => c.sentiment?.code === "caution");
+	const totalPages = Math.ceil(shown.length / PAGE_SIZE);
 	const startIndex = (page - 1) * PAGE_SIZE;
-	const pageCommits = commits.slice(startIndex, startIndex + PAGE_SIZE);
+	const pageCommits = shown.slice(startIndex, startIndex + PAGE_SIZE);
 
 	return (
 		<Card id={id}>
 			<CardHeader>
-				<div className="flex items-center justify-between">
-					<div>
-						<H1 variant="h4">Commit sentiment</H1>
-						<P className="text-muted-foreground mt-1 text-sm">
-							{total} COMMITS ANALYZED BY DISTILBERT · 6-MONTH WINDOW
-						</P>
-					</div>
-				</div>
+				<H1 variant="h4">Tone of commit messages</H1>
+				<P className="text-muted-foreground">
+					{cautionShareLabel(cautionShare)}: {groups[0].n} of {labelled} readable messages
+					in the last 6 months.
+				</P>
 			</CardHeader>
 			<CardContent className="space-y-4">
-				<div className="grid grid-cols-3 gap-3">
-					<div
-						style={{
-							borderRadius: "0.5rem",
-							border: "1px solid color-mix(in srgb, var(--border) 30%, transparent)",
-							padding: "1rem",
-							backgroundColor: "var(--background-800)",
-						}}
-					>
-						<H2 variant="h4" className="text-sm" style={{ color: "var(--destructive-500)" }}>
-							Caution
-						</H2>
-						<div className="mt-1 flex items-baseline justify-between">
-							<H2 variant="h4" style={{ color: "var(--destructive-500)" }}>
-								{cautionPct}%
-							</H2>
-							<P className="text-muted-foreground text-sm uppercase">
-								{cautionCount} OF {total} COMMITS
-							</P>
-						</div>
-					</div>
-
-					<div
-						style={{
-							borderRadius: "0.5rem",
-							border: "1px solid color-mix(in srgb, var(--border) 30%, transparent)",
-							padding: "1rem",
-							backgroundColor: "var(--background-800)",
-						}}
-					>
-						<H2 variant="h4" className="text-sm" style={{ color: "var(--text-subtle)" }}>
-							Neutral
-						</H2>
-						<div className="mt-1 flex items-baseline justify-between">
-							<H2 variant="h4" style={{ color: "var(--text-subtle)" }}>
-								{neutralPct}%
-							</H2>
-							<P className="text-muted-foreground text-sm uppercase">
-								{neutralCount} OF {total} COMMITS
-							</P>
-						</div>
-					</div>
-
-					<div
-						style={{
-							borderRadius: "0.5rem",
-							border: "1px solid color-mix(in srgb, var(--border) 30%, transparent)",
-							padding: "1rem",
-							backgroundColor: "var(--background-800)",
-						}}
-					>
-						<H2 variant="h4" className="text-sm" style={{ color: "var(--success-500)" }}>
-							Satisfaction
-						</H2>
-						<div className="mt-1 flex items-baseline justify-between">
-							<H2 variant="h4" style={{ color: "var(--success-500)" }}>
-								{satisfactionPct}%
-							</H2>
-							<P className="text-muted-foreground text-sm uppercase">
-								{satisfactionCount} OF {total} COMMITS
-							</P>
-						</div>
-					</div>
-				</div>
 				<div className="space-y-2">
-					{pageCommits.map((c) => {
-						const date = new Date(c.committedAt * 1000).toLocaleDateString("en-US", {
-							month: "short",
-							day: "numeric",
-							year: "numeric",
-						});
-
-						return (
-							<div
-								key={c.hash}
-								style={{
-									display: "flex",
-									alignItems: "center",
-									justifyContent: "space-between",
-									gap: "0.75rem",
-									padding: "0.75rem 1rem",
-									borderRadius: "0.5rem",
-									border: "1px solid color-mix(in srgb, var(--border) 30%, transparent)",
-									backgroundColor: "var(--background-800)",
-								}}
-							>
-								<div style={{ flex: 1, minWidth: 0 }}>
-									<div
-										style={{
-											display: "flex",
-											alignItems: "center",
-											gap: "0.5rem",
-										}}
-									>
-										<span className="font-fira-mono text-muted-foreground text-sm font-bold">
-											{c.hash.slice(0, 7)}
-										</span>
-										<span className="font-fira-mono text-muted-foreground text-sm">
-											{date}
-										</span>
-									</div>
-									<P
-										className="text-foreground mt-1 text-sm leading-relaxed"
-										style={{
-											overflow: "hidden",
-											textOverflow: "ellipsis",
-											whiteSpace: "nowrap",
-										}}
-									>
-										{c.message}
-									</P>
-								</div>
-								<div style={{ flexShrink: 0 }}>
-									{c.lowInfo ? (
-										<Badge
-											className="gap-1 text-[10px]"
-											style={{
-												backgroundColor: "var(--dark-500)",
-												color: "var(--text-subtle)",
-												borderColor: "transparent",
-											}}
-										>
-											Low info
-										</Badge>
-									) : (
-										<SentimentBadge code={c.sentiment?.code ?? null} />
-									)}
-								</div>
-							</div>
-						);
-					})}
+					<div className="flex h-2 w-full gap-0.5 overflow-hidden rounded-full">
+						{groups.map((g) =>
+							g.n > 0 ? (
+								<div key={g.code} style={{ flex: g.n, backgroundColor: g.color }} />
+							) : null,
+						)}
+					</div>
+					<ul className="text-muted-foreground flex flex-wrap gap-x-4 gap-y-1 text-sm">
+						{groups.map((g) => (
+							<li key={g.code} title={labelled ? fmtPct(g.n / labelled) : undefined}>
+								<span className="font-semibold" style={{ color: g.ink }}>
+									{g.n}
+								</span>{" "}
+								{toneLabel(g.code).toLowerCase()}
+							</li>
+						))}
+						{tooShort > 0 && (
+							<li className="opacity-70">{tooShort} too short to read</li>
+						)}
+					</ul>
 				</div>
+				<div className="flex gap-2">
+					{(["all", "caution"] as const).map((f) => (
+						<Button
+							key={f}
+							variant={filter === f ? "secondary" : "outline"}
+							size="sm"
+							onClick={() => {
+								setFilter(f);
+								setPage(1);
+							}}
+						>
+							{f === "all" ? `All ${total}` : `Caution ${groups[0].n}`}
+						</Button>
+					))}
+				</div>
+				<ul className="divide-border divide-y border-y">
+					{pageCommits.map((c) => (
+						<li key={c.hash} className="flex items-center justify-between gap-3 py-3">
+							<div className="min-w-0 flex-1">
+								<P className="text-foreground truncate text-sm">{c.message}</P>
+								<P className="text-muted-foreground mt-0.5 text-xs">
+									{fmtDate(c.committedAt)}
+									{c.author ? ` · ${c.author}` : ""} ·{" "}
+									<span className="font-mono" title="Commit ID">
+										{c.hash.slice(0, 7)}
+									</span>
+								</P>
+							</div>
+							{c.lowInfo ? (
+								<Badge
+									className="text-[11px]"
+									style={{
+										backgroundColor: "var(--risk-none-fill)",
+										color: "var(--risk-none-text)",
+										borderColor: "transparent",
+									}}
+								>
+									Too short to read
+								</Badge>
+							) : (
+								<SentimentBadge code={c.sentiment?.code ?? null} />
+							)}
+						</li>
+					))}
+				</ul>
 
 				{totalPages > 1 && (
-					<div className="mt-4 flex items-center justify-between border-t border-border/40 pt-3">
-						<span className="font-fira-mono text-muted-foreground text-sm tabular-nums">
+					<div className="border-border/40 mt-4 flex items-center justify-between border-t pt-3">
+						<span className="text-muted-foreground text-sm tabular-nums">
 							Page {page} of {totalPages}
 						</span>
 						<div className="flex items-center gap-2">

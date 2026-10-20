@@ -3,6 +3,7 @@ import type { JSX } from "react";
 
 import { P } from "@/components/typography";
 import type { FileRiskResult } from "@/lib/github/model";
+import { MIN_TREND_POINTS } from "@/lib/interpret";
 
 import { computeDrift, type DriftCategory } from "./drift-utils";
 
@@ -30,7 +31,7 @@ const BANNER_STYLE: Record<DriftCategory, { bg: string; fg: string; icon: typeof
 };
 
 export function DriftGuidanceBanner({ file }: { file: FileRiskResult }): JSX.Element | null {
-	if (file.lowConfidence || file.commitSentiments.length < 10) return null;
+	if (file.lowConfidence || file.commitSentiments.length < MIN_TREND_POINTS) return null;
 
 	const drift = computeDrift(file.commitSentiments, file.shapBreakdown);
 	if (!drift) return null;
@@ -44,7 +45,7 @@ export function DriftGuidanceBanner({ file }: { file: FileRiskResult }): JSX.Ele
 		>
 			<Icon className="mt-0.5 size-4 shrink-0" />
 			<P className="text-sm leading-relaxed">
-				<span className="font-fira-mono-bold">{drift.category}</span> — {drift.guidanceText}
+				<span className="font-semibold">{drift.category}</span> — {drift.guidanceText}
 			</P>
 		</div>
 	);

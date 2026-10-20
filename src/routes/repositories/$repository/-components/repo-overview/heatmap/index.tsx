@@ -1,12 +1,13 @@
+import { useNavigate } from "@tanstack/react-router";
 import { hierarchy, treemap, treemapBinary, treemapSquarify } from "d3-hierarchy";
 import type { HierarchyRectangularNode } from "d3-hierarchy";
 import { useMemo, useRef, useState, type JSX } from "react";
 
-import { useNavigate } from "@tanstack/react-router";
 import { P } from "@/components/typography";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import type { FileRiskResult } from "@/lib/github/model";
+import type { RiskScale } from "@/lib/interpret";
 
 import { HeatmapListView } from "./heatmap-list-view";
 import { Tile } from "./heatmap-tile";
@@ -20,13 +21,11 @@ import {
 	type TreeNode,
 } from "./heatmap-utils";
 
-export { riskColor } from "./heatmap-utils";
-
 const TREEMAP_CAP = 500;
 
 export function Heatmap(props: {
 	fileResults: FileRiskResult[];
-	threshold: number;
+	scale: RiskScale;
 	repository: string;
 	filter?: FilterKey;
 	onFilterChange?: (filter: FilterKey) => void;
@@ -44,24 +43,26 @@ export function Heatmap(props: {
 	};
 
 	// ponytail: memoized — toFileInfo is O(N*commits), avoid re-running on every render
-	const data = useMemo(() => props.fileResults.map(toFileInfo), [props.fileResults]);
+	const data = useMemo(
+		() => props.fileResults.map((r) => toFileInfo(r, props.scale)),
+		[props.fileResults, props.scale],
+	);
 
 	const counts = useMemo<Record<FilterKey, number>>(
 		() => ({
 			all: data.length,
-			risky: data.filter((f) => getCategory(f, props.threshold) === "risky").length,
-			acceptable: data.filter((f) => getCategory(f, props.threshold) === "acceptable").length,
-			"low-conf": data.filter((f) => getCategory(f, props.threshold) === "low-conf").length,
+			risky: data.filter((f) => getCategory(f) === "risky").length,
+			acceptable: data.filter((f) => getCategory(f) === "acceptable").length,
+			"low-conf": data.filter((f) => getCategory(f) === "low-conf").length,
 		}),
-		[data, props.threshold],
+		[data],
 	);
 
 	const visible = useMemo(
 		() =>
 			data
 				.filter((f) => {
-					if (activeFilter !== "all" && getCategory(f, props.threshold) !== activeFilter)
-						return false;
+					if (activeFilter !== "all" && getCategory(f) !== activeFilter) return false;
 					if (search) {
 						const fullPath = `${f.dir}${f.name}`.toLowerCase();
 						if (!fullPath.includes(search.toLowerCase())) return false;
@@ -71,12 +72,13 @@ export function Heatmap(props: {
 				.sort((a, b) => {
 					if (sort === "risk-desc") return (b.risk ?? 0) - (a.risk ?? 0);
 					if (sort === "risk-asc") return (a.risk ?? 0) - (b.risk ?? 0);
-					if (sort === "complexity-desc") return (b.complexity ?? 0) - (a.complexity ?? 0);
+					if (sort === "complexity-desc")
+						return (b.complexity ?? 0) - (a.complexity ?? 0);
 					if (sort === "commits-desc") return (b.commits ?? 0) - (a.commits ?? 0);
 					if (sort === "name-asc") return (a.name ?? "").localeCompare(b.name ?? "");
 					return 0;
 				}),
-		[data, activeFilter, search, sort, props.threshold],
+		[data, activeFilter, search, sort],
 	);
 
 	// ponytail: treemap cap — absolute-positioned tiles can't be virtualized; top N by risk is what matters
@@ -115,21 +117,23 @@ export function Heatmap(props: {
 			})),
 		})
 			// ponytail: flat count — size encodes file count, color encodes risk; complexity weighting caused 6:1 area ratios that crushed small dirs
-		.sum((d) => (d.children ? 0 : 1))
+			.sum((d) => (d.children ? 0 : 1))
 			.sort((a, b) => {
 				if (sort === "risk-desc") return (b.data.risk ?? 0) - (a.data.risk ?? 0);
 				if (sort === "risk-asc") return (a.data.risk ?? 0) - (b.data.risk ?? 0);
-				if (sort === "complexity-desc") return (b.data.complexity ?? 0) - (a.data.complexity ?? 0);
+				if (sort === "complexity-desc")
+					return (b.data.complexity ?? 0) - (a.data.complexity ?? 0);
 				if (sort === "commits-desc") return (b.data.commits ?? 0) - (a.data.commits ?? 0);
-				if (sort === "name-asc") return (a.data.name ?? "").localeCompare(b.data.name ?? "");
+				if (sort === "name-asc")
+					return (a.data.name ?? "").localeCompare(b.data.name ?? "");
 				return 0;
 			});
 
 		treemap<TreeNode>()
 			.size([containerWidth, contentHeight])
-			.paddingOuter(4)
-			.paddingTop(DIR_LABEL_HEIGHT)
-			.paddingInner(4)
+			.paddingOuter(6)
+			.paddingTop((n) => (n.depth === 0 ? 6 : DIR_LABEL_HEIGHT))
+			.paddingInner(3)
 			// ponytail: binary at depth 0 gives dirs a 2D grid placement; squarify within each dir keeps files squarish
 			.tile((node, x0, y0, x1, y1) => {
 				if (node.depth === 0) treemapBinary(node, x0, y0, x1, y1);
@@ -145,8 +149,8 @@ export function Heatmap(props: {
 	return (
 		<TooltipProvider>
 			<Tabs
-				defaultValue="heatmap"
-				className="border-border font-fira-mono bg-card overflow-hidden rounded-xl border"
+				defaultValue={window.matchMedia("(max-width: 639px)").matches ? "list" : "heatmap"}
+				className="border-border bg-card overflow-hidden rounded-xl border"
 			>
 				<HeatmapToolbar
 					filter={activeFilter}
@@ -167,7 +171,8 @@ export function Heatmap(props: {
 						<>
 							{isCapped && (
 								<div className="text-muted-foreground border-border border-b px-4 py-2 text-sm">
-									Showing top {TREEMAP_CAP} files by risk score ({visible.length} total). Switch to list view to browse all.
+									Showing the {TREEMAP_CAP} riskiest files out of {visible.length}
+									. Switch to List to browse all.
 								</div>
 							)}
 							<div
@@ -178,16 +183,19 @@ export function Heatmap(props: {
 								{dirNodes.map((d) => (
 									<div
 										key={d.data.name}
-										className="bg-background pointer-events-none absolute flex items-center px-3"
+										className="pointer-events-none absolute px-1"
 										style={{
 											left: d.x0,
 											top: d.y0,
 											width: d.x1 - d.x0,
-											height: DIR_LABEL_HEIGHT,
+											height: d.y1 - d.y0,
 										}}
 									>
-										<P className="text-foreground truncate text-sm">
-											{d.data.name}
+										<P
+											className="text-muted-foreground flex items-center truncate font-mono text-xs"
+											style={{ height: DIR_LABEL_HEIGHT }}
+										>
+											{d.data.name || "./"}
 										</P>
 									</div>
 								))}
@@ -195,7 +203,6 @@ export function Heatmap(props: {
 									<Tile
 										key={`${l.data.dir}${l.data.name}`}
 										node={l}
-										threshold={props.threshold}
 										onNavigate={(path) =>
 											navigate({
 												to: "/repositories/$repository/file",
@@ -211,11 +218,7 @@ export function Heatmap(props: {
 				</TabsContent>
 
 				<TabsContent value="list" className="m-0">
-					<HeatmapListView
-						files={visible}
-						threshold={props.threshold}
-						repository={props.repository}
-					/>
+					<HeatmapListView files={visible} repository={props.repository} />
 				</TabsContent>
 			</Tabs>
 		</TooltipProvider>
