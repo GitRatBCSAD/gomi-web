@@ -62,7 +62,7 @@ export const GLOSSARY: Record<GlossaryKey, GlossaryEntry> = {
 		definition:
 			"The average caution level across this file's commit messages. Higher means more cautionary, urgent or frustrated language over time.",
 		reading:
-			"Mostly cautious: half or more of the readable messages are labelled Caution. Often: a quarter or more. Occasionally: fewer.",
+			'Shown as a natural frequency, e.g. "about 1 in 5 messages sound cautious". "Most" means half or more of the readable messages are labelled Caution.',
 		href: "https://www.google.com/search?q=what+is+sentiment+analysis",
 	},
 	"caution-probability": {

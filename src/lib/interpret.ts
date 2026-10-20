@@ -178,12 +178,16 @@ export function toneLabel(code: string | null | undefined): string {
 	return code ? (TONE_LABEL[code] ?? code) : "Too short to read";
 }
 
-/** Share of commits whose message reads as cautionary/urgent. */
+/**
+ * Share of commits whose message reads as cautionary/urgent, as a natural frequency
+ * ("about 1 in 5") instead of tiers with chosen cut-offs. Natural frequencies are
+ * understood better than percentages (Akl et al., 2011, Cochrane CD006776).
+ * "Most" is used only for a majority (>= 50%).
+ */
 export function cautionShareLabel(share: number): string {
-	if (share >= 0.5) return "Mostly cautious";
-	if (share >= 0.25) return "Often cautious";
-	if (share > 0) return "Occasionally cautious";
-	return "No cautious messages";
+	if (share <= 0) return "No messages sound cautious";
+	if (share >= 0.5) return "Most messages sound cautious";
+	return `About 1 in ${Math.round(1 / share)} messages sound cautious`;
 }
 
 // --- Caution trend (older half vs newer half of readable commits) ---

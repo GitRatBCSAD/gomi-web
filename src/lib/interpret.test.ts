@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import type { FileRiskResult } from "./github/model";
 import type { CommitSentiment } from "./github/model";
 import {
+	cautionShareLabel,
 	ccnLabel,
 	factorWeight,
 	percentileLabel,
@@ -191,5 +192,14 @@ describe("riskSuggestions", () => {
 			"Split long functions and cut down on branching (if/else, loops).",
 		]);
 		expect(riskSuggestions(null)).toEqual([]);
+	});
+});
+
+describe("cautionShareLabel", () => {
+	it("uses natural frequencies and keeps 'Most' for a majority", () => {
+		expect(cautionShareLabel(0)).toBe("No messages sound cautious");
+		expect(cautionShareLabel(0.21)).toBe("About 1 in 5 messages sound cautious");
+		expect(cautionShareLabel(0.34)).toBe("About 1 in 3 messages sound cautious");
+		expect(cautionShareLabel(0.5)).toBe("Most messages sound cautious");
 	});
 });

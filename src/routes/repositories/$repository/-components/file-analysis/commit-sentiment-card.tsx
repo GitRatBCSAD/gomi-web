@@ -90,7 +90,7 @@ export function CommitSentimentCard({
 				<H1 variant="h4">Tone of commit messages</H1>
 				<P className="text-muted-foreground">
 					{cautionShareLabel(cautionShare)}: {groups[0].n} of {labelled} readable messages
-					in the last 6 months sound cautious or urgent.
+					in the last 6 months.
 				</P>
 			</CardHeader>
 			<CardContent className="space-y-4">
