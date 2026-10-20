@@ -179,6 +179,14 @@ describe("worryTrend", () => {
 		);
 	});
 
+	it("never says 'went from X to X' when a trend stays within one level", () => {
+		const t = worryTrend(commits([0.3, 0.28, 0.25, 0.22, 0.2, 0.15, 0.12, 0.1, 0.05, 0.02]))!;
+		expect(t.trend).toBe("down");
+		expect(t.sentence).toBe(
+			"Commit messages stayed mostly calm overall, but became calmer over the window.",
+		);
+	});
+
 	it("skips unreadable commits and needs two readable ones", () => {
 		expect(worryTrend(commits([0.9, null]))).toBeNull();
 		expect(worryTrend(commits([null, 0.1, null, 0.9]))?.trend).toBe("steady");

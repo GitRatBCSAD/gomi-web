@@ -254,6 +254,16 @@ export function mannKendall(xs: number[]): { s: number; z: number; pValue: numbe
 	return { s, z, pValue: z === 0 ? 1 : 2 * (1 - normalCdf(Math.abs(z))) };
 }
 
+// A significant trend can stay inside one level word (e.g. calm and getting calmer),
+// so "went from X to X" is never printed.
+function trendSentence(trend: Trend, before: string, after: string, overall: string): string {
+	if (trend === "steady")
+		return `No clear trend: commit messages stayed ${overall} across the window.`;
+	if (before === after)
+		return `Commit messages stayed ${overall} overall, but became ${trend === "up" ? "more cautious" : "calmer"} over the window.`;
+	return `Commit messages went from ${before} in the older half of the window to ${after} in the newer half.`;
+}
+
 /** Trend in p(caution) over time (Mann-Kendall), described with the older vs newer half. */
 export function worryTrend(commits: CommitSentiment[]): WorryTrend | null {
 	const ps = readableCommits(commits).map((c) => c.riskProbability as number);
@@ -272,10 +282,12 @@ export function worryTrend(commits: CommitSentiment[]): WorryTrend | null {
 		pValue,
 		trend,
 		headline: TREND_HEADLINE[trend],
-		sentence:
-			trend === "steady"
-				? `No clear trend: commit messages stayed ${worryLevel(avg(ps))} across the window.`
-				: `Commit messages went from ${worryLevel(earlierAvg)} in the older half of the window to ${worryLevel(laterAvg)} in the newer half.`,
+		sentence: trendSentence(
+			trend,
+			worryLevel(earlierAvg),
+			worryLevel(laterAvg),
+			worryLevel(avg(ps)),
+		),
 	};
 }
 
