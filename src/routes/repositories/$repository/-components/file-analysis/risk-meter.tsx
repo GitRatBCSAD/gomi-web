@@ -2,10 +2,8 @@ import type { JSX, ReactNode } from "react";
 
 import type { FileRiskResult } from "@/lib/github/model";
 import {
-	FACTOR_NAME,
 	RISK_BANDS,
 	riskBand,
-	shapFactors,
 	topFractionCut,
 	type RiskBand,
 	type RiskScale,
@@ -52,7 +50,6 @@ export function RiskMeter({
 	}));
 	const pos = (x: number) => `${(x / n) * 100}%`;
 
-	const main = file.shapBreakdown ? shapFactors(file.shapBreakdown)[0] : null;
 	const typicalChanges = Math.round(
 		topFractionCut(
 			allFiles.map((f) => f.commitCount),
@@ -63,7 +60,7 @@ export function RiskMeter({
 
 	return (
 		<div className="space-y-4">
-			<div className="bg-border grid grid-cols-1 gap-px overflow-hidden rounded-lg border sm:grid-cols-3">
+			<div className="bg-border grid grid-cols-1 gap-px overflow-hidden rounded-lg border sm:grid-cols-2">
 				<Stat label="Rank in repo">
 					<span className="text-xl font-semibold">#{fmt(rank)}</span>
 					<span className="text-muted-foreground">
@@ -71,20 +68,6 @@ export function RiskMeter({
 						of {fmt(n)}
 						{topPct <= 50 && ` · top ${topPct}%`}
 					</span>
-				</Stat>
-				<Stat label="Main reason">
-					{main ? (
-						<span
-							className="text-lg font-semibold"
-							style={{
-								color: main.raises ? RISK_BANDS.high.fg : "var(--primary)",
-							}}
-						>
-							{main.raises ? "↑" : "↓"} {FACTOR_NAME[main.key]}
-						</span>
-					) : (
-						<span className="text-muted-foreground">—</span>
-					)}
 				</Stat>
 				<Stat label="Changes, last 6 months">
 					<span className="text-xl font-semibold">{fmt(file.commitCount)}</span>
