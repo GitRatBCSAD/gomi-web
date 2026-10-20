@@ -6,6 +6,7 @@ import {
 	cautionShareLabel,
 	ccnLabel,
 	factorWeight,
+	lowInfoLabel,
 	mannKendall,
 	percentileLabel,
 	riskBand,
@@ -225,5 +226,13 @@ describe("cautionShareLabel", () => {
 		expect(cautionShareLabel(0.21)).toBe("About 1 in 5 messages sound cautious");
 		expect(cautionShareLabel(0.34)).toBe("About 1 in 3 messages sound cautious");
 		expect(cautionShareLabel(0.5)).toBe("Most messages sound cautious");
+	});
+});
+
+describe("lowInfoLabel", () => {
+	it("uses natural frequencies and keeps 'Most' for a majority", () => {
+		expect(lowInfoLabel(0)).toBe("No messages too short");
+		expect(lowInfoLabel(0.04)).toBe("About 1 in 25 messages too short");
+		expect(lowInfoLabel(0.6)).toBe("Most messages too short");
 	});
 });

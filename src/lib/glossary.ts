@@ -142,7 +142,7 @@ export const GLOSSARY: Record<GlossaryKey, GlossaryEntry> = {
 		definition:
 			"The share of commit messages too short to read for tone (under 5 words), like 'fix' or 'wip'.",
 		reading:
-			"Mostly vague: half or more of the messages are too short. Some vague: a quarter or more.",
+			'Shown as a natural frequency, e.g. "about 1 in 4 messages too short". "Most" means half or more.',
 		href: "https://www.google.com/search?q=what+is+a+commit+version+control",
 	},
 	"n-commits": {

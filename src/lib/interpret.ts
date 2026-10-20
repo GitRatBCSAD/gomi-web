@@ -279,10 +279,11 @@ export function worryTrend(commits: CommitSentiment[]): WorryTrend | null {
 	};
 }
 
+/** Share of too-short messages as a natural frequency; "Most" only for a majority. */
 export function lowInfoLabel(ratio: number): string {
-	if (ratio >= 0.5) return "Mostly vague messages";
-	if (ratio >= 0.25) return "Some vague messages";
-	return "Mostly descriptive messages";
+	if (ratio <= 0) return "No messages too short";
+	if (ratio >= 0.5) return "Most messages too short";
+	return `About 1 in ${Math.round(1 / ratio)} messages too short`;
 }
 
 // --- SHAP factors ---
