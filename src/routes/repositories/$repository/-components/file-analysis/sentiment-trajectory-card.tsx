@@ -56,6 +56,7 @@ type ChartPoint = {
 	hash: string;
 	message: string;
 	date: string;
+	author: string | null;
 	sentimentCode: SentimentCode;
 };
 
@@ -75,8 +76,11 @@ function TooltipContent({
 			style={{ maxWidth: "18rem" }}
 		>
 			<P className="truncate text-sm font-bold">"{d.message}"</P>
-			<div className="text-muted-foreground mt-1 flex items-center justify-between gap-4 text-xs">
-				<span>{d.date}</span>
+			<div className="text-muted-foreground mt-1 flex flex-col gap-1 text-xs">
+				<span className="truncate">
+					{d.author ? `${d.author} - ` : ""}
+					{d.date}
+				</span>
 				<span className="font-bold" style={{ color }}>
 					{toneLabel(d.sentimentCode)} tone
 				</span>
@@ -132,6 +136,7 @@ export function SentimentTrajectoryCard({
 			hash: c.hash.slice(0, 7),
 			message: c.message,
 			date: fmtDate(c.committedAt),
+			author: c.author ?? null,
 			sentimentCode: dotCode(prob, c.sentiment?.code),
 		};
 	});
