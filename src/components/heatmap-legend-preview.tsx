@@ -13,8 +13,11 @@ const SAMPLE_TILES: { name: string; band: RiskBand }[] = [
 	{ name: "db.go", band: "low" },
 ];
 
-const tileColor = (b: RiskBand) =>
-	b === "insufficient" ? "var(--background-700)" : RISK_BANDS[b].fg;
+// Same fill and hatch as the live heatmap tiles, so the guide matches what users see.
+const swatch = (b: RiskBand) =>
+	b === "insufficient"
+		? { className: "bg-hatch", style: undefined }
+		: { className: "", style: { backgroundColor: RISK_BANDS[b].fill } };
 
 /** A miniature, non-interactive heatmap. */
 export function HeatmapLegendPreview(): JSX.Element {
@@ -23,12 +26,13 @@ export function HeatmapLegendPreview(): JSX.Element {
 			{SAMPLE_TILES.map((t) => (
 				<div
 					key={t.name}
-					className="border-dark-500 relative h-14 w-20 overflow-hidden border"
-					style={{ backgroundColor: tileColor(t.band) }}
+					className={`border-dark-500 relative h-14 w-20 overflow-hidden border ${swatch(t.band).className}`}
+					style={swatch(t.band).style}
 					title={`${t.name}: ${RISK_BANDS[t.band].label}`}
 				>
 					<span
-						className={`absolute right-1 bottom-1 left-1 truncate text-[10px] ${t.band === "insufficient" ? "text-white/80" : "text-black"}`}
+						className="absolute right-1 bottom-1 left-1 truncate text-[10px]"
+						style={{ color: RISK_BANDS[t.band].onFill }}
 					>
 						{t.name}
 					</span>
@@ -47,8 +51,8 @@ export function RiskLegendRows(): JSX.Element {
 			{LEGEND_ORDER.map((b) => (
 				<li key={b} className="flex items-start gap-3">
 					<span
-						className="border-dark-500 mt-0.5 inline-block size-4 shrink-0 rounded-sm border"
-						style={{ backgroundColor: tileColor(b) }}
+						className={`border-dark-500 mt-0.5 inline-block size-4 shrink-0 rounded-sm border ${swatch(b).className}`}
+						style={swatch(b).style}
 					/>
 					<span>
 						<span className="text-foreground">{RISK_BANDS[b].label}</span> —{" "}

@@ -60,16 +60,10 @@ export function RootCauseCard({
 				</P>
 			</CardHeader>
 			<CardContent className="space-y-4">
-				<div className="space-y-1">
-					<P className="text-foreground text-sm">
-						This file's risk is driven {driver}.
-						<GlossaryHint term="caution-probability" />
-					</P>
-					<P className="text-xs" style={{ color: "var(--text-subtle)" }}>
-						Commit tone {sentimentPct}% · code structure and history {complexityPct}% of
-						the score's influence
-					</P>
-				</div>
+				<P className="text-foreground text-sm">
+					This file's risk is driven {driver}.
+					<GlossaryHint term="caution-probability" />
+				</P>
 
 				<DriftGuidanceBanner file={file} />
 
@@ -146,6 +140,13 @@ export function RootCauseCard({
 						</div>
 					</div>
 				)}
+				<details className="text-muted-foreground text-xs">
+					<summary className="cursor-pointer">Show model numbers</summary>
+					<P className="mt-2 text-xs">
+						Commit tone {sentimentPct}% · code structure and history {complexityPct}% of
+						the score's influence (share of |SHAP|)
+					</P>
+				</details>
 			</CardContent>
 		</Card>
 	);

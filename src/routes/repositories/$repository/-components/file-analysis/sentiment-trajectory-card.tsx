@@ -177,11 +177,27 @@ export function SentimentTrajectoryCard({
 					{trend.headline}
 				</H1>
 				<P className="text-foreground">{trend.sentence}</P>
-				<P className="text-muted-foreground text-sm">
-					Each dot is one change, placed on the date it was made. Dots above the dashed
-					line read as cautious; green dots read as positive.
-					<GlossaryHint term="caution-probability" />
-				</P>
+				{/* Compact key instead of a caption sentence: same information, less text. */}
+				<div className="text-muted-foreground flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
+					{(["caution", "neutral", "satisfaction"] as const).map((code) => (
+						<span key={code} className="flex items-center gap-1.5">
+							<span
+								className="size-2 rounded-full"
+								style={{ backgroundColor: SENTIMENT_COLOR[code] }}
+							/>
+							{toneLabel(code)}
+						</span>
+					))}
+					<span className="flex items-center gap-1.5">
+						<span
+							className="w-4 border-t border-dashed"
+							style={{ borderColor: "var(--risk-high-ink)" }}
+						/>
+						Caution line
+					</span>
+					{/* <span>One dot per change</span> */}
+					{/* <GlossaryHint term="caution-probability" /> */}
+				</div>
 			</CardHeader>
 			<CardContent>
 				<ChartContainer

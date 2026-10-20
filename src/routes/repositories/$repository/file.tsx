@@ -10,7 +10,7 @@ import { H1, P } from "@/components/typography";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getAnalysisQueryOptions } from "@/lib/github/api";
-import { RISK_BANDS, riskBand, riskScale, summarizeFile } from "@/lib/interpret";
+import { RISK_BANDS, riskBand, riskScale, riskSuggestions, summarizeFile } from "@/lib/interpret";
 
 import { CommitSentimentCard } from "./-components/file-analysis/commit-sentiment-card";
 import { ComplexityMetricsCard } from "./-components/file-analysis/complexity-metrics-card";
@@ -60,6 +60,8 @@ function RouteComponent(): JSX.Element {
 	const scale = useMemo(() => riskScale(allFiles, threshold), [allFiles, threshold]);
 	const band = riskBand(file.riskScore, file.lowConfidence, scale);
 	const info = RISK_BANDS[band];
+	// Low files need no action, so no suggestions either.
+	const suggestions = band === "low" ? [] : riskSuggestions(file.shapBreakdown);
 
 	function dismissFileTour() {
 		localStorage.setItem(FILE_TOUR_SEEN_KEY, "1");
@@ -126,6 +128,13 @@ function RouteComponent(): JSX.Element {
 								{info.action}
 							</span>
 						</P>
+						{suggestions.length > 0 && (
+							<ul className="text-muted-foreground list-disc space-y-0.5 pl-12 text-sm">
+								{suggestions.map((s) => (
+									<li key={s}>{s}</li>
+								))}
+							</ul>
+						)}
 					</div>
 
 					<RiskMeter file={file} allFiles={allFiles} scale={scale} band={band} />

@@ -23,7 +23,7 @@ export function SentimentBar(props: {
 		<div className="bg-muted flex h-1.5 w-full gap-px overflow-hidden rounded-full">
 			{[
 				{ n: props.risky, color: "var(--risk-very-high-fill)" },
-				{ n: props.caution, color: "var(--risk-low-fill)" },
+				{ n: props.caution, color: "var(--muted-foreground)" }, // same neutral gray as the tone card, not the Low band color
 				{ n: props.ok, color: "var(--success-500)" },
 			].map((s, i) =>
 				s.n > 0 ? <div key={i} style={{ flex: s.n, backgroundColor: s.color }} /> : null,

@@ -325,6 +325,25 @@ export function shapFactors(shap: ShapBreakdown): Factor[] {
 		.sort((a, b) => b.share - a.share);
 }
 
+// Ways to reduce the underlying risk, one per actionable factor. Sources in
+// references/UI_REFERENCES.md. Age can't be changed; tone and message detail are
+// left out on purpose: asking for calmer or longer messages would lower the score
+// without lowering the risk (Goodhart's law; Manheim & Garrabrant, 2018).
+const FACTOR_SUGGESTION: Partial<Record<FactorKey, string>> = {
+	complexityContrib: "Split long functions and cut down on branching (if/else, loops).",
+	entropyContrib: "Keep each change to this file small and focused on one thing.",
+	ndevContrib: "Give this file a clear owner who reviews changes to it.",
+	commitsContrib: "Make sure every change to this file gets a code review.",
+};
+
+/** Suggestions for the non-minor factors that raise this file's risk, largest first. */
+export function riskSuggestions(shap: ShapBreakdown | null | undefined): string[] {
+	if (!shap) return [];
+	return shapFactors(shap)
+		.filter((f) => f.raises && f.weight !== "Minor factor")
+		.flatMap((f) => FACTOR_SUGGESTION[f.key] ?? []);
+}
+
 /** One plain-language sentence explaining a file's score. */
 export function summarizeFile(file: FileRiskResult, scale: RiskScale): string {
 	const band = riskBand(file.riskScore, file.lowConfidence, scale);

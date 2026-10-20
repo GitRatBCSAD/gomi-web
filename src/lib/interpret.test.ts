@@ -7,6 +7,7 @@ import {
 	percentileLabel,
 	riskBand,
 	riskScale,
+	riskSuggestions,
 	shapFactors,
 	topFractionCut,
 	summarizeFile,
@@ -163,5 +164,24 @@ describe("toneVsStructure", () => {
 			ndevContrib: 0,
 		});
 		expect(structure).toBeGreaterThan(tone);
+	});
+});
+
+describe("riskSuggestions", () => {
+	it("suggests only for actionable, non-minor factors that raise risk", () => {
+		const shap = {
+			baseRate: 0,
+			sentimentContrib: 0.9, // raises, but tone is never suggested
+			complexityContrib: 0.5,
+			lowInfoContrib: 0,
+			entropyContrib: -0.4, // lowers risk: no suggestion
+			ndevContrib: 0.02, // minor: no suggestion
+			ageContrib: 0.3, // can't be changed
+			commitsContrib: 0,
+		};
+		expect(riskSuggestions(shap)).toEqual([
+			"Split long functions and cut down on branching (if/else, loops).",
+		]);
+		expect(riskSuggestions(null)).toEqual([]);
 	});
 });
