@@ -60,6 +60,7 @@ export function CommitSentimentCard({
 	id?: string;
 }): JSX.Element | null {
 	const [page, setPage] = useState(1);
+	const [filter, setFilter] = useState<"all" | "caution">("all");
 
 	if (file.lowConfidence) return null;
 
@@ -71,60 +72,64 @@ export function CommitSentimentCard({
 	const tooShort = commits.filter((c) => !c.sentiment).length;
 	const labelled = total - tooShort;
 	const groups = [
-		{ code: "caution", color: "var(--risk-very-high-fill)" },
-		{ code: "neutral", color: "var(--muted-foreground)" },
-		{ code: "satisfaction", color: "var(--success-500)" },
+		{ code: "caution", color: "var(--risk-very-high-fill)", ink: "var(--risk-very-high-ink)" },
+		{ code: "neutral", color: "var(--muted-foreground)", ink: "var(--foreground)" },
+		{ code: "satisfaction", color: "var(--success-500)", ink: "var(--success-500)" },
 	].map((g) => ({ ...g, n: count(g.code) }));
 	const cautionShare = labelled ? groups[0].n / labelled : 0;
 
-	const totalPages = Math.ceil(commits.length / PAGE_SIZE);
+	const shown =
+		filter === "all" ? commits : commits.filter((c) => c.sentiment?.code === "caution");
+	const totalPages = Math.ceil(shown.length / PAGE_SIZE);
 	const startIndex = (page - 1) * PAGE_SIZE;
-	const pageCommits = commits.slice(startIndex, startIndex + PAGE_SIZE);
+	const pageCommits = shown.slice(startIndex, startIndex + PAGE_SIZE);
 
 	return (
 		<Card id={id}>
 			<CardHeader>
-				<div className="flex items-center justify-between">
-					<div>
-						<H1 variant="h4">Tone of commit messages</H1>
-						<P className="text-muted-foreground mt-1 text-sm">
-							How developers described their {total} changes to this file in the last
-							6 months
-						</P>
-					</div>
-				</div>
+				<H1 variant="h4">Tone of commit messages</H1>
+				<P className="text-muted-foreground">
+					{cautionShareLabel(cautionShare)}: {groups[0].n} of {labelled} readable messages
+					in the last 6 months sound worried or urgent.
+				</P>
 			</CardHeader>
 			<CardContent className="space-y-4">
-				<P className="text-foreground text-base">
-					<span className="font-semibold">{cautionShareLabel(cautionShare)}.</span>{" "}
-					{groups[0].n} of {labelled} readable messages sound worried or urgent.
-					{tooShort > 0 && ` ${tooShort} were too short to read.`}
-				</P>
 				<div className="space-y-2">
-					<div className="flex h-2.5 w-full gap-0.5 overflow-hidden rounded-full">
+					<div className="flex h-2 w-full gap-0.5 overflow-hidden rounded-full">
 						{groups.map((g) =>
 							g.n > 0 ? (
 								<div key={g.code} style={{ flex: g.n, backgroundColor: g.color }} />
 							) : null,
 						)}
 					</div>
-					<ul className="flex flex-wrap gap-x-5 gap-y-1 text-sm">
+					<ul className="text-muted-foreground flex flex-wrap gap-x-4 gap-y-1 text-sm">
 						{groups.map((g) => (
-							<li
-								key={g.code}
-								className="text-muted-foreground flex items-baseline gap-1.5"
-							>
-								<span
-									className="size-2 self-center rounded-full"
-									style={{ backgroundColor: g.color }}
-								/>
-								<span className="text-foreground font-medium">
-									{labelled ? fmtPct(g.n / labelled) : "—"}
-								</span>
-								{toneLabel(g.code).toLowerCase()} · {g.n} of {labelled}
+							<li key={g.code} title={labelled ? fmtPct(g.n / labelled) : undefined}>
+								<span className="font-semibold" style={{ color: g.ink }}>
+									{g.n}
+								</span>{" "}
+								{toneLabel(g.code).toLowerCase()}
 							</li>
 						))}
+						{tooShort > 0 && (
+							<li className="opacity-70">{tooShort} too short to read</li>
+						)}
 					</ul>
+				</div>
+				<div className="flex gap-2">
+					{(["all", "caution"] as const).map((f) => (
+						<Button
+							key={f}
+							variant={filter === f ? "secondary" : "outline"}
+							size="sm"
+							onClick={() => {
+								setFilter(f);
+								setPage(1);
+							}}
+						>
+							{f === "all" ? `All ${total}` : `Worried ${groups[0].n}`}
+						</Button>
+					))}
 				</div>
 				<ul className="divide-border divide-y border-y">
 					{pageCommits.map((c) => (

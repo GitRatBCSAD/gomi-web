@@ -39,7 +39,7 @@ export const GLOSSARY: Record<GlossaryKey, GlossaryEntry> = {
 		definition:
 			"Gomi's estimate of how likely it is that this file's changes in the last 6 months introduced a bug. It blends how the code is built with how developers write about it.",
 		reading:
-			"Shown as Low, Moderate, High or Very High. High starts at the model's warning line; Very High is above it and among the riskiest 20% of files in this repository.",
+			"Shown as Low, Moderate or High. High starts at the model's warning line; Low and Moderate split the files below it into the safer and riskier half of this repository.",
 		href: "https://www.google.com/search?q=what+is+technical+debt",
 	},
 	shap: {

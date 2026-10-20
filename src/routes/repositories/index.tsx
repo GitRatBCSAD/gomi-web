@@ -78,14 +78,12 @@ function RepoVerdict({ fullName }: { fullName: string }): JSX.Element {
 	const scale = riskScale(data.fileResults, data.threshold);
 	const bands = data.fileResults.map((f) => riskBand(f.riskScore, f.lowConfidence, scale));
 	const risky = bands.filter(isAtRisk).length;
-	const veryHigh = bands.filter((b) => b === "very-high").length;
 	if (risky === 0) return <>Analyzed · nothing above the warning line</>;
 	return (
 		<>
 			Analyzed ·{" "}
-			<span style={{ color: RISK_BANDS[veryHigh > 0 ? "very-high" : "high"].fg }}>
+			<span style={{ color: RISK_BANDS.high.fg }}>
 				{risky} {risky === 1 ? "file needs" : "files need"} attention
-				{veryHigh > 0 && `, ${veryHigh} Very High`}
 			</span>
 		</>
 	);

@@ -37,7 +37,7 @@ export function startRepoDriverTour(onDone?: () => void) {
 			popover: {
 				title: "Interactive File Heatmap",
 				description:
-					"Each tile is a file. Color shows its risk level: red Very High, orange High, yellow Moderate, green Low, gray not enough history. Hover a tile for a summary.",
+					"Each tile is a file. Color shows its risk level: red High, yellow Moderate, gray Low, striped not enough history. Hover a tile for a summary.",
 				side: "top",
 				align: "start",
 			},

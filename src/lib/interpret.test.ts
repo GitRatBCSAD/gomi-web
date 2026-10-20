@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { FileRiskResult } from "./github/model";
+import type { CommitSentiment } from "./github/model";
 import {
 	ccnLabel,
 	percentileLabel,
@@ -13,9 +14,8 @@ import {
 	worryTrend,
 	type RiskScale,
 } from "./interpret";
-import type { CommitSentiment } from "./github/model";
 
-const scale: RiskScale = { threshold: 0.63, median: 0.5, top: 0.8 };
+const scale: RiskScale = { threshold: 0.63, median: 0.5 };
 
 function file(over: Partial<FileRiskResult> = {}): FileRiskResult {
 	return {
@@ -51,11 +51,11 @@ describe("riskBand", () => {
 		expect(riskBand(0.49, false, scale)).toBe("low");
 		expect(riskBand(0.5, false, scale)).toBe("moderate");
 		expect(riskBand(0.63, false, scale)).toBe("high");
-		expect(riskBand(0.8, false, scale)).toBe("very-high");
+		expect(riskBand(0.99, false, scale)).toBe("high");
 	});
 
-	it("never calls a file below the warning line High, even in the riskiest 20%", () => {
-		expect(riskBand(0.6, false, { threshold: 0.63, median: 0.3, top: 0.55 })).toBe("moderate");
+	it("never calls a file below the warning line High, however it ranks", () => {
+		expect(riskBand(0.6, false, { threshold: 0.63, median: 0.3 })).toBe("moderate");
 	});
 
 	it("never scores low-confidence or null files", () => {
@@ -63,20 +63,19 @@ describe("riskBand", () => {
 		expect(riskBand(null, false, scale)).toBe("insufficient");
 	});
 
-	it("takes the median and riskiest-20% cut from scored files only", () => {
+	it("takes the median from scored files only", () => {
 		const scores = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0];
-		expect(topFractionCut(scores, 0.63)).toBe(0.9);
+		expect(topFractionCut(scores, 0.63, 0.2)).toBe(0.9);
 		const files = scores.map((riskScore) => file({ riskScore }));
 		files.push(file({ riskScore: 0.99, lowConfidence: true }), file({ riskScore: null }));
-		expect(riskScale(files, 0.63)).toEqual({ threshold: 0.63, median: 0.6, top: 0.9 });
-		expect(topFractionCut([0.4], 0.63)).toBe(0.4);
+		expect(riskScale(files, 0.63)).toEqual({ threshold: 0.63, median: 0.6 });
+		expect(topFractionCut([0.4], 0.63, 0.5)).toBe(0.4);
 	});
 
 	it("falls back to the warning line when nothing is scored", () => {
 		expect(riskScale([file({ riskScore: null })], 0.63)).toEqual({
 			threshold: 0.63,
 			median: 0.63,
-			top: 0.63,
 		});
 	});
 });

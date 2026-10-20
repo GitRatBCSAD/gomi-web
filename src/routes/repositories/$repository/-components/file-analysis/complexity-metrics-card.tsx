@@ -45,71 +45,71 @@ export function ComplexityMetricsCard({
 		term: GlossaryKey;
 		verdict: string;
 		tone: Tone;
-		desc: string;
+		pct: number; // position among this repo's files, 0-1
 		detail: string;
 	}[] = [
 		{
 			label: "Overall complexity",
+			pct: file.complexityScore,
 			term: "complexity-score",
 			verdict: percentileLabel(file.complexityScore),
 			tone: percentileTone(file.complexityScore),
-			desc: "Branching logic and function length combined.",
 			detail: higherThan(file.complexityScore),
 		},
 		{
 			label: "Decision paths per function",
+			pct: rankIn(allFiles, (f) => f.avgCcn, file.avgCcn),
 			term: "cyclomatic-complexity",
 			verdict: ccnLabel(file.avgCcn),
 			tone: ccnTone(file.avgCcn),
-			desc: "Cyclomatic complexity (McCabe): 1–10 simple, 11–20 moderate, 21–50 complex, over 50 untestable.",
 			detail: `Average ${file.avgCcn.toFixed(1)} paths per function`,
 		},
 		{
 			label: "Function length",
+			pct: nlocPct,
 			term: "nloc",
 			verdict: percentileLabel(nlocPct),
 			tone: percentileTone(nlocPct),
-			desc: "Average lines of code per function.",
 			detail: `About ${Math.round(file.avgNloc)} lines · ${higherThan(nlocPct).toLowerCase()}`,
 		},
 		{
 			label: "How scattered changes are",
+			pct: file.changeEntropy,
 			term: "change-entropy",
 			verdict: percentileLabel(file.changeEntropy),
 			tone: percentileTone(file.changeEntropy),
-			desc: "Whether edits to this file usually come with edits to many other files.",
 			detail: higherThan(file.changeEntropy),
 		},
 		{
 			label: "Number of developers",
+			pct: file.ndevScore,
 			term: "ndev",
 			verdict: percentileLabel(file.ndevScore),
 			tone: percentileTone(file.ndevScore),
-			desc: "How many different people changed this file.",
 			detail: higherThan(file.ndevScore),
 		},
 		{
 			label: "File age",
+			pct: file.ageScore,
 			term: "age-score",
 			verdict: percentileLabel(file.ageScore),
 			tone: "neutral",
-			desc: "How long the file has been actively changed, from its first to its last change.",
 			detail: higherThan(file.ageScore),
 		},
 		{
 			label: "Number of changes",
+			pct: commitsPct,
 			term: "n-commits",
 			verdict: percentileLabel(commitsPct),
 			tone: percentileTone(commitsPct),
-			desc: "Commits that touched this file in the last 6 months.",
 			detail: `${file.commitCount} changes · ${higherThan(commitsPct).toLowerCase()}`,
 		},
 		{
 			label: "Commit message detail",
+			pct: rankIn(allFiles, (f) => f.lowInfoRatio, file.lowInfoRatio),
 			term: "low-info-ratio",
 			verdict: lowInfoLabel(file.lowInfoRatio),
 			tone: file.lowInfoRatio >= 0.5 ? "warn" : "neutral",
-			desc: "Messages under 5 words say too little to judge their tone.",
 			detail: `${Math.round(file.lowInfoRatio * 100)}% of messages are under 5 words`,
 		},
 	];
@@ -128,33 +128,45 @@ export function ComplexityMetricsCard({
 			<CardHeader>
 				<H1 variant="h4">Code structure and change history</H1>
 				<P className="text-muted-foreground">
-					How this file compares with the rest of the repository.
+					Where this file sits among all files in the repo. Further right means higher.
 				</P>
 				<P className="text-foreground mt-2">{takeaway}</P>
 			</CardHeader>
 			<CardContent>
 				<ul className="divide-border divide-y border-y">
-					{metrics.map(({ label, term, verdict, tone, desc, detail }) => (
+					{metrics.map(({ label, term, verdict, tone, pct, detail }) => (
 						<li
 							key={label}
-							className="grid grid-cols-1 gap-x-6 gap-y-1 py-3 sm:grid-cols-[1fr_15rem] sm:items-baseline"
+							className="grid grid-cols-1 gap-x-6 gap-y-1.5 py-3 sm:grid-cols-[1fr_10rem_10rem] sm:items-center"
 						>
 							<div className="min-w-0">
 								<P className="text-foreground text-sm font-medium">
 									{label}
 									<GlossaryHint term={term} />
 								</P>
-								<P className="text-muted-foreground text-sm">{desc}</P>
-							</div>
-							<div className="sm:text-right">
-								<P
-									className="text-base font-semibold"
-									style={{ color: TONE_COLOR[tone] }}
-								>
-									{verdict}
-								</P>
 								<P className="text-muted-foreground text-xs">{detail}</P>
 							</div>
+							<div
+								className="bg-muted relative h-1.5 rounded-full"
+								aria-hidden="true"
+							>
+								<span
+									className="absolute -top-1 h-3.5 w-1 -translate-x-1/2 rounded-full"
+									style={{
+										left: `${Math.min(100, Math.max(0, pct * 100))}%`,
+										backgroundColor:
+											tone === "neutral"
+												? "var(--muted-foreground)"
+												: TONE_COLOR[tone],
+									}}
+								/>
+							</div>
+							<P
+								className="text-sm font-semibold sm:text-right"
+								style={{ color: TONE_COLOR[tone] }}
+							>
+								{verdict}
+							</P>
 						</li>
 					))}
 				</ul>

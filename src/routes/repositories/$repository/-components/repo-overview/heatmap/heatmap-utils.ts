@@ -77,10 +77,10 @@ export const FILTERS: { key: FilterKey; label: string; short: string }[] = [
 
 export const DIR_LABEL_HEIGHT = 26;
 
-// risky = High or Very High band (score >= threshold), acceptable = Low or Moderate.
+// risky = High band (score >= threshold), acceptable = Low or Moderate.
 export function categoryOf(band: RiskBand): RiskCategory {
 	if (band === "insufficient") return "low-conf";
-	return band === "high" || band === "very-high" ? "risky" : "acceptable";
+	return band === "high" ? "risky" : "acceptable";
 }
 
 export const getCategory = (f: FileInfo): RiskCategory => categoryOf(f.band);

@@ -64,6 +64,7 @@ export function ShapBreakdownCard({
 	if (!s) return null;
 
 	const factors = shapFactors(s);
+	const maxShare = Math.max(...factors.map((f) => f.share), 0.01);
 	const baseline = baselineFromShap(s) as number;
 	const band = riskBand(file.riskScore, file.lowConfidence, scale);
 
@@ -75,10 +76,7 @@ export function ShapBreakdownCard({
 					<GlossaryHint term="shap" />
 				</H1>
 				<P className="text-muted-foreground">
-					{factors.some((f) => !f.raises)
-						? "Each factor either pushes this file's risk up (red) or down (blue)."
-						: "Every factor here pushes this file's risk up."}{" "}
-					Longer bars matter more.
+					Bars right of the line raise risk, bars left lower it. Longer bars matter more.
 				</P>
 			</CardHeader>
 			<CardContent>
@@ -103,14 +101,15 @@ export function ShapBreakdownCard({
 										This file: {fileValue(f.key, file)}
 									</span>
 								</span>
-								<div
-									className="h-2 overflow-hidden rounded-full"
-									style={{ backgroundColor: "var(--background-700)" }}
-								>
+								{/* Diverging: direction by position, not just color. Half width = largest share. */}
+								<div className="relative h-2" aria-hidden="true">
+									<span className="bg-border absolute inset-y-[-6px] left-1/2 w-px" />
 									<div
-										className="h-2 rounded-full"
+										className="absolute h-2 rounded-full"
 										style={{
-											width: `${Math.max(f.share * 100, 2)}%`,
+											width: `${Math.max((f.share / maxShare) * 50, 1)}%`,
+											left: f.raises ? "50%" : undefined,
+											right: f.raises ? undefined : "50%",
 											backgroundColor: color,
 										}}
 									/>

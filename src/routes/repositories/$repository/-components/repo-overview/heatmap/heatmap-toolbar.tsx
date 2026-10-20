@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 
 import { FILTERS, type FilterKey, type SortOption } from "./heatmap-utils";
 
-const LEGEND: RiskBand[] = ["low", "moderate", "high", "very-high", "insufficient"];
+const LEGEND: RiskBand[] = ["low", "moderate", "high", "insufficient"];
 
 export function HeatmapToolbar(props: {
 	filter: FilterKey;
@@ -100,9 +100,7 @@ export function HeatmapToolbar(props: {
 						{RISK_BANDS[b].label}
 					</span>
 				))}
-				<span className="sm:ml-auto">
-					High and Very High are above the model's warning line.
-				</span>
+				<span className="sm:ml-auto">High is above the model's warning line.</span>
 			</div>
 		</div>
 	);

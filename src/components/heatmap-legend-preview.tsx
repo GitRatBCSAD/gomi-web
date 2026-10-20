@@ -5,7 +5,7 @@ import { RISK_BANDS, type RiskBand } from "@/lib/interpret";
 // Sample tiles for the legend. Same band colors the live map uses; every tile
 // is the same size because the live treemap sizes tiles by file count only.
 const SAMPLE_TILES: { name: string; band: RiskBand }[] = [
-	{ name: "auth.go", band: "very-high" },
+	{ name: "auth.go", band: "high" },
 	{ name: "parser.ts", band: "high" },
 	{ name: "api.ts", band: "moderate" },
 	{ name: "utils.py", band: "low" },
@@ -38,7 +38,7 @@ export function HeatmapLegendPreview(): JSX.Element {
 	);
 }
 
-const LEGEND_ORDER: RiskBand[] = ["very-high", "high", "moderate", "low", "insufficient"];
+const LEGEND_ORDER: RiskBand[] = ["high", "moderate", "low", "insufficient"];
 
 /** The colored risk-band key. Shared by the guide and the onboarding modal. */
 export function RiskLegendRows(): JSX.Element {

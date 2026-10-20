@@ -11,7 +11,7 @@ export const MIN_COMMITS = 1;
 /** The commit gate in words: with a gate of 1, unscored files had no changes. */
 export const BELOW_GATE = MIN_COMMITS <= 1 ? "no changes" : `fewer than ${MIN_COMMITS} changes`;
 
-export type RiskBand = "low" | "moderate" | "high" | "very-high" | "insufficient";
+export type RiskBand = "low" | "moderate" | "high" | "insufficient";
 
 export type RiskBandInfo = {
 	band: RiskBand;
@@ -25,26 +25,15 @@ export type RiskBandInfo = {
 };
 
 export const RISK_BANDS: Record<RiskBand, RiskBandInfo> = {
-	"very-high": {
-		band: "very-high",
-		label: "Very High",
-		meaning:
-			"Above the model's warning line and among the riskiest 20% of files in this repository.",
+	high: {
+		band: "high",
+		label: "High",
+		meaning: "Above the model's warning line.",
 		action: "Review this file before the next change and add tests or refactor.",
 		fg: "var(--risk-very-high-ink)",
 		bg: "var(--risk-very-high-tint)",
 		fill: "var(--risk-very-high-fill)",
 		onFill: "var(--risk-very-high-text)",
-	},
-	high: {
-		band: "high",
-		label: "High",
-		meaning: "Above the model's warning line.",
-		action: "Give changes here an extra review and consider adding tests.",
-		fg: "var(--risk-high-ink)",
-		bg: "var(--risk-high-tint)",
-		fill: "var(--risk-high-fill)",
-		onFill: "var(--risk-high-text)",
 	},
 	moderate: {
 		band: "moderate",
@@ -78,8 +67,8 @@ export const RISK_BANDS: Record<RiskBand, RiskBandInfo> = {
 	},
 };
 
-/** threshold: model warning line; median and top: this repository's median and riskiest-20% cut. */
-export type RiskScale = { threshold: number; median: number; top: number };
+/** threshold: model warning line; median: this repository's median score. */
+export type RiskScale = { threshold: number; median: number };
 
 const sigmoid = (x: number): number => 1 / (1 + Math.exp(-x));
 
@@ -88,17 +77,8 @@ export function baselineFromShap(shap: ShapBreakdown | null | undefined): number
 	return shap ? sigmoid(shap.baseRate) : null;
 }
 
-// "Very High" = above the warning line and in the riskiest 20% of scored files. 20% is the
-// effort-aware convention (Kamei et al., 2013; Guo et al., 2024), which counts 20% of LOC;
-// Gomi counts files instead (Chapter 1 limitation 15).
-export const TOP_FRACTION = 0.2;
-
 /** Score of the last file inside the top `fraction`; `fallback` when nothing is scored. */
-export function topFractionCut(
-	scores: number[],
-	fallback: number,
-	fraction = TOP_FRACTION,
-): number {
+export function topFractionCut(scores: number[], fallback: number, fraction: number): number {
 	if (scores.length === 0) return fallback;
 	const sorted = [...scores].sort((a, b) => b - a);
 	return sorted[Math.max(1, Math.ceil(fraction * sorted.length)) - 1];
@@ -112,7 +92,6 @@ export function riskScale(files: FileRiskResult[], threshold: number): RiskScale
 	return {
 		threshold,
 		median: topFractionCut(scores, threshold, 0.5),
-		top: topFractionCut(scores, threshold),
 	};
 }
 
@@ -123,15 +102,14 @@ export function riskScale(files: FileRiskResult[], threshold: number): RiskScale
  * Low      p < threshold and below the repo median
  * Moderate p < threshold and at or above the repo median
  * High     p >= threshold
- * VeryHigh p >= threshold and in the riskiest 20% of this repo
  */
 export function riskBand(p: number | null, lowConfidence: boolean, scale: RiskScale): RiskBand {
 	if (lowConfidence || p == null) return "insufficient";
-	if (p >= scale.threshold) return p >= scale.top ? "very-high" : "high";
+	if (p >= scale.threshold) return "high";
 	return p >= scale.median ? "moderate" : "low";
 }
 
-export const isAtRisk = (b: RiskBand): boolean => b === "high" || b === "very-high";
+export const isAtRisk = (b: RiskBand): boolean => b === "high";
 
 // --- Percentile-rank features (0-1 within this repository) ---
 

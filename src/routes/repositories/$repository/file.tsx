@@ -1,5 +1,5 @@
 import { createFileRoute, redirect, Link } from "@tanstack/react-router";
-import { ArrowDownIcon, ArrowLeftIcon, ArrowRightIcon, ArrowUpIcon } from "lucide-react";
+import { ArrowLeftIcon, ArrowRightIcon } from "lucide-react";
 import { useMemo, useState, type JSX } from "react";
 import * as v from "valibot";
 
@@ -10,7 +10,7 @@ import { H1, P } from "@/components/typography";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getAnalysisQueryOptions } from "@/lib/github/api";
-import { RISK_BANDS, riskBand, riskScale, shapFactors, summarizeFile } from "@/lib/interpret";
+import { RISK_BANDS, riskBand, riskScale, summarizeFile } from "@/lib/interpret";
 
 import { CommitSentimentCard } from "./-components/file-analysis/commit-sentiment-card";
 import { ComplexityMetricsCard } from "./-components/file-analysis/complexity-metrics-card";
@@ -65,12 +65,6 @@ function RouteComponent(): JSX.Element {
 		localStorage.setItem(FILE_TOUR_SEEN_KEY, "1");
 		setShowFileTour(false);
 	}
-
-	const reasons = file.shapBreakdown
-		? shapFactors(file.shapBreakdown)
-				.filter((f) => f.weight !== "Minor factor")
-				.slice(0, 3)
-		: [];
 
 	const parts = file.filename.split("/");
 	const name = parts.pop() ?? file.filename;
@@ -136,46 +130,12 @@ function RouteComponent(): JSX.Element {
 
 					<RiskMeter file={file} allFiles={allFiles} scale={scale} band={band} />
 
-					{reasons.length > 0 && (
-						<div className="flex flex-wrap items-center gap-2">
-							<span className="text-muted-foreground text-sm">Why:</span>
-							{reasons.map((r) => {
-								const Icon = r.raises ? ArrowUpIcon : ArrowDownIcon;
-								return (
-									<span
-										key={r.key}
-										className="bg-muted text-foreground inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm"
-									>
-										<Icon
-											className="size-3.5"
-											style={{
-												color: r.raises
-													? RISK_BANDS["very-high"].fg
-													: "var(--primary)",
-											}}
-										/>
-										{r.name}
-										<span className="text-muted-foreground text-xs">
-											{r.raises ? "raises risk" : "lowers risk"}
-										</span>
-									</span>
-								);
-							})}
-						</div>
-					)}
-
 					{view === "simple" && <DriftGuidanceBanner file={file} />}
 				</div>
 			</Card>
 
 			{/* Always shown: the trend is the core early-detection signal (see Ch. 3). */}
 			<SentimentTrajectoryCard file={file} id="tour-file-sentiment" />
-
-			{view === "simple" && (
-				<P className="text-muted-foreground text-sm">
-					Switch to <b>Detailed</b> for what drives this score and the code measurements.
-				</P>
-			)}
 
 			{view === "detailed" && (
 				<>

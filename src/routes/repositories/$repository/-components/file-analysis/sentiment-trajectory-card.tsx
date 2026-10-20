@@ -178,8 +178,8 @@ export function SentimentTrajectoryCard({
 				</H1>
 				<P className="text-foreground">{trend.sentence}</P>
 				<P className="text-muted-foreground text-sm">
-					Each dot is one change, placed on the date it was made. Dots above the dashed line read as
-					worried; green dots read as positive.
+					Each dot is one change, placed on the date it was made. Dots above the dashed
+					line read as worried; green dots read as positive.
 					<GlossaryHint term="caution-probability" />
 				</P>
 			</CardHeader>

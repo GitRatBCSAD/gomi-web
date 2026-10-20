@@ -7,9 +7,9 @@ import { cn } from "@/lib/utils";
 
 import { categoryOf, type FilterKey } from "./heatmap/heatmap-utils";
 
-const ORDER: RiskBand[] = ["very-high", "high", "moderate", "low", "insufficient"];
+const ORDER: RiskBand[] = ["high", "moderate", "low", "insufficient"];
 
-function headline(total: number, risky: number, veryHigh: number, lowConf: number): string {
+function headline(total: number, risky: number, lowConf: number): string {
 	if (total === 0) return "No files were analyzed.";
 	const scored = total - lowConf;
 	if (scored === 0)
@@ -17,9 +17,7 @@ function headline(total: number, risky: number, veryHigh: number, lowConf: numbe
 	if (risky === 0)
 		return `Good news: none of the ${scored.toLocaleString()} scored files are above the warning line.`;
 	const share = Math.round((risky / scored) * 100);
-	const vh = veryHigh > 0 ? `, ${veryHigh.toLocaleString()} of them Very High` : "";
-	const next = veryHigh > 0 ? "Start with the Very High files." : "Start with the High files.";
-	return `${risky.toLocaleString()} of ${scored.toLocaleString()} scored files (${share}%) need attention${vh}. ${next}`;
+	return `${risky.toLocaleString()} of ${scored.toLocaleString()} scored files (${share}%) need attention. Start with the High files.`;
 }
 
 export function RepoSummary(props: {
@@ -31,7 +29,6 @@ export function RepoSummary(props: {
 	const { fileResults, scale, selectedFilter, onSelectFilter } = props;
 
 	const byBand: Record<RiskBand, number> = {
-		"very-high": 0,
 		high: 0,
 		moderate: 0,
 		low: 0,
@@ -48,12 +45,7 @@ export function RepoSummary(props: {
 	return (
 		<section className="space-y-3">
 			<P className="text-foreground max-w-4xl text-xl leading-snug font-medium text-balance">
-				{headline(
-					fileResults.length,
-					byBand["very-high"] + byBand.high,
-					byBand["very-high"],
-					byBand.insufficient,
-				)}
+				{headline(fileResults.length, byBand.high, byBand.insufficient)}
 			</P>
 
 			<div className="flex h-3 w-full gap-0.5 overflow-hidden rounded-full">

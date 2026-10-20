@@ -30,9 +30,7 @@ export function computeDrift(
 
 	// Global σ over the commit sequence
 	const mean = values.reduce((a, b) => a + b, 0) / values.length;
-	const sigma = Math.sqrt(
-		values.reduce((a, v) => a + (v - mean) ** 2, 0) / values.length,
-	);
+	const sigma = Math.sqrt(values.reduce((a, v) => a + (v - mean) ** 2, 0) / values.length);
 
 	// EWMA spike detection — α = 0.2
 	let ewma = values[0];
@@ -87,8 +85,7 @@ export function computeDrift(
 		}
 	} else if (hasSpike && spikeDirection === "down") {
 		category = "Refactoring Recovery";
-		guidanceText =
-			"Cleanup is working and risk is dropping. Keep the current approach going.";
+		guidanceText = "Cleanup is working and risk is dropping. Keep the current approach going.";
 	} else {
 		if (isAffective) {
 			category = "Developer Frustration Drift";

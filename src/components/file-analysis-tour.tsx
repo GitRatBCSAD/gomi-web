@@ -18,7 +18,7 @@ const CANDIDATES: Candidate[] = [
 		side: "bottom",
 		title: "Your file's risk level",
 		description:
-			"Low, Moderate, High or Very High: how likely it is that this file's recent changes introduced a bug, with a one-line reason and what to do next. Hover the label to see the exact score.",
+			"Low, Moderate or High: how likely it is that this file's recent changes introduced a bug, with a one-line reason and what to do next. Hover the label to see the exact score.",
 	},
 	{
 		id: "sentiment",

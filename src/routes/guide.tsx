@@ -31,7 +31,7 @@ const PIPELINE = [
 	{
 		n: "03",
 		title: "Combines them into one score",
-		body: "Sentiment and structure are fused into one risk level — Low, Moderate, High or Very High — based on how likely it is that this file's recent changes introduced a bug.",
+		body: "Sentiment and structure are fused into one risk level — Low, Moderate or High — based on how likely it is that this file's recent changes introduced a bug.",
 	},
 	{
 		n: "04",
@@ -145,7 +145,7 @@ function Guide(): JSX.Element {
 								On the repository heatmap, each file is a tile of the same size,
 								grouped by folder. The{" "}
 								<span className="text-foreground">color</span> tells you its risk
-								level. Start with the Very High tiles.
+								level. Start with the High tiles.
 							</P>
 							<RiskLegendRows />
 							<H3 variant="h4" className="mt-8 mb-2">
@@ -164,11 +164,6 @@ function Guide(): JSX.Element {
 									<span className="text-foreground">High</span>: at or above the
 									warning line, the cut-off that best separated buggy from clean
 									files when the model was tested.
-								</li>
-								<li>
-									<span className="text-foreground">Very High</span>: above the
-									warning line and among the riskiest 20% of files in this
-									repository.
 								</li>
 								<li>
 									<span className="text-foreground">Not enough history</span>:
