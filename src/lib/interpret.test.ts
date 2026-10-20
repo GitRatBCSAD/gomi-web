@@ -6,6 +6,7 @@ import {
 	cautionShareLabel,
 	ccnLabel,
 	factorWeight,
+	mannKendall,
 	percentileLabel,
 	riskBand,
 	riskScale,
@@ -140,23 +141,46 @@ function commits(ps: (number | null)[]): CommitSentiment[] {
 	);
 }
 
+describe("mannKendall", () => {
+	it("matches the textbook values for a strictly increasing series", () => {
+		// n = 10: S = 45, Var(S) = 125, z = 44 / sqrt(125)
+		const r = mannKendall([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+		expect(r.s).toBe(45);
+		expect(r.z).toBeCloseTo(44 / Math.sqrt(125), 6);
+		expect(r.pValue).toBeLessThan(0.001);
+	});
+
+	it("finds no trend in a flat or all-tied series", () => {
+		expect(mannKendall([0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]).pValue).toBe(1);
+	});
+});
+
 describe("worryTrend", () => {
-	it("reads rising, falling and steady halves", () => {
-		expect(worryTrend(commits([0.2, 0.2, 0.8, 0.8]))?.trend).toBe("up");
-		expect(worryTrend(commits([0.8, 0.8, 0.2, 0.2]))?.trend).toBe("down");
-		expect(worryTrend(commits([0.5, 0.5, 0.52, 0.52]))?.trend).toBe("steady");
-		expect(worryTrend(commits([0.48, 0.48, 0.51, 0.51]))?.trend).toBe("up");
+	const rising = [0.1, 0.15, 0.2, 0.3, 0.35, 0.5, 0.6, 0.7, 0.8, 0.9];
+
+	it("reads a significant rise, fall, or no trend", () => {
+		expect(worryTrend(commits(rising))?.trend).toBe("up");
+		expect(worryTrend(commits([...rising].reverse()))?.trend).toBe("down");
+		expect(worryTrend(commits([0.3, 0.6, 0.2, 0.5, 0.4, 0.3, 0.6, 0.2, 0.5, 0.4]))?.trend).toBe(
+			"steady",
+		);
+	});
+
+	it("does not call a small two-point jump a trend", () => {
+		expect(worryTrend(commits([0.2, 0.2, 0.8, 0.8]))?.trend).toBe("steady");
 	});
 
 	it("puts the averages into words", () => {
-		const t = worryTrend(commits([0.1, 0.1, 0.9, 0.9]))!;
+		const t = worryTrend(commits(rising))!;
 		expect(t.headline).toBe("Getting more cautious");
-		expect(t.sentence).toMatch(/mostly calm .* mostly cautious/);
+		expect(t.sentence).toMatch(
+			/mostly calm .* somewhat cautious|mostly calm .* mostly cautious/,
+		);
 	});
 
 	it("skips unreadable commits and needs two readable ones", () => {
 		expect(worryTrend(commits([0.9, null]))).toBeNull();
-		expect(worryTrend(commits([null, 0.1, null, 0.9]))?.trend).toBe("up");
+		expect(worryTrend(commits([null, 0.1, null, 0.9]))?.trend).toBe("steady");
 	});
 
 	it("does not divide by a zero earlier half", () => {

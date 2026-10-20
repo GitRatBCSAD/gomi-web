@@ -201,6 +201,7 @@ export type WorryTrend = {
 	earlierAvg: number;
 	laterAvg: number;
 	pctChange: number;
+	pValue: number; // Mann-Kendall, two-sided
 	trend: Trend;
 	headline: string;
 	sentence: string;
@@ -219,7 +220,41 @@ export function readableCommits(commits: CommitSentiment[]): CommitSentiment[] {
 		.sort((a, b) => a.committedAt - b.committedAt);
 }
 
-/** Mean p(caution) of the older half vs the newer half, in words. */
+// Significance level for the trend test; the usual two-sided 5%.
+export const TREND_ALPHA = 0.05;
+
+// Standard normal CDF via the Abramowitz & Stegun 7.1.26 erf approximation (error < 1.5e-7).
+function normalCdf(z: number): number {
+	const x = Math.abs(z) / Math.SQRT2;
+	const t = 1 / (1 + 0.3275911 * x);
+	const erf =
+		1 -
+		((((1.061405429 * t - 1.453152027) * t + 1.421413741) * t - 0.284496736) * t +
+			0.254829592) *
+			t *
+			Math.exp(-x * x);
+	return z >= 0 ? (1 + erf) / 2 : (1 - erf) / 2;
+}
+
+/**
+ * Mann-Kendall test for a monotonic trend (Mann, 1945; Kendall, 1975), with the tie
+ * correction and continuity correction used by pyMannKendall (Hussain & Mahmud, 2019).
+ * The normal approximation is the usual choice for n >= 10, which MIN_TREND_POINTS enforces.
+ */
+export function mannKendall(xs: number[]): { s: number; z: number; pValue: number } {
+	const n = xs.length;
+	let s = 0;
+	for (let i = 0; i < n - 1; i++) for (let j = i + 1; j < n; j++) s += Math.sign(xs[j] - xs[i]);
+	const ties = new Map<number, number>();
+	for (const x of xs) ties.set(x, (ties.get(x) ?? 0) + 1);
+	let tieTerm = 0;
+	for (const t of ties.values()) tieTerm += t * (t - 1) * (2 * t + 5);
+	const variance = (n * (n - 1) * (2 * n + 5) - tieTerm) / 18;
+	const z = variance > 0 && s !== 0 ? (s - Math.sign(s)) / Math.sqrt(variance) : 0;
+	return { s, z, pValue: z === 0 ? 1 : 2 * (1 - normalCdf(Math.abs(z))) };
+}
+
+/** Trend in p(caution) over time (Mann-Kendall), described with the older vs newer half. */
 export function worryTrend(commits: CommitSentiment[]): WorryTrend | null {
 	const ps = readableCommits(commits).map((c) => c.riskProbability as number);
 	if (ps.length < 2) return null;
@@ -228,21 +263,19 @@ export function worryTrend(commits: CommitSentiment[]): WorryTrend | null {
 	const earlierAvg = avg(ps.slice(0, mid));
 	const laterAvg = avg(ps.slice(mid));
 	const pctChange = earlierAvg > 0 ? Math.round(((laterAvg - earlierAvg) / earlierAvg) * 100) : 0;
-	// ponytail: ±10% "steady" band is a display convention, documented in Ch. 3
-	const levelShift = worryLevel(laterAvg) !== worryLevel(earlierAvg);
-	const trend: Trend =
-		pctChange >= 10 || (levelShift && laterAvg > earlierAvg)
-			? "up"
-			: pctChange <= -10 || (levelShift && laterAvg < earlierAvg)
-				? "down"
-				: "steady";
+	const { s, pValue } = mannKendall(ps);
+	const trend: Trend = pValue < TREND_ALPHA ? (s > 0 ? "up" : "down") : "steady";
 	return {
 		earlierAvg,
 		laterAvg,
 		pctChange,
+		pValue,
 		trend,
 		headline: TREND_HEADLINE[trend],
-		sentence: `Commit messages went from ${worryLevel(earlierAvg)} in the older half of the window to ${worryLevel(laterAvg)} in the newer half.`,
+		sentence:
+			trend === "steady"
+				? `No clear trend: commit messages stayed ${worryLevel(avg(ps))} across the window.`
+				: `Commit messages went from ${worryLevel(earlierAvg)} in the older half of the window to ${worryLevel(laterAvg)} in the newer half.`,
 	};
 }
 

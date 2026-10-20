@@ -320,8 +320,9 @@ export function SentimentTrajectoryCard({
 					<P className="mt-2 text-xs" style={{ color: "var(--text-subtle)" }}>
 						Average caution level (p(caution)) {trend.earlierAvg.toFixed(2)} →{" "}
 						{trend.laterAvg.toFixed(2)} ({trend.pctChange > 0 ? "+" : ""}
-						{trend.pctChange}%) · ±10% counts as a trend · caution line at{" "}
-						{CAUTION_THRESHOLD} · {data.length} readable commits
+						{trend.pctChange}%) · Mann–Kendall p = {trend.pValue.toFixed(3)} (trend if p
+						&lt; 0.05) · caution line at {CAUTION_THRESHOLD} · {data.length} readable
+						commits
 						{drift ? ` · pattern: ${drift.category}` : ""}
 					</P>
 				</details>

@@ -78,7 +78,7 @@ export const GLOSSARY: Record<GlossaryKey, GlossaryEntry> = {
 		definition:
 			"A timeline of the caution level, commit by commit, so you can watch the mood around a file trend up or down over months.",
 		reading:
-			"Higher dots sound more cautious. A change of 10% or more between the older and newer half counts as a trend.",
+			"Higher dots sound more cautious. A trend is reported only when a standard statistical test (Mann–Kendall) finds the rise or fall unlikely to be chance.",
 		href: "https://www.google.com/search?q=what+is+exponential+moving+average",
 	},
 	"drift-category": {
