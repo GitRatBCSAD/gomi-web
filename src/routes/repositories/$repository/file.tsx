@@ -126,15 +126,10 @@ function RouteComponent(): JSX.Element {
 							<span>
 								<span className="text-foreground font-semibold">What to do: </span>
 								{info.action}
+								{/* One paragraph instead of a separate list: same advice, less clutter. */}
+								{suggestions.length > 0 && ` ${suggestions.join(" ")}`}
 							</span>
 						</P>
-						{suggestions.length > 0 && (
-							<ul className="text-muted-foreground list-disc space-y-0.5 pl-12 text-sm">
-								{suggestions.map((s) => (
-									<li key={s}>{s}</li>
-								))}
-							</ul>
-						)}
 					</div>
 
 					<RiskMeter file={file} allFiles={allFiles} scale={scale} band={band} />
