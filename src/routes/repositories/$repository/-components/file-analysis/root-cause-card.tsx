@@ -36,12 +36,13 @@ export function RootCauseCard({
 	const totalShap = Math.max(0.01, affectiveSum + structuralSum);
 	const sentimentPct = Math.round((affectiveSum / totalShap) * 100);
 	const complexityPct = Math.round((structuralSum / totalShap) * 100);
+	// Simple majority of the |SHAP| influence, the same split drift-utils uses; no extra cut-off.
 	const driver =
-		sentimentPct >= 60
+		affectiveSum > structuralSum
 			? "mostly by the tone of its commit messages"
-			: complexityPct >= 60
+			: structuralSum > affectiveSum
 				? "mostly by its code structure and change history"
-				: "about equally by commit tone and by code structure";
+				: "equally by commit tone and by code structure";
 
 	const commitDate = new Date(rootCommit.committedAt * 1000);
 	const dateStr = fmtDate(rootCommit.committedAt);
