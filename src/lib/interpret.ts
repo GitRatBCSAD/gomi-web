@@ -113,6 +113,11 @@ export const isAtRisk = (b: RiskBand): boolean => b === "high";
 
 // --- Percentile-rank features (0-1 within this repository) ---
 
+// "Typical" is the interquartile range, the middle half of files (quartiles: NIST/SEMATECH
+// e-Handbook, box plot, https://www.itl.nist.gov/div898/handbook/eda/section3/boxplot.htm).
+// "Among the highest" is the top decile, the >90% very-high-risk cut of Alves, Ypma & Visser
+// (2010), applied to file ranks rather than LOC volume.
+
 export function percentileLabel(pct: number): string {
 	if (pct >= 0.9) return "Among the highest";
 	if (pct >= 0.75) return "Higher than most";
@@ -153,7 +158,10 @@ export function ccnTone(ccn: number): Tone {
 // ponytail: hardcoded; serve it from /threshold if the model is retrained.
 export const CAUTION_THRESHOLD = 0.72;
 
-/** Average p(caution) over a set of commits, in words. */
+/**
+ * Average p(caution) over a set of commits, in words. 0.72 is the DistilBERT F1-optimal
+ * caution threshold; at p >= 0.5 Caution is necessarily the most likely of the three classes.
+ */
 export function worryLevel(p: number): string {
 	if (p >= CAUTION_THRESHOLD) return "mostly cautious";
 	if (p >= 0.5) return "somewhat cautious";

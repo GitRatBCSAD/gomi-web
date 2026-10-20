@@ -1,6 +1,7 @@
 import type { CommitSentiment, ShapBreakdown } from "@/lib/github/model";
 import { MIN_TREND_POINTS, readableCommits, toneVsStructure } from "@/lib/interpret";
 
+// NIST/SEMATECH e-Handbook 6.3.2.4: lambda is usually set between 0.2 and 0.3.
 const EWMA_ALPHA = 0.2;
 
 export type DriftCategory =
