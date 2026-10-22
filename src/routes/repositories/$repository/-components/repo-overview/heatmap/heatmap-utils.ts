@@ -71,7 +71,7 @@ export const DOT_COLOR: Record<RiskCategory, string> = {
 export const FILTERS: { key: FilterKey; label: string; short: string }[] = [
 	{ key: "all", label: "All", short: "All" },
 	{ key: "risky", label: "Needs attention", short: "Attention" },
-	{ key: "acceptable", label: "OK for now", short: "OK" },
+	{ key: "acceptable", label: "Acceptable", short: "OK" },
 	{ key: "low-conf", label: "Not enough history", short: "No history" },
 ];
 
