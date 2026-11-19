@@ -3,7 +3,7 @@
 	"rewrites": [
 		{
 			"source": "/api/:path*",
-			"destination": "https://gomi-server.onrender.com/:path*"
+			"destination": "https://gomi-server.REPLACE-WITH-ENV-ID.southeastasia.azurecontainerapps.io/:path*"
 		},
 		{ "source": "/(.*)", "destination": "/index.html" }
 	]
