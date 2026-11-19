@@ -99,4 +99,3 @@ export const JobStatusSchema = v.object({
 	error: v.optional(v.string()),
 });
 export type JobStatus = v.InferOutput<typeof JobStatusSchema>;
-

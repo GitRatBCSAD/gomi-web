@@ -9,6 +9,7 @@ import { H1, H2, H3, P } from "@/components/typography";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BACKEND_URL } from "@/lib/env";
 import { GLOSSARY } from "@/lib/glossary";
+import { BELOW_GATE } from "@/lib/interpret";
 
 export const Route = createFileRoute("/guide")({
 	component: Guide,
@@ -20,7 +21,7 @@ const PIPELINE = [
 	{
 		n: "01",
 		title: "Reads your commit messages",
-		body: "Every commit message is scored for how worried or frustrated it sounds. Venting, 'temp fix', and 'no idea why this works' are signals, not noise.",
+		body: "Every commit message is scored for how cautious, urgent or frustrated it sounds. Venting, 'temp fix', and 'no idea why this works' are signals, not noise.",
 	},
 	{
 		n: "02",
@@ -30,7 +31,7 @@ const PIPELINE = [
 	{
 		n: "03",
 		title: "Combines them into one score",
-		body: "Sentiment and structure are fused into a single risk score from 0 to 1: the chance this file is heading for a bug fix soon.",
+		body: "Sentiment and structure are fused into one risk level — Low, Moderate or High — based on how likely it is that this file's recent changes introduced a bug.",
 	},
 	{
 		n: "04",
@@ -53,7 +54,7 @@ const STEPS = [
 	{
 		n: "3",
 		title: "Read the heatmap",
-		body: "Every file becomes a tile. Big, red tiles are your loud, risky files. Scan the map to see where debt is concentrated.",
+		body: "Every file becomes a tile. Red and orange tiles need attention. Scan the map to see where debt is concentrated.",
 	},
 	{
 		n: "4",
@@ -83,7 +84,7 @@ function Guide(): JSX.Element {
 		<div className="mx-auto w-full max-w-4xl px-6 py-14">
 			<Link
 				to={isAuthenticated ? "/repositories" : "/"}
-				className="font-fira-mono text-muted-foreground hover:text-foreground mb-6 inline-flex items-center gap-1.5 text-sm transition-colors"
+				className="text-muted-foreground hover:text-foreground mb-6 inline-flex items-center gap-1.5 text-sm transition-colors"
 			>
 				<ArrowLeftIcon className="size-4" />
 				{isAuthenticated ? "Back to repositories" : "Back to home"}
@@ -91,7 +92,7 @@ function Guide(): JSX.Element {
 
 			{/* Hero */}
 			<header className="pb-8">
-				<span className="font-fira-mono text-primary text-[0.8125rem] tracking-wider">
+				<span className="text-primary text-[0.8125rem] tracking-wider">
 					GOMI &bull; Field Guide
 				</span>
 				<H1 className="mt-4 text-[clamp(2rem,5vw,3rem)] leading-tight">
@@ -119,7 +120,7 @@ function Guide(): JSX.Element {
 					<ol className="space-y-6">
 						{STEPS.map((s) => (
 							<li key={s.n} className="flex gap-4">
-								<span className="border-primary/30 text-primary font-fira-mono-bold flex size-9 shrink-0 items-center justify-center rounded-full border text-sm">
+								<span className="border-primary/30 text-primary flex size-9 shrink-0 items-center justify-center rounded-full border text-sm font-semibold">
 									{s.n}
 								</span>
 								<div className="pt-1">
@@ -138,16 +139,37 @@ function Guide(): JSX.Element {
 					<div className="grid gap-8 md:grid-cols-[1fr_auto]">
 						<div>
 							<H2 variant="h4" className="mb-3">
-								Size is structure. Color is risk.
+								Color is risk.
 							</H2>
 							<P className="text-muted-foreground mb-6 max-w-md text-sm leading-relaxed">
-								On the repository heatmap, each file is a tile.{" "}
-								<span className="text-foreground">Bigger tiles</span> are
-								structurally heavier files.{" "}
-								<span className="text-foreground">Redder tiles</span> carry more
-								risk. The file you want to look at first is the big red one.
+								On the repository heatmap, each file is a tile of the same size,
+								grouped by folder. The{" "}
+								<span className="text-foreground">color</span> tells you its risk
+								level. Start with the High tiles.
 							</P>
 							<RiskLegendRows />
+							<H3 variant="h4" className="mt-8 mb-2">
+								How Gomi picks the label
+							</H3>
+							<ul className="text-muted-foreground max-w-md list-disc space-y-1.5 pl-5 text-sm leading-relaxed">
+								<li>
+									<span className="text-foreground">Low</span>: below the warning
+									line and in the safer half of this repository.
+								</li>
+								<li>
+									<span className="text-foreground">Moderate</span>: below the
+									warning line, but in the riskier half of this repository.
+								</li>
+								<li>
+									<span className="text-foreground">High</span>: at or above the
+									warning line, the cut-off that best separated buggy from clean
+									files when the model was tested.
+								</li>
+								<li>
+									<span className="text-foreground">Not enough history</span>:
+									{BELOW_GATE} in six months, so no score is given.
+								</li>
+							</ul>
 						</div>
 						<HeatmapLegendPreview />
 					</div>
@@ -161,7 +183,7 @@ function Guide(): JSX.Element {
 					<div className="border-border bg-border grid gap-px overflow-hidden rounded-lg border sm:grid-cols-2">
 						{PIPELINE.map((p) => (
 							<div key={p.n} className="bg-card p-6">
-								<span className="font-fira-mono-bold text-primary/50 text-3xl tabular-nums">
+								<span className="text-primary/50 text-3xl font-semibold tabular-nums">
 									{p.n}
 								</span>
 								<H3 variant="h4" className="mt-2">
@@ -193,11 +215,15 @@ function Guide(): JSX.Element {
 								<P className="text-muted-foreground mt-1.5 text-base leading-relaxed">
 									{entry.definition}
 								</P>
+								<P className="mt-2 text-sm leading-relaxed">
+									<span className="font-semibold">How to read it: </span>
+									{entry.reading}
+								</P>
 								<a
 									href={entry.href}
 									target="_blank"
 									rel="noopener noreferrer"
-									className="text-primary hover:text-primary/80 font-fira-mono mt-2.5 inline-block text-base transition-colors"
+									className="text-primary hover:text-primary/80 mt-2.5 inline-block text-base transition-colors"
 								>
 									Learn more →
 								</a>
@@ -210,7 +236,7 @@ function Guide(): JSX.Element {
 			<div className="border-border mt-12 border-t pt-10 text-center">
 				<Link
 					to={isAuthenticated ? "/repositories" : "/"}
-					className="bg-primary font-fira-mono-bold hover:bg-primary/90 text-primary-foreground inline-flex cursor-pointer items-center justify-center rounded-lg px-8 py-3 text-sm no-underline transition-all"
+					className="bg-primary hover:bg-primary/90 text-primary-foreground inline-flex cursor-pointer items-center justify-center rounded-lg px-8 py-3 text-sm font-semibold no-underline transition-all"
 				>
 					{isAuthenticated ? "Go to your repositories" : "Get started"}
 				</Link>

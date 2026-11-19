@@ -7,11 +7,11 @@ import { cn } from "@/lib/utils";
 const typography = cva("text-foreground", {
 	variants: {
 		variant: {
-			h1: "font-fira-mono-bold text-5xl",
-			h2: "font-fira-mono-bold text-4xl",
-			h3: "font-fira-mono-bold text-3xl",
-			h4: "font-fira-mono-bold text-2xl",
-			p: "font-fira-mono text-base",
+			h1: "text-4xl font-semibold tracking-tight",
+			h2: "text-3xl font-semibold tracking-tight",
+			h3: "text-2xl font-semibold tracking-tight",
+			h4: "text-xl font-semibold tracking-tight",
+			p: "text-base",
 		},
 	},
 });

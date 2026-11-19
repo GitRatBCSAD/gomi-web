@@ -1,18 +1,31 @@
 import { useEffect, useState } from "react";
 
+import { H1, P } from "@/components/typography";
 import { Progress } from "@/components/ui/progress";
 import { Spinner } from "@/components/ui/spinner";
-import { H1, P } from "@/components/typography";
 import { cn } from "@/lib/utils";
 
 const STEP_MESSAGES: Record<string, string> = {
-	queued: "Waiting in queue...",
-	cloning: "Cloning repository...",
-	extracting_git: "Extracting git history...",
-	scanning_complexity: "Scanning code complexity...",
-	scoring_files: "Scoring files for risk...",
+	queued: "Waiting for a free worker...",
+	cloning: "Downloading the repository...",
+	extracting_git: "Reading the last 6 months of changes...",
+	scanning_complexity: "Measuring how complex the code is...",
+	scoring_files: "Estimating risk for each file...",
 	done: "Finalizing...",
 };
+
+// Short labels for buttons; shared by the repository list and overview pages.
+const STEP_LABELS: Record<string, string> = {
+	queued: "Queued...",
+	cloning: "Downloading...",
+	extracting_git: "Reading history...",
+	scanning_complexity: "Measuring...",
+	scoring_files: "Scoring...",
+};
+
+export function stepLabel(step: string): string {
+	return STEP_LABELS[step] ?? "Analyzing...";
+}
 
 interface AnalysisLoadingScreenProps {
 	repoFullName: string;
@@ -71,7 +84,7 @@ export function AnalysisLoadingScreen({
 
 			<div className="relative flex w-full max-w-md flex-col items-center gap-8 px-6 text-center">
 				{/* Spinner */}
-				<Spinner className="size-10 text-primary" />
+				<Spinner className="text-primary size-10" />
 
 				{/* Title */}
 				<div className="flex flex-col gap-1">

@@ -1,0 +1,53 @@
+name: CI
+
+on:
+    push:
+    pull_request:
+
+permissions:
+    contents: read
+
+jobs:
+    check:
+        name: Lint, typecheck, test, and build
+        runs-on: ubuntu-latest
+        steps:
+            - name: Check out code
+              uses: actions/checkout@v4
+              with:
+                  persist-credentials: false
+
+            - name: Set up pnpm
+              uses: pnpm/action-setup@v4
+              with:
+                  version: 12.6.0
+
+            - name: Set up Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 24
+                  cache: pnpm
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Lint
+              run: pnpm lint
+
+            - name: Check formatting
+              run: pnpm fmt:check
+
+            # routeTree.gen.ts is gitignored, so generate it before tsc reads it.
+            - name: Generate routes
+              run: pnpm generate-routes
+
+            - name: Typecheck
+              run: pnpm typecheck
+
+            - name: Test
+              run: pnpm test
+
+            - name: Build
+              env:
+                  VITE_BACKEND_URL: /api
+              run: pnpm build

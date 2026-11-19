@@ -5,20 +5,19 @@ import { H1, P } from "@/components/typography";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import type { FileRiskResult } from "@/lib/github/model";
+import { CAUTION_THRESHOLD, fmtDate, MIN_TREND_POINTS, toneVsStructure } from "@/lib/interpret";
 
 import { DriftGuidanceBanner } from "./drift-guidance-banner";
 import { computeDrift } from "./drift-utils";
 
 export function RootCauseCard({
 	file,
-	threshold,
 	id,
 }: {
 	file: FileRiskResult;
-	threshold: number;
 	id?: string;
 }): JSX.Element | null {
-	if (file.lowConfidence || file.commitSentiments.length < 10) {
+	if (file.lowConfidence || file.commitSentiments.length < MIN_TREND_POINTS) {
 		return null;
 	}
 
@@ -30,29 +29,25 @@ export function RootCauseCard({
 	const rootCommit = drift.rootCauseCommit;
 	const cautionProb = rootCommit.riskProbability ?? 0;
 
-	// Root cause only meaningful if the commit actually crossed the model threshold
-	if (cautionProb < threshold) return null;
+	// Root cause only meaningful if the commit itself reads as cautious
+	if (cautionProb < CAUTION_THRESHOLD) return null;
 
-	const s = file.shapBreakdown;
-	const affectiveSum = Math.abs(s?.sentimentContrib ?? 0) + Math.max(0, s?.lowInfoContrib ?? 0);
-	const structuralSum =
-		Math.abs(s?.entropyContrib ?? 0) +
-		Math.abs(s?.ndevContrib ?? 0) +
-		Math.abs(s?.ageContrib ?? 0) +
-		Math.abs(s?.complexityContrib ?? 0) +
-		Math.abs(s?.commitsContrib ?? 0);
+	const { tone: affectiveSum, structure: structuralSum } = toneVsStructure(file.shapBreakdown);
 	const totalShap = Math.max(0.01, affectiveSum + structuralSum);
 	const sentimentPct = Math.round((affectiveSum / totalShap) * 100);
 	const complexityPct = Math.round((structuralSum / totalShap) * 100);
+	// Simple majority of the |SHAP| influence, the same split drift-utils uses; no extra cut-off.
+	const driver =
+		affectiveSum > structuralSum
+			? "mostly by the tone of its commit messages"
+			: structuralSum > affectiveSum
+				? "mostly by its code structure and change history"
+				: "equally by commit tone and by code structure";
 
 	const commitDate = new Date(rootCommit.committedAt * 1000);
-	const dateStr = commitDate.toLocaleDateString("en-US", {
-		month: "short",
-		day: "numeric",
-		year: "numeric",
-	});
-	const dayLabel = commitDate.toLocaleDateString("en-US", { weekday: "long" });
-	const timeLabel = commitDate.toLocaleTimeString("en-US", {
+	const dateStr = fmtDate(rootCommit.committedAt);
+	const dayLabel = commitDate.toLocaleDateString(undefined, { weekday: "long" });
+	const timeLabel = commitDate.toLocaleTimeString(undefined, {
 		hour: "numeric",
 		minute: "2-digit",
 	});
@@ -60,23 +55,26 @@ export function RootCauseCard({
 	return (
 		<Card id={id}>
 			<CardHeader>
-				<H1 variant="h4">Root Cause Commit</H1>
+				<H1 variant="h4">Biggest rise in caution</H1>
 				<P className="text-muted-foreground">
-					Highest caution risk commit identified in the analysis window
+					The change whose commit message showed this file's biggest jump in caution
 				</P>
 			</CardHeader>
 			<CardContent className="space-y-4">
+				<P className="text-foreground text-sm">
+					This file's risk is driven {driver}.
+					<GlossaryHint term="caution-probability" />
+				</P>
+
 				<DriftGuidanceBanner file={file} />
 
 				<div className="flex items-start justify-between gap-4">
 					<div>
 						<div className="flex items-center gap-2">
-							<span className="font-fira-mono text-muted-foreground text-sm font-bold">
+							<span className="text-muted-foreground text-sm font-bold">
 								{rootCommit.hash.slice(0, 7)}
 							</span>
-							<span className="font-fira-mono text-muted-foreground/60 text-sm">
-								· {dateStr}
-							</span>
+							<span className="text-muted-foreground/60 text-sm">· {dateStr}</span>
 						</div>
 						<P className="mt-1 font-bold">"{rootCommit.message}"</P>
 					</div>
@@ -88,56 +86,8 @@ export function RootCauseCard({
 						}}
 						className="shrink-0 font-bold"
 					>
-						Caution
+						Caution tone
 					</Badge>
-				</div>
-
-				<div className="border-border/30 space-y-2 border-t pt-3">
-					<P className="text-muted-foreground text-sm font-bold">
-						Caution probability:{" "}
-						<span style={{ color: "var(--destructive-500)" }}>
-							{cautionProb.toFixed(2)}
-						</span>
-						<GlossaryHint term="caution-probability" />
-					</P>
-
-					<div className="space-y-2">
-						<div className="flex items-center gap-3">
-							<span className="font-fira-mono text-muted-foreground w-24 shrink-0 text-sm">
-								Sentiment:
-							</span>
-							<div className="bg-background-700 h-2 flex-1 overflow-hidden rounded-full">
-								<div
-									className="h-2 rounded-full"
-									style={{
-										width: `${sentimentPct}%`,
-										backgroundColor: "var(--destructive-500)",
-									}}
-								/>
-							</div>
-							<span className="font-fira-mono text-foreground w-10 text-right text-sm font-bold tabular-nums">
-								{sentimentPct}%
-							</span>
-						</div>
-
-						<div className="flex items-center gap-3">
-							<span className="font-fira-mono text-muted-foreground w-24 shrink-0 text-sm">
-								Complexity:
-							</span>
-							<div className="bg-background-700 h-2 flex-1 overflow-hidden rounded-full">
-								<div
-									className="h-2 rounded-full"
-									style={{
-										width: `${complexityPct}%`,
-										backgroundColor: "var(--primary-500)",
-									}}
-								/>
-							</div>
-							<span className="font-fira-mono text-foreground w-10 text-right text-sm font-bold tabular-nums">
-								{complexityPct}%
-							</span>
-						</div>
-					</div>
 				</div>
 
 				{/* Commit Provenance — Tier 1 socio-technical context */}
@@ -149,7 +99,7 @@ export function RootCauseCard({
 						<P className="text-muted-foreground text-sm font-bold tracking-wider uppercase">
 							Commit Context
 						</P>
-						<div className="font-fira-mono text-muted-foreground grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+						<div className="text-muted-foreground grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
 							<span className="text-muted-foreground/60">Author</span>
 							<span className="text-foreground truncate">
 								{rootCommit.author || (
@@ -162,7 +112,9 @@ export function RootCauseCard({
 							</span>
 							{rootCommit.linesAdded != null && rootCommit.linesDeleted != null && (
 								<>
-									<span className="text-muted-foreground/60">Lines</span>
+									<span className="text-muted-foreground/60">
+										Lines added / removed
+									</span>
 									<span>
 										<span style={{ color: "var(--success-500, #4ade80)" }}>
 											+{rootCommit.linesAdded}
@@ -175,16 +127,27 @@ export function RootCauseCard({
 							)}
 							{rootCommit.coChangedFiles != null && (
 								<>
-									<span className="text-muted-foreground/60">Co-changed</span>
+									<span className="text-muted-foreground/60">
+										Changed together with
+									</span>
 									<span className="text-foreground">
 										{rootCommit.coChangedFiles}{" "}
-										{rootCommit.coChangedFiles === 1 ? "file" : "files"}
+										{rootCommit.coChangedFiles === 1
+											? "other file"
+											: "other files"}
 									</span>
 								</>
 							)}
 						</div>
 					</div>
 				)}
+				<details className="text-muted-foreground text-xs">
+					<summary className="cursor-pointer">Show model numbers</summary>
+					<P className="mt-2 text-xs">
+						Commit tone {sentimentPct}% · code structure and history {complexityPct}% of
+						the factors' total push on the score
+					</P>
+				</details>
 			</CardContent>
 		</Card>
 	);
